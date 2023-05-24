@@ -48,6 +48,15 @@ table_all <- rbind(cbind(Layer = rep("SUR", nrow(table_sur)), table_sur),
                    cbind(Layer = rep("PL", nrow(table_pl)), table_pl)) %>%
   mutate(Layer = factor(Layer, levels = c("SUR", "SUB", "PL")))
 
+taxa_names <- table_all %>% select(Taxa, Freq) %>%
+  group_by(Taxa) %>%
+  summarise(sum = sum(Freq)) %>%
+  arrange(desc(sum)) %>%
+  pull(Taxa)
+
+table_all <- table_all %>%
+  mutate(Taxa = factor(Taxa, levels = taxa_names)) %>%
+  mutate(Category = factor(Category, levels = c('Carbon', 'Nitrogen', 'Sulfur', 'Others')))
 # Load packages and confirm format of table ---------------------------
 is_alluvia_form(as.data.frame(table_sur), axes = 1:3, silent = TRUE)
 is_alluvia_form(as.data.frame(table_sub), axes = 1:3, silent = TRUE)
@@ -59,6 +68,11 @@ all_color <- c("#d64e9e", "#6cd54c", "#dd49d1", "#c8dd41", "#a152dd", "#4d4040",
                "#5139c2", "#ceaa3b", "#7a3260", "#432d7c", "#c6d179", "#8f379a",
                "#70d68c", "#d9432f", "#6ad5be", "#d5416a", "#76c2d7", "#d87a71",
                "#6a75d5", "#836834", "#c988d1", "#598939")
+
+
+all_color <- c( "#FF7F00", "#B3DE69", "#1F78B4", "#FB8072", "#FDB462", "#80B1D3", "#BEBADA", "#c988d1", "#FCCDE5", "#A6CEE3",
+"#8DD3C7", "#B2DF8A", "#33A02C", "#FB9A99", "#FFFFB3", "#FDBF6F", "#E31A1C", "#d5416a", "#76c2d7", "#d87a71",
+"#6a75d5", "#836834", "#598939")
 alluvial.plot.all <- ggplot(as.data.frame(table_all),
                             aes(y = Freq, axis1= Layer, axis2= Taxa, 
                                 axis3 = Reaction, axis4 = Category)) +
@@ -128,3 +142,20 @@ pdf(file = plot.name, width = 11, height = 8.5, onefile=FALSE)
 alluvial.plot.pl
 dev.off()
 
+
+#
+remotes::install_github("davidsjoberg/ggsankey")
+library(ggsankey)
+df <- table_all %>%
+  +     make_long(Layer, Taxa, Reaction, Category)
+
+library(ggplot2)
+library(dplyr)
+ggplot(df, aes(x = x,
+               next_x = next_x,
+               node = node,
+               next_node = next_node,
+               fill = factor(node))) +
+  geom_sankey() +
+  theme_sankey(base_size = 16) +
+  theme(legend.position = "none")
