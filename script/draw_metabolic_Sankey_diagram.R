@@ -53,10 +53,16 @@ taxa_names <- table_all %>% select(Taxa, Freq) %>%
   summarise(sum = sum(Freq)) %>%
   arrange(desc(sum)) %>%
   pull(Taxa)
+reaction_orders <- c(sort(grep('C-', unique(table_all$Reaction), value = T), decreasing = F),
+                     sort(grep('N-', unique(table_all$Reaction), value = T), decreasing = F),
+                     sort(grep('S-S', unique(table_all$Reaction), value = T), decreasing = F),
+                     sort(grep('O-', unique(table_all$Reaction), value = T), decreasing = F))
 
 table_all <- table_all %>%
   mutate(Taxa = factor(Taxa, levels = taxa_names)) %>%
-  mutate(Category = factor(Category, levels = c('Carbon', 'Nitrogen', 'Sulfur', 'Others')))
+  mutate(Category = factor(Category, levels = c('Carbon', 'Nitrogen', 
+                                                'Sulfur', 'Others'))) %>%
+  mutate(Reaction = factor(Reaction, levels = reaction_orders))
 # Load packages and confirm format of table ---------------------------
 is_alluvia_form(as.data.frame(table_sur), axes = 1:3, silent = TRUE)
 is_alluvia_form(as.data.frame(table_sub), axes = 1:3, silent = TRUE)
@@ -68,7 +74,6 @@ all_color <- c("#d64e9e", "#6cd54c", "#dd49d1", "#c8dd41", "#a152dd", "#4d4040",
                "#5139c2", "#ceaa3b", "#7a3260", "#432d7c", "#c6d179", "#8f379a",
                "#70d68c", "#d9432f", "#6ad5be", "#d5416a", "#76c2d7", "#d87a71",
                "#6a75d5", "#836834", "#c988d1", "#598939")
-
 
 all_color <- c( "#FF7F00", "#B3DE69", "#1F78B4", "#FB8072", "#FDB462", "#80B1D3", "#BEBADA", "#c988d1", "#FCCDE5", "#A6CEE3",
 "#8DD3C7", "#B2DF8A", "#33A02C", "#FB9A99", "#FFFFB3", "#FDBF6F", "#E31A1C", "#d5416a", "#76c2d7", "#d87a71",
@@ -122,7 +127,7 @@ alluvial.plot.pl <- ggplot(as.data.frame(table_pl),
   theme_bw()
 
 # Save plot ---------------------------
-plot.name <- paste(sankey.plots.folder ,"/","sankey.all_1.plot.pdf", sep="")
+plot.name <- paste(sankey.plots.folder ,"/","sankey.all_2.plot.pdf", sep="")
 pdf(file = plot.name, width = 11, height = 8.5, onefile=FALSE)
 alluvial.plot.all
 dev.off()
