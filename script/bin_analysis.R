@@ -2,10 +2,6 @@
 setwd('e:/permafrost')
 wd_fun <- file.path(getwd(),"data/metagenome")
 save.dir <- file.path(getwd(),"result")
-# load data from TDbook, including tree_hmptree, 
-# df_tippoint (the abundance and types of microbes),
-# df_ring_heatmap (the abundance of microbes at different body sites),
-# and df_barplot_attr (the abundance of microbes of greatest prevalence)
 
 #loading packages
 library(phyloseq)
@@ -33,23 +29,6 @@ metabolic_tab <- read_excel(metabolic_output_file)
 
 dat1 <- tax_tab
 # count the number of MAGs of each Class
-dat1 %>% select(c("Class")) %>%
-  mutate(number = c(rep(1, nrow(dat1)))) %>%
-  group_by(Class) %>%
-  summarise(across(everything(), sum)) %>%
-  arrange(desc(number)) %>%
-  mutate(Class = gsub("c__", "", Class)) %>%
-  mutate(Class = factor(Class, levels = Class)) %>%
-  ggplot(aes(x = Class, y = number)) +
-  geom_bar(stat = "identity") +
-  scale_y_continuous(limits = c(0, 38), expand = c(0, 0)) +
-  theme_bw() +
-  theme(axis.text.x = element_text(colour = "black", angle = 90, vjust = 0.5, hjust=1),
-        axis.text.y = element_text(colour = "black"))
-  
-  
-  coord_polar()
-
 dat1 %>% select(c("Class")) %>%
   mutate(number = c(rep(1, nrow(dat1)))) %>%
   group_by(Class) %>%
@@ -161,10 +140,6 @@ dat4 %>% select(c(1, 2, 4)) %>%
   scale_y_continuous(limits = c(0, 250), expand = c(0, 0)) +
   theme_classic() +
   theme(legend.position = "none")
-  
-dat1 <- df_tippoint
-dat2 <- df_ring_heatmap
-dat3 <- df_barplot_attr
 
 # extract the clade label information. Because some nodes of tree are
 # annotated to genera, which can be displayed with high light using ggtree.

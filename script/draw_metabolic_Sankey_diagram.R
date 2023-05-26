@@ -128,7 +128,7 @@ alluvial.plot.pl <- ggplot(as.data.frame(table_pl),
 
 # Save plot ---------------------------
 plot.name <- paste(sankey.plots.folder ,"/","sankey.all_2.plot.pdf", sep="")
-pdf(file = plot.name, width = 11, height = 8.5, onefile=FALSE)
+pdf(file = plot.name, width = 11, height = 13, onefile=FALSE)
 alluvial.plot.all
 dev.off()
 

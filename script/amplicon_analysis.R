@@ -3,7 +3,7 @@
 library(phyloseq)
 library(picante)
 library(microbiome)
-library(tidyverse)
+library(tidyverse, quietly = TRUE, warn.conflicts = F)
 library(ggpubr)
 library(ggplot2)
 alpha_div <- estimate_richness(phylo_rare, measures = c("Observed", "Chao1", 'Shannon', 'Simpson'))
@@ -50,13 +50,13 @@ library(pairwiseAdonis)
 ## taxonomy
 ### PERMANOVA test
 tax_dist <- as.matrix(vegdist(t(otu), "bray" ))
-adonis2(tax_dist~layer, data = metadata)
+adonis2(tax_dist ~ Layer, data = metadata)
 set.seed(123)
-pairwise.adonis(tax_dist, metadata$layer)
+pairwise.adonis(tax_dist, metadata$Layer)
 ### PCoA plot with bray-curties as distance
 ord.tax <-  cmdscale(tax_dist,  k = 2, eig = T, add = T)
 round(ord.tax$eig*100/sum(ord.tax$eig),1)[c(1,2)]
-pcoa_tax_plot <- data.frame(Layers = metadata$layer, scores(ord.tax)) %>%
+pcoa_tax_plot <- data.frame(Layers = metadata$Layer, scores(ord.tax)) %>%
   mutate(Layers = factor(Layers, levels = c('SUR', 'SUB', 'PL'))) %>%
   ggplot(aes(x = Dim1, y = Dim2, shape = Layers, color = Layers)) + 
   geom_point(size = 1, alpha = 0.8) + 
@@ -74,7 +74,7 @@ pcoa_tax_plot <- data.frame(Layers = metadata$layer, scores(ord.tax)) %>%
 # ggsave(file.path(save.dir, "./figs/beta/PCoA_tax_bray.pdf"),
 #        pcoa_tax_plot, width = 89, height = 59, units = "mm")
 ### difference in taxonomic variance among layers
-beta_tax_plot <- sapply(unique(metadata$layer), function(x) usedist::dist_subset(tax_dist, grep(x, metadata$sample_id, value = T))) %>%
+beta_tax_plot <- sapply(unique(metadata$Layer), function(x) usedist::dist_subset(tax_dist, grep(x, metadata$sample_id, value = T))) %>%
   data.frame() %>% gather("Layers", "distance") %>%
   mutate(Layers = factor(Layers, levels = c('SUR', 'SUB', 'PL'))) %>%
   ggplot(aes(x = Layers, y = distance)) + 
@@ -96,13 +96,13 @@ beta_tax_plot <- sapply(unique(metadata$layer), function(x) usedist::dist_subset
 ## phylogeny
 ### PERMANOVA test
 phy_dist <- as.matrix(UniFrac(phylo, weighted = TRUE, normalized = TRUE, parallel = T, fast = TRUE))
-adonis2(phy_dist~layer, data = metadata)
+adonis2(phy_dist ~ Layer, data = metadata)
 set.seed(123)
-pairwise.adonis(phy_dist, metadata$layer)
+pairwise.adonis(phy_dist, metadata$Layer)
 ### PCoA plot with unweighted UniFrac as distance
 ord.phy <- ordinate(phylo, method = "PCoA", distance = "unifrac", weighted = TRUE)
-PCoA_phy_plot <- plot_ordination(phylo, ord.phy, color = "layer") + theme(aspect.ratio=1)
-PCoA_unifrac_plot <- data.frame(Layers = metadata$layer, ord.phy$vectors[, 1:2]) %>%
+PCoA_phy_plot <- plot_ordination(phylo, ord.phy, color = "layer") + theme(aspect.ratio = 1)
+PCoA_unifrac_plot <- data.frame(Layers = metadata$Layer, ord.phy$vectors[, 1:2]) %>%
   mutate(Layers = factor(Layers, levels = c('SUR', 'SUB', 'PL'))) %>%
   ggplot(aes(x = Axis.1, y = Axis.2, shape = Layers, color = Layers)) + 
   geom_point(size = 1, alpha = 0.8) + 
@@ -122,14 +122,17 @@ PCoA_unifrac_plot <- data.frame(Layers = metadata$layer, ord.phy$vectors[, 1:2])
 ### determine the betaMNTD
 #### Method 1
 require(picante)
-beta.mntd.weighted <- as.matrix(comdistnt(otu), cophenetic(tree), abundance.weighted = T)
+beta.mntd.weighted <- as.matrix(comdistnt(t(data.frame(otu)), cophenetic(tree), abundance.weighted = T))
 
 #### Method 2 (time efficiency)
+library(doParallel)  
+cores <- detectCores() - 2  
+
 p.dist.mat <- cophenetic(tree)
 get.presents <- function(x) {
   names(x[x > 0])
 }
-list.of.names <- apply(otu, 1, get.presents)
+list.of.names <- apply(otu, 2, get.presents)
 Dnn.apply.funtion <- function(x) {
   tmp.function <- function(z) {
     mean(c(apply(p.dist.mat[x, z], MARGIN = 1, min, na.rm = T), 
@@ -137,12 +140,12 @@ Dnn.apply.funtion <- function(x) {
   }
   lapply(list.of.names, FUN = tmp.function)
 }
-do.call(cbind, lapply(list.of.names, Dnn.apply.funtion))
+beta.mntd.weighted <- do.call(cbind, lapply(list.of.names, Dnn.apply.funtion))
 
 beta.mntd.weighted <- read.table(file.path(save.dir, './tables/beta.mntd.weighted.txt'),
                                  header = T, row.names = 1)
 ### difference in MNTD among layers
-beta_MNTD_plot <- sapply(unique(metadata$layer), function(x) usedist::dist_subset(beta.mntd.weighted, grep(x, metadata$sample_id, value = T))) %>%
+beta_MNTD_plot <- sapply(unique(metadata$Layer), function(x) usedist::dist_subset(beta.mntd.weighted, grep(x, metadata$sample_id, value = T))) %>%
   data.frame() %>% gather("Layers", "distance") %>%
   mutate(Layers = factor(Layers, levels = c('SUR', 'SUB', 'PL'))) %>%
   ggplot(aes(x = Layers, y = distance)) + 
@@ -165,14 +168,14 @@ beta_MNTD_plot <- sapply(unique(metadata$layer), function(x) usedist::dist_subse
 ## functional analysis
 ### PERMANOVA test
 fun_dist <- as.matrix(vegdist(t(ko_tpm_table), "bray" ))
-adonis2(fun_dist~layer, data = metadata)
+adonis2(fun_dist ~ Layer, data = metadata)
 set.seed(123)
-pairwise.adonis(fun_dist, metadata$layer)
+pairwise.adonis(fun_dist, metadata$Layer)
 ### PCoA plot
 ord.fun <-  cmdscale(fun_dist,  k = 2, eig = T, add = T)
 round(ord.fun$eig*100/sum(ord.fun$eig),1)[c(1,2)]
 library(ggplot2)
-pcoa_fun_plot <- data.frame(Layers = metadata$layer, scores(ord.fun)) %>%
+pcoa_fun_plot <- data.frame(Layers = metadata$Layer, scores(ord.fun)) %>%
   mutate(Layers = factor(Layers, levels = c('SUR', 'SUB', 'PL'))) %>%
   ggplot(aes(x = Dim1, y = Dim2, shape = Layers, color = Layers)) + 
   geom_point(size = 1.5, alpha = 0.8) + 
@@ -190,7 +193,7 @@ pcoa_fun_plot <- data.frame(Layers = metadata$layer, scores(ord.fun)) %>%
 # ggsave(file.path(save.dir, "./figs/beta/PCoA_fun_bray.pdf"),
 #        pcoa_fun_plot, width = 89, height = 59, units = "mm")
 ### difference in functional variance among layers
-beta_fun_plot <- sapply(unique(metadata$layer), function(x) usedist::dist_subset(fun_dist, grep(x, metadata$sample_id, value = T))) %>%
+beta_fun_plot <- sapply(unique(metadata$Layer), function(x) usedist::dist_subset(fun_dist, grep(x, metadata$sample_id, value = T))) %>%
   data.frame() %>% gather("Layers", "distance") %>%
   mutate(Layers = factor(Layers, levels = c('SUR', 'SUB', 'PL'))) %>%
   ggplot(aes(x = Layers, y = distance)) + 
@@ -210,11 +213,11 @@ beta_fun_plot <- sapply(unique(metadata$layer), function(x) usedist::dist_subset
 #        beta_fun_plot, width = 89, height = 89, units = "mm")
 
 # couple or decouple effect between taxonomic, phylogenetic and functional profile
-pcoa1_tax <- data.frame(Layers = metadata$layer, scores(ord.tax)) %>%
+pcoa1_tax <- data.frame(Layers = metadata$Layer, scores(ord.tax)) %>%
   mutate(Layers = factor(Layers, levels = c('SUR', 'SUB', 'PL')))
-pcoa1_phy <- data.frame(Layers = metadata$layer, ord.phy$vectors[, 1:2]) %>%
+pcoa1_phy <- data.frame(Layers = metadata$Layer, ord.phy$vectors[, 1:2]) %>%
   mutate(Layers = factor(Layers, levels = c('SUR', 'SUB', 'PL')))
-pcoa1_fun <- data.frame(Layers = metadata$layer, scores(ord.fun)) %>%
+pcoa1_fun <- data.frame(Layers = metadata$Layer, scores(ord.fun)) %>%
   mutate(Layers = factor(Layers, levels = c('SUR', 'SUB', 'PL')))
 
 pcoa1_dat <- data.frame(pcoa1_tax[, 1:2], pcoa1_phy[,2], pcoa1_fun[,2])
@@ -240,13 +243,13 @@ p_linear <- ggplot(pcoa1_dat, aes(x = Taxnomic_PCoA1, y = Functional_PCoA1, fill
         strip.text = element_text(size = 6))
 p_linear
 
-dist_tax <- sapply(unique(metadata$layer), function(x) usedist::dist_subset(tax_dist, grep(x, metadata$sample_id, value = T))) %>%
+dist_tax <- sapply(unique(metadata$Layer), function(x) usedist::dist_subset(tax_dist, grep(x, metadata$sample_id, value = T))) %>%
   data.frame() %>% gather("Layers", "distance") %>%
   mutate(Layers = factor(Layers, levels = c('SUR', 'SUB', 'PL')))
-dist_phy <- sapply(unique(metadata$layer), function(x) usedist::dist_subset(beta.mntd.weighted, grep(x, metadata$sample_id, value = T))) %>%
+dist_phy <- sapply(unique(metadata$Layer), function(x) usedist::dist_subset(beta.mntd.weighted, grep(x, metadata$sample_id, value = T))) %>%
   data.frame() %>% gather("Layers", "distance") %>%
   mutate(Layers = factor(Layers, levels = c('SUR', 'SUB', 'PL')))
-dist_fun <- sapply(unique(metadata$layer), function(x) usedist::dist_subset(fun_dist, grep(x, metadata$sample_id, value = T))) %>%
+dist_fun <- sapply(unique(metadata$Layer), function(x) usedist::dist_subset(fun_dist, grep(x, metadata$sample_id, value = T))) %>%
   data.frame() %>% gather("Layers", "distance") %>%
   mutate(Layers = factor(Layers, levels = c('SUR', 'SUB', 'PL')))
 
@@ -270,7 +273,7 @@ p_linear <- ggplot(dist_dat, aes(x = Phylogenetic_distance, y = Functional_dista
 
 ##################################################
 # composition
-## determine the Order compositions within top 10 phylums
+## determine the compositions within top 10 phylums
 subphylo <- tax_glom(phylo, 'Phylum')
 subphylo.rel  = transform_sample_counts(subphylo, function(x) x / sum(x) )
 ntaxa(subphylo.rel)
@@ -423,11 +426,11 @@ venn_plot <- venn.diagram(
   cat.col = 'black',
   rotation = 1
 )
-# grid::grid.draw(venn_plot)
-grid.newpage()
-pdf(file= file.path(save.dir, "OTU_Group_venn.pdf"), height = 3, width = 3)
-grid.draw(venn_plot)
-dev.off()
+grid::grid.draw(venn_plot)
+# grid.newpage()
+# pdf(file= file.path(save.dir, "OTU_Group_venn.pdf"), height = 3, width = 3)
+# grid.draw(venn_plot)
+# dev.off()
 
 plt <- venn.diagram(
   filename = NULL,
