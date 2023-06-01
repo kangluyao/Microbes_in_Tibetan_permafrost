@@ -13,23 +13,21 @@ library(ggpubr)
 library(ggplot2)
 wd_fun <- file.path(getwd(),"data/metagenome/")
 
-tree.file <- file.path(wd_fun, 'binning_70/result/gtdb_tree/bacteria/tax.unrooted.tree')
+# tree.file <- file.path(wd_fun, 'binning_70/result/gtdb_tree/bacteria/tax.unrooted.tree')
 abundance_tab.file <- file.path(wd_fun, "binning_70/result/bin_abundance_table.tab")
 tax.file <- file.path(wd_fun, "binning_70/result/tax.txt")
-bin_fun_file <- file.path(wd_fun, "metabolic/METABOLIC_70/metabolic_heatmap.csv")
-metabolic_output_file <- file.path(wd_fun, "metabolic/METABOLIC_70/METABOLIC_result.xlsx")
+# bin_fun_file <- file.path(wd_fun, "metabolic/METABOLIC_70/metabolic_heatmap.csv")
+metabolic_output_file <- file.path(wd_fun, "/metabolic/METABOLIC_70_layer/METABOLIC_70_all/metabolic.csv")
 
 tree <- read.tree(tree.file)
 abundance_tab <- read_delim(abundance_tab.file, col_names = T)
 colnames(abundance_tab)[1] <- 'ID'
 tax_tab <- read_delim(tax.file, col_names = T)
-bin_fun_tab <- read_delim(bin_fun_file, col_names = T)
-metabolic_tab <- read_excel(metabolic_output_file)
+metabolic_tab <- read.csv(metabolic_output_file) %>%
+  select(c('Category', 'Function', grep('Function.presence', colnames(.))))
 
-
-dat1 <- tax_tab
 # count the number of MAGs of each Class
-dat1 %>% select(c("Class")) %>%
+tax_tab %>% select(c("Class")) %>%
   mutate(number = c(rep(1, nrow(dat1)))) %>%
   group_by(Class) %>%
   summarise(across(everything(), sum)) %>%
@@ -66,68 +64,76 @@ dat2 <- abundance_tab %>%
   pivot_longer(cols = -c(ID), names_to = "Layers", values_to = 'rel_abun') %>%
   mutate(Layers = factor(Layers, levels = c('SUR', 'SUB', 'PL')))
 # write the table for itol annotation
-write.csv(dat2, "E:/permafrost/data/metagenome/binning_70/result/itol_70/DIY_manual/abundance_annotation.csv")
-##metabolic fun heatmap
-dat3 <- bin_fun_tab %>% select(-c(1, 3, 4)) %>%
-  group_by(Function_final) %>% 
-  summarise(across(everything(), sum)) %>%
-  filter(Function_final %in% c("Aromatics degradation", "Cellulose degrading", "Hemicullulose debranching",
-                               "Endohemicellulases", "Other oligosaccharide degrading", "Amylolytic enzymes",
-                               "Chitin degrading", "Methane oxidation - Partculate methane monooxygenase",
-                               "Methane oxidation - Soluble methane monoxygenase", "Methane production")) %>%
-  pivot_longer(cols = -c(Function_final), names_to = "ID", values_to = 'presence_or_absent') %>%
-  mutate(presence_or_absent = ifelse(presence_or_absent >= 1, 1, 0))
+write.csv(dat2, "E:/permafrost/data/metagenome/metabolic/METABOLIC_70_layer/METABOLIC_70_all/itol_DIY_manual/abundance_annotation.csv")
 
-dat4 <- metabolic_tab %>% 
-  select(c('Category', 'Function', grep('Hmm.presence', colnames(metabolic_tab)))) %>%
-  filter(Category %in% c('Ethanol fermentation', 'Fatty acid degradation', 'Aromatics degradation',
-                         'Complex carbon degradation', 'Fermentation', 'Methane metabolism', 
-                         'Nitrogen cycling', 'Sulfur cycling', 'Hydrogenases', 'As cycling',
-                         'Selenate reduction', 'Iron cycling', 'Manganese cycling')) %>% 
-  mutate(across(starts_with("s_"), ~ifelse(. == "Present", 1, 0))) %>%
-  group_by(Category, Function) %>% 
-  summarise(across(everything(), sum)) %>%
-  filter(rowSums(across(where(is.numeric)))!=0) %>% 
-  pivot_longer(cols = -c(Category, Function), names_to = "ID", values_to = 'presence_or_absent') %>%
-  mutate(ID = gsub(".Hmm.presence", "", ID)) %>%
-  mutate(presence_or_absent = ifelse(presence_or_absent >= 1, 1, 0))
-
-# write the table for itol annotation
-write.csv(dat4, "E:/permafrost/data/metagenome/binning_70/result/itol_70/DIY_manual/annotation.csv")
-
-# count the number of MAGs of each metabolic parhway (Carbon & Nitrigen)
-C_N_metapathway <- c("Amylolytic enzymes", "Cellulose degrading", "Endohemicellulases",  
-                     "Chitin degrading", "Phenol => Benzoyl-CoA", "Fatty acid degradation",
+#metabolic functional MAGs
+C_N_metapathway <- c("Amylolytic enzymes", "Cellulose degrading", "Endohemicellulases",
+                     "Hemicullulose debranching", "Chitin degrading", 
+                     "Phenol => Benzoyl-CoA", "acyl-CoA dehydrogenase",
+                     "Other oligosaccharide degrading",
+                     "Acetogenesis", "Lactate utilization", "Pyruvate oxidation",  
+                     "Pyruvate <=> acetyl-CoA + formate", "Alcohol utilization",
+                     "Acetate to acetyl-CoA", "Methane production",
                      "Methane oxidation - Partculate methane monooxygenase",
                      "Methane oxidation - Soluble methane monoxygenase", 
                      "Ammonia oxidation", "Nitrate reduction", "Nitric oxide reduction",
                      "Nitrite oxidation", "Nitrite reduction to ammonia", "Nitrite reduction",
                      "Nitrous oxide reduction", "N2 fixation")
 
-other_metapathway <- c("Acetogenesis", "Lactate utilization", "Pyruvate oxidation",  
-                       "Pyruvate <=> acetyl-CoA + formate", "Acetate to acetyl-CoA", 
-                       "Sulfate reduction", "Sulfide oxidation", "Sulfite reduction",
-                       "Sulfur oxidation", "Thiosulfate disproportionation", 
+other_metapathway <- c("Sulfate reduction", "Sulfide oxidation", "Sulfite reduction",
+                       "Sulfur oxidation", "Sulfur reduction", "Thiosulfate disproportionation", 
                        "Thiosulfate oxidation", "Iron oxidation", "Iron reduction",
-                       "Metal (Iron/Manganese) reduction", "Arsenate reduction for detoxification",
-                       "Arsenite methylation", "Arsenite oxidation for detoxification and energy metabolism",
-                       "Dissimilatory arsenate reduction", "FeFe hydrogenase", "Ni-Fe Hydrogenase",
-                       "Manganese oxidation", "Selenate reduction")
-
-dat4 %>% select(c(1, 2, 4)) %>%
+                       "Arsenite oxidation", "Arsenate reduction", "Selenate reduction", 
+                       "FeFe hydrogenase", "Ni-Fe Hydrogenase")
+dat3 <- metabolic_tab %>% 
+  filter(Function %in% c(C_N_metapathway, other_metapathway)) %>% 
+  mutate(across(starts_with("s_"), ~ifelse(. == "Present", 1, 0))) %>%
   group_by(Category, Function) %>% 
   summarise(across(everything(), sum)) %>%
-  filter(Function %in% C_N_metapathway) %>% 
-  mutate(Function = factor(Function, levels = C_N_metapathway)) %>%
+  filter(rowSums(across(where(is.numeric)))!=0) %>% 
+  pivot_longer(cols = -c(Category, Function), names_to = "ID", values_to = 'presence_or_absent') %>%
+  mutate(ID = gsub(".Function.presence", "", ID))
+
+# write the table for itol annotation
+write.csv(dat3, "E:/permafrost/data/metagenome/metabolic/METABOLIC_70_layer/METABOLIC_70_all/itol_DIY_manual/annotation.csv")
+
+# count the number of MAGs of each metabolic parhway (Carbon & Nitrigen)
+my_colors <- c("#e4d00a", "#FB8072", "#FDB462", "#80B1D3", "#BEBADA", "#B3DE69", "#FCCDE5", "#A6CEE3",
+               "#8DD3C7", "#B2DF8A", "#33A02C", "#FB9A99", "#E31A1C", "#893f45", "#FF7F00", "#1F78B4",
+               "#6A3D9A", "#b31b1b", "#5d3954", "#008b8b", "#8b008b", "#e75480", "#872657", "#8fbc8f",
+               "#00bfff", "#d71868", "#ffff00", "#c08081", "#cc6666", "#e49b0f", "#c90016", "#355e3b",
+               "#29ab87", "#9457eb", "#f56991", "#32cd32", "#035096", "#bb3385")
+               
+set.seed(1234)  # Set seed
+my_colors <- sample(my_colors) # Sample vector            
+my_colors
+
+
+values = c("#6A3D9A", "#FCCDE5", "#1F78B4", "#A6CEE3", "#B3DE69", "#E69F00", "#56B4E9", "#009E73",
+           "#F0E442", "#0072B2", "#D55E00", "#FB9A99", "#E31A1C", "#FDBF6F", "#8DD3C7", "#FFFFB3", 
+           "#BEBADA", "#FB8072", "#B2DF8A", "#33A02C", "#FF7F00", "#000000")
+
+values = c("#FFFFB3", "#FB8072", "#FDB462", "#80B1D3", "#BEBADA", "#B3DE69", "#FCCDE5", "#A6CEE3",
+           "#8DD3C7", "#B2DF8A", "#33A02C", "#FB9A99", "#E31A1C", "#FDBF6F", "#FF7F00", "#1F78B4",
+           "#6A3D9A", "#FCCDE5", "#1F78B4", "#A6CEE3", "#B3DE69", "#E69F00", "#56B4E9", "#009E73")
+
+dat3 %>% select(c(1, 2, 4)) %>%
+  group_by(Category, Function) %>% 
+  summarise(across(everything(), sum)) %>%
+  filter(Function %in% c(C_N_metapathway, other_metapathway)) %>% 
+  mutate(Function = factor(Function, levels = c(C_N_metapathway, other_metapathway))) %>%
   ggplot(aes(x = Function, y = presence_or_absent, fill = Function)) +
   geom_bar(stat = "identity") +
-  scale_fill_manual(values = c("#FFFFB3", "#FB8072", "#FDB462", "#80B1D3", "#BEBADA", "#B3DE69", "#FCCDE5", "#A6CEE3",
-                               "#8DD3C7", "#B2DF8A", "#33A02C", "#FB9A99", "#E31A1C", "#FDBF6F", "#FF7F00", "#1F78B4")) +
-  scale_y_continuous(limits = c(0, 200), expand = c(0, 0)) +
-  theme_classic()
+  scale_fill_manual(values = my_colors) +
+  scale_y_continuous(limits = c(0, 300), expand = c(0, 0)) +
+  theme_classic() +
+  theme(axis.text = element_text(colour = 'black'),
+        legend.key.size = unit(1.1, "line")) +
+  guides(fill = guide_legend(ncol = 1, reverse = TRUE)) +
+  coord_flip()
 
-# count the number of MAGs of each metabolic parhway (others)
-dat4 %>% select(c(1, 2, 4)) %>%
+# count the number of MAGs of each metabolic pathway (others)
+dat3 %>% select(c(1, 2, 4)) %>%
   group_by(Category, Function) %>% 
   summarise(across(everything(), sum)) %>%
   filter(Function %in% other_metapathway) %>% 
@@ -137,9 +143,16 @@ dat4 %>% select(c(1, 2, 4)) %>%
   scale_fill_manual(values = c("#6A3D9A", "#FCCDE5", "#1F78B4", "#A6CEE3", "#B3DE69", "#E69F00", "#56B4E9", "#009E73",
                                "#F0E442", "#0072B2", "#D55E00", "#FB9A99", "#E31A1C", "#FDBF6F", "#8DD3C7", "#FFFFB3", 
                                "#BEBADA", "#FB8072", "#B2DF8A", "#33A02C", "#FF7F00", "#000000")) +
-  scale_y_continuous(limits = c(0, 250), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0, 300), expand = c(0, 0)) +
   theme_classic() +
-  theme(legend.position = "none")
+  theme(axis.text.y = element_text(colour = 'black'),
+        axis.text.x = element_text(angle = 45, hjust = 1, colour = 'black')) +
+  guides(fill = guide_legend(ncol = 1))
+
+
+
+
+
 
 # extract the clade label information. Because some nodes of tree are
 # annotated to genera, which can be displayed with high light using ggtree.
