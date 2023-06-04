@@ -16,7 +16,6 @@ library(ggalluvial)
 library(ggthemes)
 
 # Load the energy flow diagram input ---------------------------
-sankey.plots.folder <- file.path(wd_fun, "metabolic/results/sankey")
 table_sur <- read.table(sur_input_table, header = F, sep = "\t")
 colnames(table_sur) <- c("Taxa", "Reaction", "Freq")
 table_sub <- read.table(sub_input_table, header = F, sep = "\t")
@@ -63,6 +62,30 @@ table_all <- table_all %>%
   mutate(Category = factor(Category, levels = c('Carbon', 'Nitrogen', 
                                                 'Sulfur', 'Others'))) %>%
   mutate(Reaction = factor(Reaction, levels = reaction_orders))
+
+
+#we first use the Networkd3 package to plot the sankey plot
+write.csv(table_all, file = "C:/Users/dell/Desktop/sankey.csv")
+#prepare the sankey.csv file
+Sankey <- read.csv("C:/Users/dell/Desktop/sankey.csv", header=T, stringsAsFactors=FALSE, check.names = FALSE)
+Sankeylinks <- Sankey
+Sankeynodes <- data.frame(name = unique(c(Sankeylinks$Source, Sankeylinks$Target)), stringsAsFactors = FALSE)
+Sankeynodes$index <- 0:(nrow(Sankeynodes) - 1)
+Sankeylinks <- merge(Sankeylinks, Sankeynodes, by.x = "Source", by.y = "name")
+Sankeylinks <- merge(Sankeylinks, Sankeynodes, by.x = "Target", by.y = "name")
+
+Sankeydata <- Sankeylinks[, c(4, 5, 3)]
+names(Sankeydata) <- c("Source", "Target", "Value")
+Sankeyname <- Sankeynodes[, 1, drop = FALSE]
+
+#sankey plot with Networkd3 package
+library(networkD3)
+sankeyNetwork(Links = Sankeydata, Nodes = Sankeyname, Source = "Source", Target = "Target", Value = "Value", NodeID = "name", units = "TWh",
+              fontSize = 12, nodeWidth = 30)
+
+
+
+
 # Load packages and confirm format of table ---------------------------
 is_alluvia_form(as.data.frame(table_sur), axes = 1:3, silent = TRUE)
 is_alluvia_form(as.data.frame(table_sub), axes = 1:3, silent = TRUE)
