@@ -160,16 +160,12 @@ p <- sankeyNetwork(Links = links, Nodes = nodes, Source = "IDsource", Target = "
 #save the widget
 library(htmlwidgets)
 saveWidget(p, file = paste0(sankey.plots.folder, "/sankey_plot.html"))
-library(pagedown)
 library(webshot)
 #install phantom:
-webshot::install_phantomjs()
+# webshot::install_phantomjs()
 # Make a webshot in pdf : high quality but can not choose printed zone
 webshot(paste0(sankey.plots.folder, "/sankey_plot.html"), 
-        paste0(sankey.plots.folder, "/sankey_plot11.svg"), delay = 0.2)
-
-chrome_print(paste0(sankey.plots.folder, "/sankey_plot.html"), 
-             output = paste0(sankey.plots.folder, "/sankey_plot.pdf"))
+        paste0(sankey.plots.folder, "/sankey_plot11.pdf"), delay = 0.2)
 
 # plot using 
 # Load packages and confirm format of table ---------------------------
