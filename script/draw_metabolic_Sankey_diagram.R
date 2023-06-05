@@ -148,13 +148,14 @@ my_color <- 'd3.scaleOrdinal() .domain(["a", "b", "c", "d", "e", "f",
 "#1F78B4", "#FB8072", "#FDB462", "#80B1D3", "#BEBADA", "#c988d1", "#FCCDE5", "#A6CEE3",
 "#8DD3C7", "#B2DF8A", "#33A02C", "#FB9A99", "#FFFFB3", "#FDBF6F", "#E31A1C", "#d5416a", 
 "#76c2d7", "#d87a71","#6a75d5", "#76c2d7", "#d87a71", "#6a75d5", "#836834", 
-"#848482"])'
+"grey"])'
 
 # Make the Network. I call my colour scale with the colourScale argument
 p <- sankeyNetwork(Links = links, Nodes = nodes, Source = "IDsource", Target = "IDtarget", 
                    Value = "value", NodeID = "name", colourScale = my_color, 
                    LinkGroup="group", iterations = 0, fontFamily = 'Arial', fontSize = 10, 
-                   nodeWidth = 20, height = 500, width = 750)
+                   nodeWidth = 20, nodePadding = 10, height = 800, width = 750,
+                   sinksRight = F)
 
 #save the widget
 library(htmlwidgets)
@@ -165,7 +166,7 @@ library(webshot)
 webshot::install_phantomjs()
 # Make a webshot in pdf : high quality but can not choose printed zone
 webshot(paste0(sankey.plots.folder, "/sankey_plot.html"), 
-        paste0(sankey.plots.folder, "/sankey_plot11.pdf"), delay = 0.2)
+        paste0(sankey.plots.folder, "/sankey_plot11.svg"), delay = 0.2)
 
 chrome_print(paste0(sankey.plots.folder, "/sankey_plot.html"), 
              output = paste0(sankey.plots.folder, "/sankey_plot.pdf"))
