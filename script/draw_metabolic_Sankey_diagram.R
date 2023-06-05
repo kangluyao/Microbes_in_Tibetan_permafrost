@@ -12,8 +12,8 @@ pl_input_table <- file.path(wd_fun, "metabolic/METABOLIC_70_layer/METABOLIC_70_p
 
 
 # Load packages ---------------------------
-library(ggalluvial)
 library(ggthemes)
+library(networkD3)
 
 # Load the energy flow diagram input ---------------------------
 table_sur <- read.table(sur_input_table, header = F, sep = "\t")
@@ -63,29 +63,114 @@ table_all <- table_all %>%
                                                 'Sulfur', 'Others'))) %>%
   mutate(Reaction = factor(Reaction, levels = reaction_orders))
 
+library(data.table) #data.table_1.9.5
+sankey <- rbindlist(list(table_all[c("Layer", "Taxa", "Freq")],
+                         table_all[c("Taxa", "Reaction", "Freq")]))
+names(sankey) <- c('source', 'target', 'value')
 
-#we first use the Networkd3 package to plot the sankey plot
-write.csv(table_all, file = "C:/Users/dell/Desktop/sankey.csv")
-#prepare the sankey.csv file
-Sankey <- read.csv("C:/Users/dell/Desktop/sankey.csv", header=T, stringsAsFactors=FALSE, check.names = FALSE)
-Sankeylinks <- Sankey
-Sankeynodes <- data.frame(name = unique(c(Sankeylinks$Source, Sankeylinks$Target)), stringsAsFactors = FALSE)
-Sankeynodes$index <- 0:(nrow(Sankeynodes) - 1)
-Sankeylinks <- merge(Sankeylinks, Sankeynodes, by.x = "Source", by.y = "name")
-Sankeylinks <- merge(Sankeylinks, Sankeynodes, by.x = "Target", by.y = "name")
+# Make a connection data frame
+links <- sankey 
+# From these flows we need to create a node data frame: it lists every entities involved in the flow
+nodes <- data.frame(
+  name = c(as.character(links$source), as.character(links$target)) %>% 
+    unique()
+)
+nodes <- data.frame(
+  name = c("SUR", "SUB", "PL", taxa_names,
+           sort(grep('C-', unique(table_all$Reaction), value = T), decreasing = F),
+           sort(grep('N-', unique(table_all$Reaction), value = T), decreasing = F),
+           sort(grep('S-S', unique(table_all$Reaction), value = T), decreasing = F),
+           sort(grep('O-', unique(table_all$Reaction), value = T), decreasing = F))
+)
+# With networkD3, connection must be provided using id, not using real name like in the links dataframe.. So we need to reformat it.
+links$IDsource <- match(links$source, nodes$name)-1 
+links$IDtarget <- match(links$target, nodes$name)-1
 
-Sankeydata <- Sankeylinks[, c(4, 5, 3)]
-names(Sankeydata) <- c("Source", "Target", "Value")
-Sankeyname <- Sankeynodes[, 1, drop = FALSE]
+# Set color of connections
+# Add a 'group' column to each connection:
+ass_link_col_fun <- function(df) {
+  if (df["source"] == taxa_names[1] | df["target"] == taxa_names[1]) {
+    group = 'a'
+  } else if (df["source"] == taxa_names[2] | df["target"] == taxa_names[2]) {
+    group = 'b'
+  } else if (df["source"] == taxa_names[3] | df["target"] == taxa_names[3]) {
+    group = 'c'
+  } else if (df["source"] == taxa_names[4] | df["target"] == taxa_names[4]) {
+    group = 'd'
+  } else if (df["source"] == taxa_names[5] | df["target"] == taxa_names[5]) {
+    group = 'e'
+  } else if (df["source"] == taxa_names[6] | df["target"] == taxa_names[6]) {
+    group = 'f'
+  } else if (df["source"] == taxa_names[7] | df["target"] == taxa_names[7]) {
+    group = 'g'
+  } else if (df["source"] == taxa_names[8] | df["target"] == taxa_names[8]) {
+    group = 'h'
+  } else if (df["source"] == taxa_names[9] | df["target"] == taxa_names[9]) {
+    group = 'i'
+  } else if (df["source"] == taxa_names[10] | df["target"] == taxa_names[10]) {
+    group = 'j'
+  } else if (df["source"] == taxa_names[11] | df["target"] == taxa_names[11]) {
+    group = 'k'
+  } else if (df["source"] == taxa_names[12] | df["target"] == taxa_names[12]) {
+    group = 'l'
+  } else if (df["source"] == taxa_names[13] | df["target"] == taxa_names[13]) {
+    group = 'm'
+  } else if (df["source"] == taxa_names[14] | df["target"] == taxa_names[14]) {
+    group = 'n'
+  } else if (df["source"] == taxa_names[15] | df["target"] == taxa_names[15]) {
+    group = 'o'
+  } else if (df["source"] == taxa_names[16] | df["target"] == taxa_names[16]) {
+    group = 'p'
+  } else if (df["source"] == taxa_names[17] | df["target"] == taxa_names[17]) {
+    group = 'q'
+  } else if (df["source"] == taxa_names[18] | df["target"] == taxa_names[18]) {
+    group = 'r'
+  } else if (df["source"] == taxa_names[19] | df["target"] == taxa_names[19]) {
+    group = 's'
+  } else if (df["source"] == taxa_names[20] | df["target"] == taxa_names[20]) {
+    group = 't'
+  } else if (df["source"] == taxa_names[21] | df["target"] == taxa_names[21]) {
+    group = 'u'
+  } else if (df["source"] == taxa_names[21] | df["target"] == taxa_names[21]) {
+    group = 'u'
+  }
+  return(group)
+}
+links$group <- apply(links, 1, ass_link_col_fun)
 
-#sankey plot with Networkd3 package
-library(networkD3)
-sankeyNetwork(Links = Sankeydata, Nodes = Sankeyname, Source = "Source", Target = "Target", Value = "Value", NodeID = "name", units = "TWh",
-              fontSize = 12, nodeWidth = 30)
+# Add a 'group' column to each node. Here I decide to put all of them in the same group to make them grey
+nodes$group <- as.factor(c("my_unique_group"))
 
+# Give a color for each group
+my_color <- 'd3.scaleOrdinal() .domain(["a", "b", "c", "d", "e", "f", 
+"g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", 
+"Carbon", "Nitrogen", "Sulfur", "Others", "my_unique_group"]) .range(["#FF7F00", "#B3DE69", 
+"#1F78B4", "#FB8072", "#FDB462", "#80B1D3", "#BEBADA", "#c988d1", "#FCCDE5", "#A6CEE3",
+"#8DD3C7", "#B2DF8A", "#33A02C", "#FB9A99", "#FFFFB3", "#FDBF6F", "#E31A1C", "#d5416a", 
+"#76c2d7", "#d87a71","#6a75d5", "#76c2d7", "#d87a71", "#6a75d5", "#836834", 
+"#848482"])'
 
+# Make the Network. I call my colour scale with the colourScale argument
+p <- sankeyNetwork(Links = links, Nodes = nodes, Source = "IDsource", Target = "IDtarget", 
+                   Value = "value", NodeID = "name", colourScale = my_color, 
+                   LinkGroup="group", iterations = 0, fontFamily = 'Arial', fontSize = 10, 
+                   nodeWidth = 20, height = 500, width = 750)
 
+#save the widget
+library(htmlwidgets)
+saveWidget(p, file = paste0(sankey.plots.folder, "/sankey_plot.html"))
+library(pagedown)
+library(webshot)
+#install phantom:
+webshot::install_phantomjs()
+# Make a webshot in pdf : high quality but can not choose printed zone
+webshot(paste0(sankey.plots.folder, "/sankey_plot.html"), 
+        paste0(sankey.plots.folder, "/sankey_plot11.pdf"), delay = 0.2)
 
+chrome_print(paste0(sankey.plots.folder, "/sankey_plot.html"), 
+             output = paste0(sankey.plots.folder, "/sankey_plot.pdf"))
+
+# plot using 
 # Load packages and confirm format of table ---------------------------
 is_alluvia_form(as.data.frame(table_sur), axes = 1:3, silent = TRUE)
 is_alluvia_form(as.data.frame(table_sub), axes = 1:3, silent = TRUE)
@@ -170,20 +255,3 @@ pdf(file = plot.name, width = 11, height = 8.5, onefile=FALSE)
 alluvial.plot.pl
 dev.off()
 
-
-#
-remotes::install_github("davidsjoberg/ggsankey")
-library(ggsankey)
-df <- table_all %>%
-  +     make_long(Layer, Taxa, Reaction, Category)
-
-library(ggplot2)
-library(dplyr)
-ggplot(df, aes(x = x,
-               next_x = next_x,
-               node = node,
-               next_node = next_node,
-               fill = factor(node))) +
-  geom_sankey() +
-  theme_sankey(base_size = 16) +
-  theme(legend.position = "none")
