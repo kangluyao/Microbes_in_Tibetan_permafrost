@@ -1,0 +1,192 @@
+---
+title: "amplicon_analysis"
+output: html_notebook
+---
+```{r setup, include = F}
+knitr::opts_chunk$set(
+  collapse = T, echo = T, comment = "#>", message = F, warning = F,
+	fig.align = "center", fig.width= 4.5, fig.height = 3, dpi = 150)
+```
+## Data input 
+Set work directory
+```{r}
+setwd('e:/permafrost/')
+wd_16s <- file.path(getwd(),"data/16S")
+# if (!dir.exists(wd_16s)) {
+#   dir.create(wd_16s)
+# }
+wd_fun <- file.path(getwd(),"data/metagenome")
+save.dir <- file.path(getwd(),"result")
+```
+Loading packages
+```{r}
+library(phyloseq)
+library(ape)
+library(Biostrings)
+library(tidyverse, quietly = TRUE, warn.conflicts = F)
+```
+Data input
+```{r}
+## metadata
+metadata <- read.delim(file.path(wd_16s, "metadata_final.txt"), header = T, sep = "\t")
+rownames(metadata) <- (metadata$sample_id)
+## dna sequences
+dna_seqs <- readDNAStringSet(file.path(wd_16s, "./otus.fa"), format = "fasta", nrec = -1L, 
+                             skip = 0L, seek.first.rec = FALSE,
+                             use.names = TRUE)
+
+## tree
+tree <- read_tree(file.path(wd_16s, "./otus.nwk"))
+## otu table
+otu <- read.delim(file.path(wd_16s, "./otutab.txt"), header = T, row.names = 1, sep = "\t")
+otu <- otu[, metadata$sample_id[metadata$sample_id %in% colnames(otu)]]
+## rarefy out table
+otu_rare <- read.delim(file.path(wd_16s, "./otutab_rare.txt"), header = T, row.names = 1, sep = "\t")
+otu_rare <- otu_rare[, metadata$sample_id[metadata$sample_id %in% colnames(otu_rare)]]
+## tax
+tax <- read.delim(file.path(wd_16s, "./taxonomy.txt"), header = T, row.names = 1, sep = "\t")
+tax <- as.matrix(tax)
+```
+Construct a phyloseq object
+```{r}
+# phyloseq object
+otu <- otu_table(otu, taxa_are_rows = TRUE)
+otu_rare <- otu_table(otu_rare, taxa_are_rows = TRUE)
+tax <- tax_table(tax)
+meta_dat <- sample_data(metadata)
+phylo <- phyloseq(otu, tax, meta_dat, tree, dna_seqs)
+phylo_rare <- phyloseq(otu_rare, tax, meta_dat, tree, dna_seqs)
+# phylo_SUR <- subset_samples(phylo, layer == 'SUR') 
+# phylo_SUB <- subset_samples(phylo, layer == 'SUB') 
+# phylo_PL <- subset_samples(phylo, layer == 'PL') 
+phylo
+```
+
+## Calculate alpha diversity
+Loading packages
+```{r}
+library(microbiome)
+library(phyloseq)
+```
+Determine the alpha diversity including **Observed**, **Chao1**, **Shannon** and **Simpson**.
+```{r}
+alpha_div <- estimate_richness(phylo_rare, measures = c("Observed", "Chao1", 'Shannon', 'Simpson'))
+library(picante)
+pd <- pd(t(otu), tree, include.root = F) # estimate the phylogenetic diversity
+alpha_div <- cbind(Layers = metadata$Layer, alpha_div, Faith = pd$PD,
+                   Evenness = alpha_div$Shannon/log(alpha_div$Observed)) %>%
+  mutate(Layers = factor(Layers, levels = c('SUR', 'SUB', 'PL')))
+```
+Box plot for evenness index using ggplot2
+```{r}
+library(ggpubr)
+library(ggplot2)
+my_comparisons <- list( c("SUR", "SUB"), c("SUB", "PL"), c("SUR", "PL") )
+p <- ggplot(alpha_div, aes(x = Layers, y = Evenness)) + 
+  geom_boxplot(width = 0.5, aes(fill = Layers))+
+  stat_compare_means(comparisons = my_comparisons, paired = TRUE, 
+                     p.adjust.method = "BH", label = "p.signif") +
+  #scale_fill_manual(values= cols)+
+  labs(x = 'Layers', y = 'Evenness', fill='Layers') +
+  theme_bw() +
+  theme(axis.title = element_text(size = 12, colour = "black"),
+        axis.text = element_text(size = 10, colour = "black"),
+        legend.title = element_text(size = 12),
+        legend.text = element_text(size = 10),
+        panel.grid = element_blank())
+p
+```
+Box plot for faith index using ggplot2
+```{r}
+p <- ggplot(alpha_div, aes(x = Layers, y = Faith)) + 
+  geom_boxplot(width = 0.5, aes(fill = Layers))+
+  stat_compare_means(comparisons = my_comparisons,  paired = TRUE, 
+                     p.adjust.method = "BH", label = "p.signif") +
+  #scale_fill_manual(values= cols)+
+  labs(x = 'Layers', y = 'Faith index', fill='Layers') +
+  theme_bw() +
+  theme(axis.title = element_text(size = 12, colour = "black"),
+        axis.text = element_text(size = 10, colour = "black"),
+        legend.title = element_text(size = 12),
+        legend.text = element_text(size = 10),
+        panel.grid = element_blank())
+p
+```
+## beta diversity
+```{r}
+library(vegan)
+library(pairwiseAdonis)
+## taxonomy
+### PERMANOVA test
+tax_dist <- as.matrix(vegdist(t(otu), "bray" ))
+adonis2(tax_dist ~ Layer, data = metadata)
+```
+Pairwise adonis test
+```{r}
+set.seed(123)
+pairwise.adonis(tax_dist, metadata$Layer)
+```
+### PCoA plot with bray-curties as distance
+```{r}
+ord.tax <-  cmdscale(tax_dist,  k = 2, eig = T, add = T)
+pcoa_tax_plot <- data.frame(Layers = metadata$Layer, scores(ord.tax)) %>%
+  mutate(Layers = factor(Layers, levels = c('SUR', 'SUB', 'PL'))) %>%
+  ggplot(aes(x = Dim1, y = Dim2, shape = Layers, color = Layers)) + 
+  geom_point(size = 1, alpha = 0.8) + 
+  stat_ellipse(geom = "polygon", aes(fill = Layers), alpha = 0.2, show.legend = FALSE, level = 0.95) +
+  labs(x=paste("PCoA1 (", format(100 * ord.tax$eig[1] / sum(ord.tax$eig), digits = 3), "%)", sep = ""),
+       y=paste("PCoA2 (", format(100 * ord.tax$eig[2] / sum(ord.tax$eig), digits = 3), "%)", sep = "")) +
+  theme(axis.title = element_text(size = 8, colour = "black"),
+        axis.text = element_text(size = 6, colour = "black"),
+        legend.title = element_text(size = 8),
+        legend.text = element_text(size = 6),
+        panel.grid = element_blank(),
+        panel.background = element_blank(), 
+        panel.border = element_rect(fill = NA, colour = "black"))
+pcoa_tax_plot
+# ggsave(file.path(save.dir, "./figs/beta/PCoA_tax_bray.pdf"),
+#        pcoa_tax_plot, width = 89, height = 59, units = "mm")
+```
+### difference in taxonomic variance among layers
+```{r}
+beta_tax_plot <- sapply(unique(metadata$Layer), function(x) usedist::dist_subset(tax_dist, grep(x, metadata$sample_id, value = T))) %>%
+  data.frame() %>% gather("Layers", "distance") %>%
+  mutate(Layers = factor(Layers, levels = c('SUR', 'SUB', 'PL'))) %>%
+  ggplot(aes(x = Layers, y = distance)) + 
+  geom_boxplot(width = 0.5, aes(fill = Layers))+
+  stat_compare_means(comparisons = my_comparisons,  paired = TRUE, 
+                     p.adjust.method = "BH", label = "p.signif") +
+  #scale_fill_manual(values= cols)+
+  labs(x = 'Layers', y = 'Taxonomic variance', fill='Layers') +
+  theme_bw() +
+  theme(axis.title = element_text(size = 12, colour = "black"),
+        axis.text = element_text(size = 10, colour = "black"),
+        legend.title = element_text(size = 12),
+        legend.text = element_text(size = 10),
+        panel.grid = element_blank())
+beta_tax_plot
+# ggsave(file.path(save.dir, "./figs/beta/tax_variance.pdf"),
+#        beta_tax_plot, width = 89, height = 89, units = "mm")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
