@@ -1,0 +1,440 @@
+---
+title: "Metagenome_analysis"
+author: "Luyao Kang"
+date: "`r Sys.Date()`"
+output: html_notebook
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+```{r setup, include = F}
+knitr::opts_chunk$set(
+  collapse = T, echo = T, comment = "#>", message = F, warning = F,
+	fig.align = "center", fig.width= 4.5, fig.height = 3, dpi = 150)
+```
+## set work directory
+```{r}
+setwd('e:/permafrost')
+wd_fun <- file.path(getwd(),"data/metagenome")
+save.dir <- file.path(getwd(),"result")
+```
+## loading packages
+```{r}
+ipak <- function(pkg){
+  new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
+  if (length(new.pkg)) 
+    install.packages(new.pkg, dependencies = TRUE)
+  sapply(pkg, require, character.only = TRUE)
+}
+pkgs <- c('phyloseq', 'picante', 'microbiome', 'readxl', 'tidyverse',
+          'ggpubr', 'ggplot2')
+ipak(pkgs)
+```
+## reading input files
+```{r}
+# tree.file <- file.path(wd_fun, 'binning_70/result/gtdb_tree/bacteria/tax.unrooted.tree')
+abundance_tab.file <- file.path(wd_fun, "binning_70/result/bin_abundance_table.tab")
+tax.file <- file.path(wd_fun, "binning_70/result/tax.txt")
+# bin_fun_file <- file.path(wd_fun, "metabolic/METABOLIC_70/metabolic_heatmap.csv")
+metabolic_output_file <- file.path(wd_fun, "/metabolic/METABOLIC_70_layer/METABOLIC_70_all/metabolic.csv")
+# tree <- read.tree(tree.file)
+abundance_tab <- read_delim(abundance_tab.file, col_names = T)
+colnames(abundance_tab)[1] <- 'ID'
+tax_tab <- read_delim(tax.file, col_names = T)
+metabolic_tab <- read.csv(metabolic_output_file) %>%
+  select(c('Category', 'Function', grep('Function.presence', colnames(.))))
+
+```
+## count the number of MAGs of each Class
+```{r, fig.width=6, fig.height=4.5}
+tax_tab %>% select(c("Class")) %>%
+  mutate(number = c(rep(1, nrow(tax_tab)))) %>%
+  group_by(Class) %>%
+  summarise(across(everything(), sum)) %>%
+  arrange(desc(number)) %>%
+  mutate(Class = gsub("c__", "", Class)) %>%
+  mutate(Class = factor(Class, levels = Class)) %>%
+  ggplot(aes(x = Class, y = number)) +
+  geom_bar(stat = "identity", fill = "#0073c2", width = 0.65) +
+  scale_y_continuous(limits = c(0, 38), expand = c(0, 0)) +
+  labs(x = "Class", y = "Number of MAGs") +
+  theme_bw() +
+  theme(axis.title = element_text(color = "black", size = 12),
+        axis.text.x = element_text(colour = "black", angle = 90, vjust = 0.5, hjust=1),
+        axis.text.y = element_text(colour = "black"))
+```
+```{r}
+dat2 <- abundance_tab %>% 
+  mutate(SUR = rowMeans(select(., grep('SUR', colnames(abundance_tab), value = T)))) %>%
+  mutate(SUB = rowMeans(select(., grep('SUB', colnames(abundance_tab), value = T)))) %>%
+  mutate(PL = rowMeans(select(., grep('PL', colnames(abundance_tab), value = T)))) %>%
+  select(c(ID, SUR, SUB, PL)) %>%
+  pivot_longer(cols = -c(ID), names_to = "Layers", values_to = 'rel_abun') %>%
+  mutate(Layers = factor(Layers, levels = c('SUR', 'SUB', 'PL')))
+# write the table for itol annotation
+# write.csv(dat2, "E:/permafrost/data/metagenome/metabolic/METABOLIC_70_layer/METABOLIC_70_all/itol_DIY_manual/abundance_annotation.csv")
+```
+## Metabolic functional MAGs
+```{r}
+C_N_metapathway <- c("Amylolytic enzymes", "Cellulose degrading", "Endohemicellulases",
+                     "Hemicullulose debranching", "Chitin degrading", 
+                     "Phenol => Benzoyl-CoA", "acyl-CoA dehydrogenase",
+                     "Other oligosaccharide degrading",
+                     "Acetogenesis", "Lactate utilization", "Pyruvate oxidation",  
+                     "Pyruvate <=> acetyl-CoA + formate", "Alcohol utilization",
+                     "Acetate to acetyl-CoA", "Methane production",
+                     "Methane oxidation - Partculate methane monooxygenase",
+                     "Methane oxidation - Soluble methane monoxygenase", 
+                     "Ammonia oxidation", "Nitrate reduction", "Nitric oxide reduction",
+                     "Nitrite oxidation", "Nitrite reduction to ammonia", "Nitrite reduction",
+                     "Nitrous oxide reduction", "N2 fixation")
+other_metapathway <- c("Sulfate reduction", "Sulfide oxidation", "Sulfite reduction",
+                       "Sulfur oxidation", "Sulfur reduction", "Thiosulfate disproportionation", 
+                       "Thiosulfate oxidation", "Iron oxidation", "Iron reduction",
+                       "Arsenite oxidation", "Arsenate reduction", "Selenate reduction", 
+                       "FeFe hydrogenase", "Ni-Fe Hydrogenase")
+dat3 <- metabolic_tab %>% 
+  filter(Function %in% c(C_N_metapathway, other_metapathway)) %>% 
+  mutate(across(starts_with("s_"), ~ifelse(. == "Present", 1, 0))) %>%
+  group_by(Category, Function) %>% 
+  summarise(across(everything(), sum)) %>%
+  filter(rowSums(across(where(is.numeric)))!=0) %>% 
+  pivot_longer(cols = -c(Category, Function), names_to = "ID", values_to = 'presence_or_absent') %>%
+  mutate(ID = gsub(".Function.presence", "", ID))
+# write the table for itol annotation
+# write.csv(dat3, "E:/permafrost/data/metagenome/metabolic/METABOLIC_70_layer/METABOLIC_70_all/itol_DIY_manual/annotation.csv")
+```
+
+```{r, fig.width=10, fig.height=8}
+my_colors <- c("#e4d00a", "#FB8072", "#FDB462", "#80B1D3", "#BEBADA", "#B3DE69", "#FCCDE5", "#A6CEE3",
+               "#8DD3C7", "#B2DF8A", "#33A02C", "#FB9A99", "#E31A1C", "#893f45", "#FF7F00", "#1F78B4",
+               "#6A3D9A", "#b31b1b", "#5d3954", "#008b8b", "#8b008b", "#e75480", "#872657", "#8fbc8f",
+               "#00bfff", "#d71868", "#ffff00", "#c08081", "#cc6666", "#e49b0f", "#c90016", "#355e3b",
+               "#29ab87", "#9457eb", "#f56991", "#32cd32", "#035096", "#bb3385")
+               
+set.seed(1234)  # Set seed
+my_colors <- sample(my_colors) # Sample vector            
+
+values = c("#6A3D9A", "#FCCDE5", "#1F78B4", "#A6CEE3", "#B3DE69", "#E69F00", "#56B4E9", "#009E73",
+           "#F0E442", "#0072B2", "#D55E00", "#FB9A99", "#E31A1C", "#FDBF6F", "#8DD3C7", "#FFFFB3", 
+           "#BEBADA", "#FB8072", "#B2DF8A", "#33A02C", "#FF7F00", "#000000")
+
+values = c("#FFFFB3", "#FB8072", "#FDB462", "#80B1D3", "#BEBADA", "#B3DE69", "#FCCDE5", "#A6CEE3",
+           "#8DD3C7", "#B2DF8A", "#33A02C", "#FB9A99", "#E31A1C", "#FDBF6F", "#FF7F00", "#1F78B4",
+           "#6A3D9A", "#FCCDE5", "#1F78B4", "#A6CEE3", "#B3DE69", "#E69F00", "#56B4E9", "#009E73")
+
+dat3 %>% select(c(1, 2, 4)) %>%
+  group_by(Category, Function) %>% 
+  summarise(across(everything(), sum)) %>%
+  filter(Function %in% c(C_N_metapathway, other_metapathway)) %>% 
+  mutate(Function = factor(Function, levels = c(C_N_metapathway, other_metapathway))) %>%
+  ggplot(aes(x = Function, y = presence_or_absent, fill = Function)) +
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = my_colors) +
+  scale_y_continuous(limits = c(0, 300), expand = c(0, 0)) +
+  theme_classic() +
+  theme(axis.text = element_text(colour = 'black'),
+        legend.key.size = unit(1.1, "line")) +
+  guides(fill = guide_legend(ncol = 1, reverse = TRUE)) +
+  coord_flip()
+```
+
+## relationship of bin with carbon flux
+```{r}
+bin_flux_file = file.path(wd_fun, '/bin_flux.csv')
+bin_flux <- read_delim(bin_flux_file, col_names = T)
+p <- ggplot(bin_flux, aes(x = s_SUB_15_15, y = Cumulative_5)) + 
+  geom_point(size = 3.5, alpha = 0.8, colour = "#0000ff") +
+  geom_smooth(method = "lm", formula = y ~ poly(x, 1, raw = TRUE), size = 1, se = T, colour = 'black') +
+  ggpubr::stat_cor(aes(s_SUB_15_15, Cumulative_5, label = paste(..r.label.., ..p.label.., sep = "~`,`~")),
+                   cor.coef.name = "r", p.accuracy = 0.001, r.accuracy = 0.01,
+                   method = "pearson", label.x.npc = 0.1, label.y.npc = 0.9, size = 4) + 
+  xlab("Abundance of s_SUB_15_15 (TPM)") + ylab(expression(CO[2])) +
+  theme_bw() + 
+  theme(panel.grid = element_blank(), 
+        axis.title = element_text(color = "black", size = 10),
+        axis.ticks.length = unit(0.2, "lines"), 
+        axis.ticks = element_line(color = "black"), 
+        axis.line = element_blank(), 
+        axis.text.y = element_text(colour = "black", size = 8), 
+        axis.text.x = element_text(colour = "black", size = 8), 
+        strip.text = element_text(size = 14), legend.position = "none")
+# ggsave(file.path(save.dir, "./figs/bin/bin_flux.pdf"),
+#        p, width = 110, height = 120, units = "mm")
+p
+```
+## Metabolic difference among different layers
+Set work directory
+```{r}
+sankey.plots.folder <- file.path(wd_fun, "metabolic/results/sankey") # Name of new output folder
+if (!dir.exists(sankey.plots.folder)) {
+  dir.create(sankey.plots.folder)
+}
+```
+Input files
+```{r}
+sur_input_table <- file.path(wd_fun, "metabolic/METABOLIC_70_layer/METABOLIC_70_sur/METABOLIC_Figures_Input/Metabolic_Sankey_diagram_input.txt")
+sub_input_table <- file.path(wd_fun, "metabolic/METABOLIC_70_layer/METABOLIC_70_sub/METABOLIC_Figures_Input/Metabolic_Sankey_diagram_input.txt")
+pl_input_table <- file.path(wd_fun, "metabolic/METABOLIC_70_layer/METABOLIC_70_pl/METABOLIC_Figures_Input/Metabolic_Sankey_diagram_input.txt")
+```
+Loading packages
+```{r}
+pkgs <- c('ggthemes', 'networkD3', 'data.table')
+ipak(pkgs)
+```
+Generate a snakey plot with reactions as node, and edges are MAGs, and are colored by taxonomic group.
+```{r}
+# Load the energy flow diagram input ---------------------------
+table_sur <- read.table(sur_input_table, header = F, sep = "\t")
+colnames(table_sur) <- c("Taxa", "Reaction", "Freq")
+table_sub <- read.table(sub_input_table, header = F, sep = "\t")
+colnames(table_sub) <- c("Taxa", "Reaction", "Freq")
+table_pl <- read.table(pl_input_table, header = F, sep = "\t")
+colnames(table_pl) <- c("Taxa", "Reaction", "Freq")
+```
+```{r}
+# Rename the categories ---------------------------
+table_sur$Category <- ifelse(grepl("C-S", table_sur$Reaction), "Carbon", 
+                               ifelse(grepl("N-S", table_sur$Reaction), "Nitrogen",
+                                      ifelse(grepl("S-S", table_sur$Reaction), "Sulfur",
+                                             ifelse(grepl("O-S", table_sur$Reaction), "Others",""))))
+table_sur$Category <- as.factor(table_sur$Category)
+
+table_sub$Category <- ifelse(grepl("C-S", table_sub$Reaction), "Carbon", 
+                               ifelse(grepl("N-S", table_sub$Reaction), "Nitrogen",
+                                      ifelse(grepl("S-S", table_sub$Reaction), "Sulfur",
+                                             ifelse(grepl("O-S", table_sub$Reaction), "Others",""))))
+table_sub$Category <- as.factor(table_sub$Category)
+
+table_pl$Category <- ifelse(grepl("C-S", table_pl$Reaction), "Carbon", 
+                               ifelse(grepl("N-S", table_pl$Reaction), "Nitrogen",
+                                      ifelse(grepl("S-S", table_pl$Reaction), "Sulfur",
+                                             ifelse(grepl("O-S", table_pl$Reaction), "Others",""))))
+table_pl$Category <- as.factor(table_pl$Category)
+```
+
+```{r}
+# reformate the data
+table_all <- rbind(cbind(Layer = rep("SUR", nrow(table_sur)), table_sur),
+                   cbind(Layer = rep("SUB", nrow(table_sub)), table_sub),
+                   cbind(Layer = rep("PL", nrow(table_pl)), table_pl)) %>%
+  mutate(Layer = factor(Layer, levels = c("SUR", "SUB", "PL")))
+
+taxa_names <- table_all %>% select(Taxa, Freq) %>%
+  group_by(Taxa) %>%
+  summarise(sum = sum(Freq)) %>%
+  arrange(desc(sum)) %>%
+  pull(Taxa)
+reaction_orders <- c(sort(grep('C-', unique(table_all$Reaction), value = T), decreasing = F),
+                     sort(grep('N-', unique(table_all$Reaction), value = T), decreasing = F),
+                     sort(grep('S-S', unique(table_all$Reaction), value = T), decreasing = F),
+                     sort(grep('O-', unique(table_all$Reaction), value = T), decreasing = F))
+
+table_all <- table_all %>%
+  mutate(Taxa = factor(Taxa, levels = taxa_names)) %>%
+  mutate(Category = factor(Category, levels = c('Carbon', 'Nitrogen', 
+                                                'Sulfur', 'Others'))) %>%
+  mutate(Reaction = factor(Reaction, levels = reaction_orders))
+
+sankey <- data.table::rbindlist(list(table_all[c("Layer", "Taxa", "Freq")],
+                         table_all[c("Taxa", "Reaction", "Freq")]))
+names(sankey) <- c('source', 'target', 'value')
+sankey[1:5, ]
+```
+```{r}
+# Make a connection data frame
+links <- sankey 
+# From these flows we need to create a node data frame: it lists every entities involved in the flow
+nodes <- data.frame(
+  name = c(as.character(links$source), as.character(links$target)) %>% 
+    unique()
+)
+nodes <- data.frame(
+  name = c("SUR", "SUB", "PL", taxa_names,
+           sort(grep('C-', unique(table_all$Reaction), value = T), decreasing = F),
+           sort(grep('N-', unique(table_all$Reaction), value = T), decreasing = F),
+           sort(grep('S-S', unique(table_all$Reaction), value = T), decreasing = F),
+           sort(grep('O-', unique(table_all$Reaction), value = T), decreasing = F))
+)
+# With networkD3, connection must be provided using id, not using real name like in the links dataframe.. So we need to reformat it.
+links$IDsource <- match(links$source, nodes$name)-1 
+links$IDtarget <- match(links$target, nodes$name)-1
+```
+```{r}
+# Set color of connections
+# Add a 'group' column to each connection:
+ass_link_col_fun <- function(df) {
+  if (df["source"] == taxa_names[1] | df["target"] == taxa_names[1]) {
+    group = 'a'
+  } else if (df["source"] == taxa_names[2] | df["target"] == taxa_names[2]) {
+    group = 'b'
+  } else if (df["source"] == taxa_names[3] | df["target"] == taxa_names[3]) {
+    group = 'c'
+  } else if (df["source"] == taxa_names[4] | df["target"] == taxa_names[4]) {
+    group = 'd'
+  } else if (df["source"] == taxa_names[5] | df["target"] == taxa_names[5]) {
+    group = 'e'
+  } else if (df["source"] == taxa_names[6] | df["target"] == taxa_names[6]) {
+    group = 'f'
+  } else if (df["source"] == taxa_names[7] | df["target"] == taxa_names[7]) {
+    group = 'g'
+  } else if (df["source"] == taxa_names[8] | df["target"] == taxa_names[8]) {
+    group = 'h'
+  } else if (df["source"] == taxa_names[9] | df["target"] == taxa_names[9]) {
+    group = 'i'
+  } else if (df["source"] == taxa_names[10] | df["target"] == taxa_names[10]) {
+    group = 'j'
+  } else if (df["source"] == taxa_names[11] | df["target"] == taxa_names[11]) {
+    group = 'k'
+  } else if (df["source"] == taxa_names[12] | df["target"] == taxa_names[12]) {
+    group = 'l'
+  } else if (df["source"] == taxa_names[13] | df["target"] == taxa_names[13]) {
+    group = 'm'
+  } else if (df["source"] == taxa_names[14] | df["target"] == taxa_names[14]) {
+    group = 'n'
+  } else if (df["source"] == taxa_names[15] | df["target"] == taxa_names[15]) {
+    group = 'o'
+  } else if (df["source"] == taxa_names[16] | df["target"] == taxa_names[16]) {
+    group = 'p'
+  } else if (df["source"] == taxa_names[17] | df["target"] == taxa_names[17]) {
+    group = 'q'
+  } else if (df["source"] == taxa_names[18] | df["target"] == taxa_names[18]) {
+    group = 'r'
+  } else if (df["source"] == taxa_names[19] | df["target"] == taxa_names[19]) {
+    group = 's'
+  } else if (df["source"] == taxa_names[20] | df["target"] == taxa_names[20]) {
+    group = 't'
+  } else if (df["source"] == taxa_names[21] | df["target"] == taxa_names[21]) {
+    group = 'u'
+  } else if (df["source"] == taxa_names[21] | df["target"] == taxa_names[21]) {
+    group = 'u'
+  }
+  return(group)
+}
+links$group <- apply(links, 1, ass_link_col_fun)
+
+# Add a 'group' column to each node. Here I decide to put all of them in the same group to make them grey
+nodes$group <- as.factor(c("my_unique_group"))
+links[1:5, ]
+nodes[1:5, ]
+```
+```{r}
+# Give a color for each group
+my_color <- 'd3.scaleOrdinal() .domain(["a", "b", "c", "d", "e", "f", 
+"g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", 
+"Carbon", "Nitrogen", "Sulfur", "Others", "my_unique_group"]) .range(["#FF7F00", "#B3DE69", 
+"#1F78B4", "#FB8072", "#FDB462", "#80B1D3", "#BEBADA", "#c988d1", "#FCCDE5", "#A6CEE3",
+"#8DD3C7", "#B2DF8A", "#33A02C", "#FB9A99", "#FFFFB3", "#FDBF6F", "#E31A1C", "#d5416a", 
+"#76c2d7", "#d87a71","#6a75d5", "#76c2d7", "#d87a71", "#6a75d5", "#836834", 
+"grey"])'
+
+# Make the Network. I call my colour scale with the colourScale argument
+sankeyNetwork(Links = links, Nodes = nodes, Source = "IDsource", Target = "IDtarget", 
+                   Value = "value", NodeID = "name", colourScale = my_color, 
+                   LinkGroup="group", iterations = 0, fontFamily = 'Arial', fontSize = 10, 
+                   nodeWidth = 20, nodePadding = 10, height = 700, width = 750,
+                   sinksRight = F)
+# save the widget
+# library(htmlwidgets)
+# saveWidget(p, file = paste0(sankey.plots.folder, "/sankey_plot.html"))
+# library(webshot)
+# install phantom:
+# webshot::install_phantomjs()
+# Make a webshot in pdf : high quality but can not choose printed zone
+# webshot(paste0(sankey.plots.folder, "/sankey_plot.html"), 
+#         paste0(sankey.plots.folder, "/sankey_plot11.pdf"), delay = 0.2)
+```
+
+##  Metabolic network plot with reactions
+Generate a network plot with reactions as node, and edges are MAGs, and are colored by taxonomic group.
+Read input files
+```{r}
+sur_net_input_table <- file.path(wd_fun, "metabolic/METABOLIC_70_layer/METABOLIC_70_sur/METABOLIC_Figures_Input/functional_network_input.txt")
+sub_net_input_table <- file.path(wd_fun, "metabolic/METABOLIC_70_layer/METABOLIC_70_sub/METABOLIC_Figures_Input/functional_network_input.txt")
+pl_net_input_table <- file.path(wd_fun, "metabolic/METABOLIC_70_layer/METABOLIC_70_pl/METABOLIC_Figures_Input/functional_network_input.txt")
+network.plots.folder <- file.path(wd_fun, "metabolic/results/network")
+table_sur <- read.csv(sur_net_input_table, header=T, sep="\t")
+table_sub <- read.csv(sub_net_input_table, header=T, sep="\t")
+table_pl <- read.csv(pl_net_input_table, header=T, sep="\t")
+```
+```{r, fig.width=15, fig.height=10}
+#install.packages("ggraph")
+library(ggraph)
+library(igraph)
+library(tidyverse)
+library(tidygraph)
+my_graph_sur <- table_sur[, c(2,3,4,5)] %>% 
+  graph_from_data_frame()
+my_graph_sub <- table_sub[, c(2,3,4,5)] %>% 
+  graph_from_data_frame()
+my_graph_pl <- table_pl[, c(2,3,4,5)] %>% 
+  graph_from_data_frame()
+
+deg_sur <- degree(my_graph_sur, mode="all")
+deg_sub <- degree(my_graph_sub, mode="all")
+deg_pl <- degree(my_graph_pl, mode="all")
+
+# color
+sur_color <- c("#d64e9e", "#6cd54c", "#dd49d1", "#432d7c", "#c6d179", "#8f379a", "#c988d1")
+sub_color <- c("#d64e9e", "#6cd54c", "#dd49d1", "#a152dd", "#5139c2", "#ceaa3b", "#432d7c",
+               "#c6d179", "#8f379a", "#70d68c", "#d9432f", "#6ad5be", "#d5416a",
+               "#6a75d5", "#c988d1", "#598939")
+pl_color <- c("#d64e9e", "#6cd54c", "#dd49d1", "#c8dd41", "#a152dd", "#4d4040",
+              "#ceaa3b", "#7a3260", "#432d7c", "#c6d179", "#8f379a", "#70d68c",
+              "#d9432f", "#6ad5be", "#76c2d7", "#d87a71", "#6a75d5", "#836834",
+              "#c988d1", "#598939")
+# this generates the whole community plot
+community.plot_sur <- table_sur[, c(2,3,4,5)] %>% 
+  graph_from_data_frame() %>% 
+  ggraph(layout = "linear", circular = TRUE) +
+  geom_edge_arc(alpha = .25, 
+                aes(width = Coverage.value.average., color=as.factor(Taxonomic.Group))) +
+  scale_edge_colour_manual(values = sur_color) +
+  geom_node_point(aes(size = 0.02*deg_sur), color = "black", alpha = 0.75) +
+  geom_node_text(aes(label = name),  color="black", repel = TRUE)+
+  #theme_graph()+
+  labs(title = 'Metabolic connections within dataset', 
+       subtitle = 'No scaling')
+community.plot_sub <- table_sub[, c(2,3,4,5)] %>% 
+  graph_from_data_frame() %>% 
+  ggraph(layout = "linear", circular = TRUE) +
+  geom_edge_arc(alpha = .25, 
+                aes(width = Coverage.value.average., color=as.factor(Taxonomic.Group))) +
+  scale_edge_colour_manual(values = sub_color) +
+  geom_node_point(aes(size = 0.02*deg_sub), color = "black", alpha = 0.75) +
+  geom_node_text(aes(label = name),  color="black", repel = TRUE)+
+  #theme_graph()+
+  labs(title = 'Metabolic connections within dataset', 
+       subtitle = 'No scaling')
+community.plot_pl <- table_pl[, c(2,3,4,5)] %>% 
+  graph_from_data_frame() %>% 
+  ggraph(layout = "linear", circular = TRUE) +
+  geom_edge_arc(alpha = .25, 
+                aes(width = Coverage.value.average., color=as.factor(Taxonomic.Group))) +
+  scale_edge_colour_manual(values = pl_color) +
+  geom_node_point(aes(size = 0.02*deg_pl), color = "black", alpha = 0.75) +
+  geom_node_text(aes(label = name),  color="black", repel = TRUE)+
+  #theme_graph()+
+  labs(title = 'Metabolic connections within dataset', 
+       subtitle = 'No scaling')
+# save community.plot
+# plot.name <- paste0(network.plots.folder, "/SurCommunityPlot.PDF")
+# print(plot.name)
+# cairo_pdf(filename = plot.name, width = 8, height = 5.5, onefile = TRUE)
+# community.plot_sur
+# dev.off()
+# 
+# plot.name <- paste0(network.plots.folder, "/SubCommunityPlot.PDF")
+# print(plot.name)
+# cairo_pdf(filename = plot.name, width = 8, height = 5.5, onefile = TRUE)
+# community.plot_sub
+# dev.off()
+# 
+# plot.name <- paste0(network.plots.folder, "/PlCommunityPlot.PDF")
+# print(plot.name)
+# cairo_pdf(filename = plot.name, width = 8, height = 5.5, onefile = TRUE)
+# community.plot_pl
+# dev.off()
+cowplot::plot_grid(community.plot_sur, community.plot_sub, community.plot_pl)
+```

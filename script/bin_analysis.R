@@ -3,7 +3,7 @@ setwd('e:/permafrost')
 wd_fun <- file.path(getwd(),"data/metagenome")
 save.dir <- file.path(getwd(),"result")
 
-#loading packages
+# loading packages
 library(phyloseq)
 library(picante)
 library(microbiome)
