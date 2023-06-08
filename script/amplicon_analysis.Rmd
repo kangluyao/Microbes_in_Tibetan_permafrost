@@ -7,7 +7,6 @@ vignette: >
   %\VignetteIndexEntry{Vignette Title}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
-
 ---
 ```{r setup, include = F}
 knitr::opts_chunk$set(
@@ -395,7 +394,7 @@ sum(ra.tab[, 1])
 subtaxa_tab <- tax_table(subphylo.rel)[, 2]
 ```
 ## boxplot shows the community composition
-```{r}
+```{r, fig.width = 8, fig.height = 4.5}
 box_plot <- data.frame(subtaxa_tab, ra.tab) %>% group_by(Phylum) %>% 
   summarise(across(everything(), sum)) %>% 
   mutate(MRA = rowMeans(select(., colnames(ra.tab)))) %>%
@@ -423,7 +422,7 @@ box_plot <- data.frame(subtaxa_tab, ra.tab) %>% group_by(Phylum) %>%
 box_plot
 ```
 ## barplot shows the community composition
-```{r}
+```{r, fig.width = 8, fig.height = 4.5}
 bar_plot <- data.frame(subtaxa_tab, ra.tab) %>% 
   mutate(MRA = rowMeans(select(., colnames(ra.tab)))) %>%
   arrange(desc(MRA)) %>% dplyr::top_n(10, MRA) %>%
@@ -442,22 +441,22 @@ bar_plot <- data.frame(subtaxa_tab, ra.tab) %>%
   guides(fill = guide_legend(keywidth = 0.5, keyheight = 0.5)) +
   facet_grid(~layer, scales = "free_x", space = "free_x") + 
   theme(axis.title.x = element_blank(), 
-        axis.title.y = element_text(size = 6, colour = "black"),
+        axis.title.y = element_text(size = 10, colour = "black"),
         panel.grid.minor = element_blank(), 
         panel.grid.major = element_blank(), 
-        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1, size = 4), 
-        axis.text.y = element_text(size = 5), 
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1, size = 6), 
+        axis.text.y = element_text(size = 8), 
         panel.spacing = unit(0, "lines"),
         strip.text = element_blank(),
         strip.background = element_blank(),
-        legend.title = element_text(size = 6), 
-        legend.text = element_text(size = 5))
+        legend.title = element_text(size = 10), 
+        legend.text = element_text(size = 8))
 # ggsave(file.path(save.dir, "./figs/composition/tax_composition_10.pdf"), box_plot, width = 189, height = 95, units = "mm")  
 # ggsave(file.path(save.dir, "./figs/composition/tax_composition_bar.pdf"), bar_plot, width = 120, height = 65, units = "mm") 
 bar_plot
 ```
 ## unique otus profile among three layers
-```{r}
+```{r, fig.width = 6, fig.height = 4.5}
 # Load the library
 library(limma)
 # Generate example data
