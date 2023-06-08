@@ -44,7 +44,6 @@ colnames(abundance_tab)[1] <- 'ID'
 tax_tab <- read_delim(tax.file, col_names = T)
 metabolic_tab <- read.csv(metabolic_output_file) %>%
   select(c('Category', 'Function', grep('Function.presence', colnames(.))))
-
 ```
 ## count the number of MAGs of each Class
 ```{r, fig.width=6, fig.height=4.5}

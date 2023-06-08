@@ -1,5 +1,5 @@
 ---
-title: "Species-occurence_analysis"
+title: "Species-occurence analysis"
 author: "Luyao Kang"
 date: "`r Sys.Date()`"
 output: html_notebook
@@ -23,6 +23,10 @@ wd_16s <- file.path(getwd(),"data/16S")
 # }
 wd_fun <- file.path(getwd(),"data/metagenome")
 save.dir <- file.path(getwd(),"result")
+```
+Read data
+```{r}
+source("script/read_data.R")
 ```
 Extract the cor taxa with the mean relative abundance greater than 0.01%
 ```{r}

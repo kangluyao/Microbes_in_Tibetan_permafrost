@@ -38,8 +38,8 @@ meta_dat <- sample_data(metadata)
 phylo <- phyloseq(otu, tax, meta_dat, tree, dna_seqs)
 phylo_rare <- phyloseq(otu_rare, tax, meta_dat, tree, dna_seqs)
 # phylo_SUR <- subset_samples(phylo, layer == 'SUR') 
-# phylo_SUB <- subset_samples(phylo, layer == 'SUB') 
-# phylo_PL <- subset_samples(phylo, layer == 'PL') 
+# phylo_SUB <- subset_samples(phylo, layer == 'SUB')
+# phylo_PL <- subset_samples(phylo, layer == 'PL')
 # read functional table
 wd_fun <- file.path(getwd(),"data/metagenome")
 # if (!dir.exists(wd_fun)) {
