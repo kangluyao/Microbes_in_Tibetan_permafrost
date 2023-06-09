@@ -36,15 +36,43 @@ ipak(pkgs)
 # tree.file <- file.path(wd_fun, 'binning_70/result/gtdb_tree/bacteria/tax.unrooted.tree')
 abundance_tab.file <- file.path(wd_fun, "binning_70/result/bin_abundance_table.tab")
 tax.file <- file.path(wd_fun, "binning_70/result/tax.txt")
+# bin genome information
+bin_infor_file <- file.path(wd_fun, "metabolic/METABOLIC_70_layer/METABOLIC_70_all/Widb.csv")
 # bin_fun_file <- file.path(wd_fun, "metabolic/METABOLIC_70/metabolic_heatmap.csv")
 metabolic_output_file <- file.path(wd_fun, "/metabolic/METABOLIC_70_layer/METABOLIC_70_all/metabolic.csv")
 # tree <- read.tree(tree.file)
 abundance_tab <- read_delim(abundance_tab.file, col_names = T)
 colnames(abundance_tab)[1] <- 'ID'
 tax_tab <- read_delim(tax.file, col_names = T)
+bin_infor <- read.csv(bin_infor_file) %>%
+  select(c("genome", "completeness", "contamination", "size")) %>%
+  mutate(Layers = sapply(stringr::str_split(genome, "_",  n = 4), `[`, 2)) %>%
+  mutate(Layers = factor(Layers, levels = c('SUR', 'SUB', 'PL')))
 metabolic_tab <- read.csv(metabolic_output_file) %>%
   select(c('Category', 'Function', grep('Function.presence', colnames(.))))
 ```
+## Explore the difference in genome size among layers
+```{r, fig.align='center', fig.width=4.5, fig.height=4.5}
+library(ggpubr)
+library(ggplot2)
+my_comparisons <- list( c("SUR", "SUB"), c("SUB", "PL"), c("SUR", "PL") )
+genome_size_plot <- bin_infor %>% data.frame() %>%
+  select(Layers, size) %>%
+  ggplot(aes(x = Layers, y = size)) + 
+  geom_boxplot(width = 0.5, aes(fill = Layers))+
+  stat_compare_means(comparisons = my_comparisons,  paired = TRUE, 
+                     p.adjust.method = "BH", label = "p.signif") +
+  #scale_fill_manual(values= cols)+
+  labs(x = 'Layers', y = 'Genome size', fill = 'Layers') +
+  theme_bw() +
+  theme(axis.title = element_text(size = 12, colour = "black"),
+        axis.text = element_text(size = 10, colour = "black"),
+        legend.title = element_text(size = 12),
+        legend.text = element_text(size = 10),
+        panel.grid = element_blank())
+genome_size_plot
+```
+
 ## count the number of MAGs of each Class
 ```{r, fig.width=6, fig.height=4.5}
 tax_tab %>% select(c("Class")) %>%
@@ -104,7 +132,7 @@ dat3 <- metabolic_tab %>%
 # write the table for itol annotation
 # write.csv(dat3, "E:/permafrost/data/metagenome/metabolic/METABOLIC_70_layer/METABOLIC_70_all/itol_DIY_manual/annotation.csv")
 ```
-
+## Determine the total number of MAGs for each metabolic pathway
 ```{r, fig.width=10, fig.height=8}
 my_colors <- c("#e4d00a", "#FB8072", "#FDB462", "#80B1D3", "#BEBADA", "#B3DE69", "#FCCDE5", "#A6CEE3",
                "#8DD3C7", "#B2DF8A", "#33A02C", "#FB9A99", "#E31A1C", "#893f45", "#FF7F00", "#1F78B4",
@@ -137,6 +165,20 @@ dat3 %>% select(c(1, 2, 4)) %>%
         legend.key.size = unit(1.1, "line")) +
   guides(fill = guide_legend(ncol = 1, reverse = TRUE)) +
   coord_flip()
+```
+## Determine the ratio of presence of each metabolic pathway in each layers
+```{r}
+dat_3layers <- metabolic_tab %>% 
+  filter(Function %in% c(C_N_metapathway, other_metapathway)) %>% 
+  mutate(across(starts_with("s_"), ~ifelse(. == "Present", 1, 0))) %>%
+  group_by(Category, Function) %>%
+  summarise(across(everything(), sum)) %>%
+  mutate(across(starts_with("s_"), ~ifelse(. >= 1, 1, 0))) %>%
+  mutate(ratio_sur = rowSums(across(starts_with("s_SUR")), na.rm = T)/34,
+         ratio_sub = rowSums(across(starts_with("s_SUB")), na.rm = T)/94,
+         ratio_pl = rowSums(across(starts_with("s_PL")), na.rm = T)/146) %>%
+  select(c('Category', 'Function', 'ratio_sur', 'ratio_sub', 'ratio_pl'))
+knitr::kable(dat_3layers[1:10, ], "simple")
 ```
 
 ## relationship of bin with carbon flux
@@ -239,7 +281,7 @@ table_all <- table_all %>%
 sankey <- data.table::rbindlist(list(table_all[c("Layer", "Taxa", "Freq")],
                          table_all[c("Taxa", "Reaction", "Freq")]))
 names(sankey) <- c('source', 'target', 'value')
-sankey[1:5, ]
+knitr::kable(sankey[1:5, ])
 ```
 ```{r}
 # Make a connection data frame

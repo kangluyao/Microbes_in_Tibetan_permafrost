@@ -55,7 +55,7 @@ Box plot for evenness index using ggplot2
 ```{r}
 library(ggpubr)
 library(ggplot2)
-my_comparisons <- list( c("SUR", "SUB"), c("SUB", "PL"), c("SUR", "PL") )
+my_comparisons <- list( c("SUR", "SUB"), c("SUB", "PL"), c("SUR", "PL"))
 p <- ggplot(alpha_div, aes(x = Layers, y = Evenness)) + 
   geom_boxplot(width = 0.5, aes(fill = Layers))+
   stat_compare_means(comparisons = my_comparisons, paired = TRUE, 
