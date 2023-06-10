@@ -14,7 +14,7 @@ library(ggplot2)
 wd_fun <- file.path(getwd(),"data/metagenome/")
 
 # tree.file <- file.path(wd_fun, 'binning_70/result/gtdb_tree/bacteria/tax.unrooted.tree')
-abundance_tab.file <- file.path(wd_fun, "binning_70/result/bin_abundance_table.tab")
+abundance_tab.file <- file.path(wd_fun, "metabolic/METABOLIC_70_layer/METABOLIC_70_all/bin_abundance_table.tab")
 tax.file <- file.path(wd_fun, "binning_70/result/tax.txt")
 # bin_fun_file <- file.path(wd_fun, "metabolic/METABOLIC_70/metabolic_heatmap.csv")
 metabolic_output_file <- file.path(wd_fun, "/metabolic/METABOLIC_70_layer/METABOLIC_70_all/metabolic.csv")

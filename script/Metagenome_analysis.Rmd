@@ -34,11 +34,10 @@ ipak(pkgs)
 ## reading input files
 ```{r}
 # tree.file <- file.path(wd_fun, 'binning_70/result/gtdb_tree/bacteria/tax.unrooted.tree')
-abundance_tab.file <- file.path(wd_fun, "binning_70/result/bin_abundance_table.tab")
+abundance_tab.file <- file.path(wd_fun, "metabolic/METABOLIC_70_layer/METABOLIC_70_all/bin_abundance_table.tab")
 tax.file <- file.path(wd_fun, "binning_70/result/tax.txt")
 # bin genome information
 bin_infor_file <- file.path(wd_fun, "metabolic/METABOLIC_70_layer/METABOLIC_70_all/Widb.csv")
-# bin_fun_file <- file.path(wd_fun, "metabolic/METABOLIC_70/metabolic_heatmap.csv")
 metabolic_output_file <- file.path(wd_fun, "/metabolic/METABOLIC_70_layer/METABOLIC_70_all/metabolic.csv")
 # tree <- read.tree(tree.file)
 abundance_tab <- read_delim(abundance_tab.file, col_names = T)
@@ -104,7 +103,8 @@ dat2 <- abundance_tab %>%
 ```
 ## Metabolic functional MAGs
 ```{r}
-C_N_metapathway <- c("Amylolytic enzymes", "Cellulose degrading", "Endohemicellulases",
+C_N_metapathway <- c("Amino acid utilization", "Amylolytic enzymes", 
+                     "Cellulose degrading", "Endohemicellulases",
                      "Hemicullulose debranching", "Chitin degrading", 
                      "Phenol => Benzoyl-CoA", "acyl-CoA dehydrogenase",
                      "Other oligosaccharide degrading",
@@ -127,6 +127,7 @@ dat3 <- metabolic_tab %>%
   group_by(Category, Function) %>% 
   summarise(across(everything(), sum)) %>%
   filter(rowSums(across(where(is.numeric)))!=0) %>% 
+  mutate(across(starts_with("s_"), ~ifelse(. >= 1, 1, 0))) %>%
   pivot_longer(cols = -c(Category, Function), names_to = "ID", values_to = 'presence_or_absent') %>%
   mutate(ID = gsub(".Function.presence", "", ID))
 # write the table for itol annotation
@@ -138,10 +139,10 @@ my_colors <- c("#e4d00a", "#FB8072", "#FDB462", "#80B1D3", "#BEBADA", "#B3DE69",
                "#8DD3C7", "#B2DF8A", "#33A02C", "#FB9A99", "#E31A1C", "#893f45", "#FF7F00", "#1F78B4",
                "#6A3D9A", "#b31b1b", "#5d3954", "#008b8b", "#8b008b", "#e75480", "#872657", "#8fbc8f",
                "#00bfff", "#d71868", "#ffff00", "#c08081", "#cc6666", "#e49b0f", "#c90016", "#355e3b",
-               "#29ab87", "#9457eb", "#f56991", "#32cd32", "#035096", "#bb3385")
+               "#29ab87", "#9457eb", "#f56991", "#32cd32", "#035096", "#bb3385", "#009E73", "#000000")
                
 set.seed(1234)  # Set seed
-my_colors <- sample(my_colors) # Sample vector            
+my_col <- sample(my_colors) # Sample vector            
 
 values = c("#6A3D9A", "#FCCDE5", "#1F78B4", "#A6CEE3", "#B3DE69", "#E69F00", "#56B4E9", "#009E73",
            "#F0E442", "#0072B2", "#D55E00", "#FB9A99", "#E31A1C", "#FDBF6F", "#8DD3C7", "#FFFFB3", 
@@ -158,11 +159,11 @@ dat3 %>% select(c(1, 2, 4)) %>%
   mutate(Function = factor(Function, levels = c(C_N_metapathway, other_metapathway))) %>%
   ggplot(aes(x = Function, y = presence_or_absent, fill = Function)) +
   geom_bar(stat = "identity") +
-  scale_fill_manual(values = my_colors) +
+  scale_fill_manual(values = my_col) +
   scale_y_continuous(limits = c(0, 300), expand = c(0, 0)) +
   theme_classic() +
   theme(axis.text = element_text(colour = 'black'),
-        legend.key.size = unit(1.1, "line")) +
+        legend.key.size = unit(1, "line")) +
   guides(fill = guide_legend(ncol = 1, reverse = TRUE)) +
   coord_flip()
 ```
