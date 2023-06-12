@@ -411,10 +411,10 @@ my_color <- 'd3.scaleOrdinal() .domain(["a", "b", "c", "d", "e", "f",
 "grey"])'
 
 # Make the Network. I call my colour scale with the colourScale argument
-sankeyNetwork(Links = links, Nodes = nodes, Source = "IDsource", Target = "IDtarget", 
+p <- sankeyNetwork(Links = links, Nodes = nodes, Source = "IDsource", Target = "IDtarget", 
                    Value = "value", NodeID = "name", colourScale = my_color, 
                    LinkGroup="group", iterations = 0, fontFamily = 'Arial', fontSize = 10, 
-                   nodeWidth = 20, nodePadding = 10, height = 700, width = 750,
+                   nodeWidth = 20, nodePadding = 10, height = 550, width = 450,
                    sinksRight = F)
 # save the widget
 # library(htmlwidgets)
@@ -423,8 +423,9 @@ sankeyNetwork(Links = links, Nodes = nodes, Source = "IDsource", Target = "IDtar
 # install phantom:
 # webshot::install_phantomjs()
 # Make a webshot in pdf : high quality but can not choose printed zone
-# webshot(paste0(sankey.plots.folder, "/sankey_plot.html"), 
-#         paste0(sankey.plots.folder, "/sankey_plot11.pdf"), delay = 0.2)
+# webshot(paste0(sankey.plots.folder, "/sankey_plot.html"),
+#         paste0(sankey.plots.folder, "/sankey_plot12.pdf"), delay = 0.2)
+p
 ```
 
 ##  Metabolic network plot with reactions
