@@ -50,6 +50,36 @@ bin_infor <- read.csv(bin_infor_file) %>%
 metabolic_tab <- read.csv(metabolic_output_file) %>%
   select(c('Category', 'Function', grep('Function.presence', colnames(.))))
 ```
+## PCoA ordination analysis using the relative abundance of MAGs and Bray-Curtis dissimilarity index
+```{r}
+MAG_abund_tab <- abundance_tab
+row_names <- MAG_abund_tab$`Genomic bins`
+MAG_abund_tab <- MAG_abund_tab[, -1]
+rownames(MAG_abund_tab) <- row_names
+MAG_abund_tab <- MAG_abund_tab[, metadata$sample_id[metadata$sample_id %in% colnames(MAG_abund_tab)]]
+MAG_dist <- as.matrix(vegdist(t(MAG_abund_tab), "bray" ))
+adonis2(MAG_dist ~ Layer, data = metadata)
+ord.MAG <-  cmdscale(MAG_dist,  k = 2, eig = T, add = T)
+pcoa_MAG_plot <- data.frame(Layers = metadata$Layer, scores(ord.MAG)) %>%
+  mutate(Layers = factor(Layers, levels = c('SUR', 'SUB', 'PL'))) %>%
+  ggplot(aes(x = Dim1, y = Dim2, shape = Layers, color = Layers)) + 
+  geom_point(size = 1, alpha = 0.8) + 
+  stat_ellipse(geom = "polygon", aes(fill = Layers), alpha = 0.2, show.legend = FALSE, level = 0.95) +
+  labs(x=paste("PCoA1 (", format(100 * ord.MAG$eig[1] / sum(ord.MAG$eig), digits = 3), "%)", sep = ""),
+       y=paste("PCoA2 (", format(100 * ord.MAG$eig[2] / sum(ord.MAG$eig), digits = 3), "%)", sep = "")) +
+  theme(axis.title = element_text(size = 8, colour = "black"),
+        axis.text = element_text(size = 6, colour = "black"),
+        legend.title = element_text(size = 8),
+        legend.text = element_text(size = 6),
+        panel.grid = element_blank(),
+        panel.background = element_blank(), 
+        panel.border = element_rect(fill = NA, colour = "black"))
+# ggsave(file.path(save.dir, "./figs/beta/PCoA_MAG_bray.pdf"),
+#        pcoa_MAG_plot, width = 89, height = 59, units = "mm")
+pcoa_MAG_plot
+
+```
+
 ## Explore the difference in genome size among layers
 ```{r, fig.align='center', fig.width=4.5, fig.height=4.5}
 library(ggpubr)
@@ -69,6 +99,8 @@ genome_size_plot <- bin_infor %>% data.frame() %>%
         legend.title = element_text(size = 12),
         legend.text = element_text(size = 10),
         panel.grid = element_blank())
+# ggsave(file.path(save.dir, "./figs/bin/genome_size_plot.pdf"),
+#        genome_size_plot, width = 89, height = 59, units = "mm")
 genome_size_plot
 ```
 
@@ -143,7 +175,7 @@ my_colors <- c("#e4d00a", "#FB8072", "#FDB462", "#80B1D3", "#BEBADA", "#B3DE69",
                
 set.seed(1234)  # Set seed
 my_col <- sample(my_colors) # Sample vector            
-
+my_col
 values = c("#6A3D9A", "#FCCDE5", "#1F78B4", "#A6CEE3", "#B3DE69", "#E69F00", "#56B4E9", "#009E73",
            "#F0E442", "#0072B2", "#D55E00", "#FB9A99", "#E31A1C", "#FDBF6F", "#8DD3C7", "#FFFFB3", 
            "#BEBADA", "#FB8072", "#B2DF8A", "#33A02C", "#FF7F00", "#000000")
@@ -152,7 +184,7 @@ values = c("#FFFFB3", "#FB8072", "#FDB462", "#80B1D3", "#BEBADA", "#B3DE69", "#F
            "#8DD3C7", "#B2DF8A", "#33A02C", "#FB9A99", "#E31A1C", "#FDBF6F", "#FF7F00", "#1F78B4",
            "#6A3D9A", "#FCCDE5", "#1F78B4", "#A6CEE3", "#B3DE69", "#E69F00", "#56B4E9", "#009E73")
 
-dat3 %>% select(c(1, 2, 4)) %>%
+num.mags.plot <- dat3 %>% select(c(1, 2, 4)) %>%
   group_by(Category, Function) %>% 
   summarise(across(everything(), sum)) %>%
   filter(Function %in% c(C_N_metapathway, other_metapathway)) %>% 
@@ -161,11 +193,18 @@ dat3 %>% select(c(1, 2, 4)) %>%
   geom_bar(stat = "identity") +
   scale_fill_manual(values = my_col) +
   scale_y_continuous(limits = c(0, 300), expand = c(0, 0)) +
+  labs(x = NULL, y = 'Number of MAGs') +
   theme_classic() +
   theme(axis.text = element_text(colour = 'black'),
         legend.key.size = unit(1, "line")) +
   guides(fill = guide_legend(ncol = 1, reverse = TRUE)) +
   coord_flip()
+num.mags.plot
+# plot.name <- paste0(wd_fun, "/metabolic/results/number_of_MAGs_Plot.PDF")
+# print(num.mags.plot)
+# cairo_pdf(filename = plot.name, width = 10, height = 8, onefile = TRUE)
+# num.mags.plot
+# dev.off()
 ```
 ## Determine the ratio of presence of each metabolic pathway in each layers
 ```{r}
