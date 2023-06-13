@@ -53,7 +53,7 @@ metabolic_tab <- read.csv(metabolic_output_file) %>%
 ## PCoA ordination analysis using the relative abundance of MAGs and Bray-Curtis dissimilarity index
 ```{r}
 MAG_abund_tab <- abundance_tab
-row_names <- MAG_abund_tab$`Genomic bins`
+row_names <- MAG_abund_tab$ID
 MAG_abund_tab <- MAG_abund_tab[, -1]
 rownames(MAG_abund_tab) <- row_names
 MAG_abund_tab <- MAG_abund_tab[, metadata$sample_id[metadata$sample_id %in% colnames(MAG_abund_tab)]]
@@ -418,14 +418,14 @@ p <- sankeyNetwork(Links = links, Nodes = nodes, Source = "IDsource", Target = "
                    nodeWidth = 20, nodePadding = 10, height = 580, width = 450,
                    sinksRight = F)
 # save the widget
-# library(htmlwidgets)
-# saveWidget(p, file = paste0(sankey.plots.folder, "/sankey_plot.html"))
-# library(webshot)
+library(htmlwidgets)
+saveWidget(p, file = paste0(sankey.plots.folder, "/sankey_plot.html"))
+library(webshot)
 # install phantom:
 # webshot::install_phantomjs()
 # Make a webshot in pdf : high quality but can not choose printed zone
-# webshot(paste0(sankey.plots.folder, "/sankey_plot.html"),
-#         paste0(sankey.plots.folder, "/sankey_plot12.pdf"), delay = 0.2)
+webshot(paste0(sankey.plots.folder, "/sankey_plot.html"),
+        paste0(sankey.plots.folder, "/sankey_plot12.pdf"), delay = 0.2)
 p
 ```
 

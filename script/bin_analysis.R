@@ -43,19 +43,6 @@ tax_tab %>% select(c("Class")) %>%
         axis.text.x = element_text(colour = "black", angle = 90, vjust = 0.5, hjust=1),
         axis.text.y = element_text(colour = "black"))
 
-
-
-  geom_bar(stat = 'identity', width = 1) +
-  coord_polar(theta = 'x') +
-  #scale_fill_manual(values = c('#8DD3C7', '#FFFFB3', '#BEBADA', '#FB8072', '#80B1D3', '#FDB462', '#B3DE69', '#FCCDE5', '#BC80BD', '#CCEBC5', 'gray')) +
-  theme(panel.grid = element_blank(), 
-        panel.background = element_blank(), 
-        axis.text = element_blank(), 
-        axis.ticks = element_blank(), 
-        plot.title = element_text(hjust = 0.5))
-
-  
-
 dat2 <- abundance_tab %>% 
   mutate(SUR = rowMeans(select(., grep('SUR', colnames(abundance_tab), value = T)))) %>%
   mutate(SUB = rowMeans(select(., grep('SUB', colnames(abundance_tab), value = T)))) %>%
@@ -64,7 +51,7 @@ dat2 <- abundance_tab %>%
   pivot_longer(cols = -c(ID), names_to = "Layers", values_to = 'rel_abun') %>%
   mutate(Layers = factor(Layers, levels = c('SUR', 'SUB', 'PL')))
 # write the table for itol annotation
-write.csv(dat2, "E:/permafrost/data/metagenome/metabolic/METABOLIC_70_layer/METABOLIC_70_all/itol_DIY_manual/abundance_annotation.csv")
+# write.csv(dat2, "E:/permafrost/data/metagenome/metabolic/METABOLIC_70_layer/METABOLIC_70_all/itol_DIY_manual/abundance_annotation.csv")
 
 #metabolic functional MAGs
 C_N_metapathway <- c("Amylolytic enzymes", "Cellulose degrading", "Endohemicellulases",
@@ -95,7 +82,7 @@ dat3 <- metabolic_tab %>%
   mutate(ID = gsub(".Function.presence", "", ID))
 
 # write the table for itol annotation
-write.csv(dat3, "E:/permafrost/data/metagenome/metabolic/METABOLIC_70_layer/METABOLIC_70_all/itol_DIY_manual/annotation.csv")
+# write.csv(dat3, "E:/permafrost/data/metagenome/metabolic/METABOLIC_70_layer/METABOLIC_70_all/itol_DIY_manual/annotation.csv")
 
 # count the number of MAGs of each metabolic parhway (Carbon & Nitrigen)
 my_colors <- c("#e4d00a", "#FB8072", "#FDB462", "#80B1D3", "#BEBADA", "#B3DE69", "#FCCDE5", "#A6CEE3",
