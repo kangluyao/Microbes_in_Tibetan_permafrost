@@ -77,7 +77,6 @@ pcoa_MAG_plot <- data.frame(Layers = metadata$Layer, scores(ord.MAG)) %>%
 # ggsave(file.path(save.dir, "./figs/beta/PCoA_MAG_bray.pdf"),
 #        pcoa_MAG_plot, width = 89, height = 59, units = "mm")
 pcoa_MAG_plot
-
 ```
 
 ## Explore the difference in genome size among layers
