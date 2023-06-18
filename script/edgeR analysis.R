@@ -49,7 +49,7 @@ d <- estimateCommonDisp(d)
 d <- estimateTagwiseDisp(d)
 
 #compare SUR layer to the remaining two layers.
-classes <- factor(classDefinitions_RNASeq$layer)
+classes <- factor(classDefinitions_RNASeq$Layer)
 modelDesign <- model.matrix(~ 0 + classes)
 contrast_sur <- makeContrasts(
   survsrest = "classesSUR-(classesSUB + classesPL)/2", levels = modelDesign)

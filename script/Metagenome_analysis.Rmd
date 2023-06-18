@@ -8,18 +8,23 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
+
 ```{r setup, include = F}
 knitr::opts_chunk$set(
   collapse = T, echo = T, comment = "#>", message = F, warning = F,
 	fig.align = "center", fig.width= 4.5, fig.height = 3, dpi = 150)
 ```
+
 ## set work directory
+
 ```{r}
 setwd('e:/permafrost')
 wd_fun <- file.path(getwd(),"data/metagenome")
 save.dir <- file.path(getwd(),"result")
 ```
+
 ## loading packages
+
 ```{r}
 ipak <- function(pkg){
   new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
@@ -31,8 +36,11 @@ pkgs <- c('phyloseq', 'picante', 'microbiome', 'readxl', 'tidyverse',
           'ggpubr', 'ggplot2')
 ipak(pkgs)
 ```
+
 ## reading input files
+
 ```{r}
+source("script/read_data.R")
 # tree.file <- file.path(wd_fun, 'binning_70/result/gtdb_tree/bacteria/tax.unrooted.tree')
 abundance_tab.file <- file.path(wd_fun, "metabolic/METABOLIC_70_layer/METABOLIC_70_all/bin_abundance_table.tab")
 tax.file <- file.path(wd_fun, "binning_70/result/tax.txt")
@@ -50,7 +58,9 @@ bin_infor <- read.csv(bin_infor_file) %>%
 metabolic_tab <- read.csv(metabolic_output_file) %>%
   select(c('Category', 'Function', grep('Function.presence', colnames(.))))
 ```
+
 ## PCoA ordination analysis using the relative abundance of MAGs and Bray-Curtis dissimilarity index
+
 ```{r}
 MAG_abund_tab <- abundance_tab
 row_names <- MAG_abund_tab$ID
@@ -80,6 +90,7 @@ pcoa_MAG_plot
 ```
 
 ## Explore the difference in genome size among layers
+
 ```{r, fig.align='center', fig.width=4.5, fig.height=4.5}
 library(ggpubr)
 library(ggplot2)
@@ -104,6 +115,7 @@ genome_size_plot
 ```
 
 ## count the number of MAGs of each Class
+
 ```{r, fig.width=6, fig.height=4.5}
 tax_tab %>% select(c("Class")) %>%
   mutate(number = c(rep(1, nrow(tax_tab)))) %>%
@@ -121,6 +133,7 @@ tax_tab %>% select(c("Class")) %>%
         axis.text.x = element_text(colour = "black", angle = 90, vjust = 0.5, hjust=1),
         axis.text.y = element_text(colour = "black"))
 ```
+
 ```{r}
 dat2 <- abundance_tab %>% 
   mutate(SUR = rowMeans(select(., grep('SUR', colnames(abundance_tab), value = T)))) %>%
@@ -132,7 +145,9 @@ dat2 <- abundance_tab %>%
 # write the table for itol annotation
 # write.csv(dat2, "E:/permafrost/data/metagenome/metabolic/METABOLIC_70_layer/METABOLIC_70_all/itol_DIY_manual/abundance_annotation.csv")
 ```
+
 ## Metabolic functional MAGs
+
 ```{r}
 C_N_metapathway <- c("Amino acid utilization", "Amylolytic enzymes", 
                      "Cellulose degrading", "Endohemicellulases",
@@ -164,7 +179,9 @@ dat3 <- metabolic_tab %>%
 # write the table for itol annotation
 # write.csv(dat3, "E:/permafrost/data/metagenome/metabolic/METABOLIC_70_layer/METABOLIC_70_all/itol_DIY_manual/annotation.csv")
 ```
+
 ## Determine the total number of MAGs for each metabolic pathway
+
 ```{r, fig.width=10, fig.height=8}
 my_colors <- c("#e4d00a", "#FB8072", "#FDB462", "#80B1D3", "#BEBADA", "#B3DE69", "#FCCDE5", "#A6CEE3",
                "#8DD3C7", "#B2DF8A", "#33A02C", "#FB9A99", "#E31A1C", "#893f45", "#FF7F00", "#1F78B4",
@@ -205,7 +222,9 @@ num.mags.plot
 # num.mags.plot
 # dev.off()
 ```
+
 ## Determine the ratio of presence of each metabolic pathway in each layers
+
 ```{r}
 dat_3layers <- metabolic_tab %>% 
   filter(Function %in% c(C_N_metapathway, other_metapathway)) %>% 
@@ -221,6 +240,7 @@ knitr::kable(dat_3layers[1:10, ], "simple")
 ```
 
 ## relationship of bin with carbon flux
+
 ```{r}
 bin_flux_file = file.path(wd_fun, '/bin_flux.csv')
 bin_flux <- read_delim(bin_flux_file, col_names = T)
@@ -244,26 +264,35 @@ p <- ggplot(bin_flux, aes(x = s_SUB_15_15, y = Cumulative_5)) +
 #        p, width = 110, height = 120, units = "mm")
 p
 ```
+
 ## Metabolic difference among different layers
+
 Set work directory
+
 ```{r}
 sankey.plots.folder <- file.path(wd_fun, "metabolic/results/sankey") # Name of new output folder
 if (!dir.exists(sankey.plots.folder)) {
   dir.create(sankey.plots.folder)
 }
 ```
+
 Input files
+
 ```{r}
 sur_input_table <- file.path(wd_fun, "metabolic/METABOLIC_70_layer/METABOLIC_70_sur/METABOLIC_Figures_Input/Metabolic_Sankey_diagram_input.txt")
 sub_input_table <- file.path(wd_fun, "metabolic/METABOLIC_70_layer/METABOLIC_70_sub/METABOLIC_Figures_Input/Metabolic_Sankey_diagram_input.txt")
 pl_input_table <- file.path(wd_fun, "metabolic/METABOLIC_70_layer/METABOLIC_70_pl/METABOLIC_Figures_Input/Metabolic_Sankey_diagram_input.txt")
 ```
+
 Loading packages
+
 ```{r}
 pkgs <- c('ggthemes', 'networkD3', 'data.table')
 ipak(pkgs)
 ```
+
 Generate a snakey plot with reactions as node, and edges are MAGs, and are colored by taxonomic group.
+
 ```{r}
 # Load the energy flow diagram input ---------------------------
 table_sur <- read.table(sur_input_table, header = F, sep = "\t")
@@ -273,6 +302,7 @@ colnames(table_sub) <- c("Taxa", "Reaction", "Freq")
 table_pl <- read.table(pl_input_table, header = F, sep = "\t")
 colnames(table_pl) <- c("Taxa", "Reaction", "Freq")
 ```
+
 ```{r}
 # Rename the categories ---------------------------
 table_sur$Category <- ifelse(grepl("C-S", table_sur$Reaction), "Carbon", 
@@ -322,6 +352,7 @@ sankey <- data.table::rbindlist(list(table_all[c("Layer", "Taxa", "Freq")],
 names(sankey) <- c('source', 'target', 'value')
 knitr::kable(sankey[1:5, ])
 ```
+
 ```{r}
 # Make a connection data frame
 links <- sankey 
@@ -341,6 +372,7 @@ nodes <- data.frame(
 links$IDsource <- match(links$source, nodes$name)-1 
 links$IDtarget <- match(links$target, nodes$name)-1
 ```
+
 ```{r}
 # Set color of connections
 # Add a 'group' column to each connection:
@@ -399,6 +431,7 @@ nodes$group <- as.factor(c("my_unique_group"))
 links[1:5, ]
 nodes[1:5, ]
 ```
+
 ```{r}
 # Give a color for each group
 my_color <- 'd3.scaleOrdinal() .domain(["a", "b", "c", "d", "e", "f", 
@@ -417,20 +450,21 @@ p <- sankeyNetwork(Links = links, Nodes = nodes, Source = "IDsource", Target = "
                    nodeWidth = 20, nodePadding = 10, height = 580, width = 450,
                    sinksRight = F)
 # save the widget
-library(htmlwidgets)
-saveWidget(p, file = paste0(sankey.plots.folder, "/sankey_plot.html"))
-library(webshot)
+# library(htmlwidgets)
+# saveWidget(p, file = paste0(sankey.plots.folder, "/sankey_plot.html"))
+# library(webshot)
 # install phantom:
 # webshot::install_phantomjs()
 # Make a webshot in pdf : high quality but can not choose printed zone
-webshot(paste0(sankey.plots.folder, "/sankey_plot.html"),
-        paste0(sankey.plots.folder, "/sankey_plot12.pdf"), delay = 0.2)
+# webshot(paste0(sankey.plots.folder, "/sankey_plot.html"),
+#         paste0(sankey.plots.folder, "/sankey_plot12.pdf"), delay = 0.2)
 p
 ```
 
-##  Metabolic network plot with reactions
-Generate a network plot with reactions as node, and edges are MAGs, and are colored by taxonomic group.
-Read input files
+## Metabolic network plot with reactions
+
+Generate a network plot with reactions as node, and edges are MAGs, and are colored by taxonomic group. Read input files
+
 ```{r}
 sur_net_input_table <- file.path(wd_fun, "metabolic/METABOLIC_70_layer/METABOLIC_70_sur/METABOLIC_Figures_Input/functional_network_input.txt")
 sub_net_input_table <- file.path(wd_fun, "metabolic/METABOLIC_70_layer/METABOLIC_70_sub/METABOLIC_Figures_Input/functional_network_input.txt")
@@ -440,21 +474,23 @@ table_sur <- read.csv(sur_net_input_table, header=T, sep="\t")
 table_sub <- read.csv(sub_net_input_table, header=T, sep="\t")
 table_pl <- read.csv(pl_net_input_table, header=T, sep="\t")
 ```
+
 ```{r, fig.width=15, fig.height=10}
 #install.packages("ggraph")
 library(ggraph)
 library(igraph)
 library(tidyverse)
 library(tidygraph)
+library(igraph)
 my_graph_sur <- table_sur[, c(2,3,4,5)] %>% 
   graph_from_data_frame()
 my_graph_sub <- table_sub[, c(2,3,4,5)] %>% 
   graph_from_data_frame()
 my_graph_pl <- table_pl[, c(2,3,4,5)] %>% 
   graph_from_data_frame()
-dge_density(my_graph_sur, loops = TRUE)
-dge_density(my_graph_sub, loops = TRUE)
-dge_density(my_graph_pl, loops = TRUE)
+edge_density(my_graph_sur, loops = TRUE)
+edge_density(my_graph_sub, loops = TRUE)
+edge_density(my_graph_pl, loops = TRUE)
 
 deg_sur <- degree(my_graph_sur, mode = "all")
 deg_sub <- degree(my_graph_sub, mode = "all")
