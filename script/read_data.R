@@ -12,23 +12,23 @@ library(ape)
 library(Biostrings)
 # read data
 ## metadata
-metadata <- read.delim(file.path(wd_16s, "./metadata_final.txt"), header = T, sep = "\t")
+metadata <- read.delim(file.path(wd_16s, "metadata_final.txt"), header = T, sep = "\t")
 rownames(metadata) <- (metadata$sample_id)
 ## dna sequences
-dna_seqs <- readDNAStringSet(file.path(wd_16s, "./otus.fa"), format = "fasta", nrec = -1L, 
+dna_seqs <- readDNAStringSet(file.path(wd_16s, "otus.fa"), format = "fasta", nrec = -1L, 
                              skip = 0L, seek.first.rec = FALSE,
                              use.names = TRUE)
 
 ## tree
-tree <- read_tree(file.path(wd_16s, "./otus.nwk"))
+tree <- read_tree(file.path(wd_16s, "otus.nwk"))
 ## otu table
-otu <- read.delim(file.path(wd_16s, "./otutab.txt"), header = T, row.names = 1, sep = "\t")
+otu <- read.delim(file.path(wd_16s, "otutab.txt"), header = T, row.names = 1, sep = "\t")
 otu <- otu[, metadata$sample_id[metadata$sample_id %in% colnames(otu)]]
 ## rarefy out table
-otu_rare <- read.delim(file.path(wd_16s, "./otutab_rare.txt"), header = T, row.names = 1, sep = "\t")
+otu_rare <- read.delim(file.path(wd_16s, "otutab_rare.txt"), header = T, row.names = 1, sep = "\t")
 otu_rare <- otu_rare[, metadata$sample_id[metadata$sample_id %in% colnames(otu_rare)]]
 ## tax
-tax <- read.delim(file.path(wd_16s, "./taxonomy.txt"), header = T, row.names = 1, sep = "\t")
+tax <- read.delim(file.path(wd_16s, "taxonomy.txt"), header = T, row.names = 1, sep = "\t")
 tax <- as.matrix(tax)
 # phyloseq object
 otu <- otu_table(otu, taxa_are_rows = TRUE)
@@ -45,9 +45,9 @@ wd_fun <- file.path(getwd(),"data/metagenome")
 # if (!dir.exists(wd_fun)) {
 #   dir.create(wd_fun)
 # }
-ko_tpm_table <- read.delim(file.path(wd_fun, "./fun/eggnog.KEGG_ko.raw.tpm.txt"), 
+ko_tpm_table <- read.delim(file.path(wd_fun, "fun/eggnog.KEGG_ko.raw.tpm.txt"), 
                            header = T, row.names = 1, sep = "\t")
-ko_count_table <- read.delim(file.path(wd_fun, "./fun/eggnog.KEGG_ko.raw.counts.txt"), 
+ko_count_table <- read.delim(file.path(wd_fun, "fun/eggnog.KEGG_ko.raw.counts.txt"), 
                              header = T, row.names = 1, sep = "\t")
 ko_tpm_table <- ko_tpm_table[, metadata$sample_id[metadata$sample_id %in% colnames(ko_tpm_table)]]
 ko_count_table <- ko_count_table[, metadata$sample_id[metadata$sample_id %in% colnames(ko_count_table)]]
