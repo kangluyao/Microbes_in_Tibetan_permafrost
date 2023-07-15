@@ -31,6 +31,7 @@ Loading packages
 library(phyloseq)
 library(ape)
 library(Biostrings)
+library(microbiome)
 library(tidyverse)
 ```
 Data input
@@ -39,11 +40,6 @@ source("script/read_data.R")
 ```
 
 ## Calculate alpha diversity
-Loading packages
-```{r}
-library(microbiome)
-library(phyloseq)
-```
 Determine the alpha diversity including **Observed**, **Chao1**, **Shannon** and **Simpson**.
 ```{r}
 alpha_div <- estimate_richness(phylo_rare, measures = c("Observed", "Chao1", 'Shannon', 'Simpson'))

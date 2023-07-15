@@ -10,6 +10,7 @@ save.dir <- file.path(getwd(),"result")
 library(phyloseq)
 library(ape)
 library(Biostrings)
+library(tidyverse)
 # read data
 ## metadata
 metadata <- read.delim(file.path(wd_16s, "metadata_final.txt"), header = T, sep = "\t")

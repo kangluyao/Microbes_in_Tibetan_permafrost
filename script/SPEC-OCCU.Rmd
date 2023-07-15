@@ -75,13 +75,30 @@ head(spec_occu_specialist)
 ```{r, fig.width=6.5, fig.height=4.5}
 #绘制 SPEC-OCCU 图, 添加阈值线
 library(ggplot2)
+# set colors
+ass_col_fun <- function(df) {
+  if (df["layer"] == "SUR" & df["Specificity"] >= 0.7 & df["Occupancy"] >= 0.7) {
+    group = 'a'
+  } else if (df["layer"] == "SUB" & df["Specificity"] >= 0.7 & df["Occupancy"] >= 0.7) {
+    group = 'b'
+  } else if (df["layer"] == "PL" & df["Specificity"] >= 0.7 & df["Occupancy"] >= 0.7) {
+    group = 'c'
+  } else {
+    group = 'd'
+  } 
+  return(group)
+}
+spec_occu$group <- apply(spec_occu, 1, ass_col_fun)
+
 p <- spec_occu %>% mutate(layer = factor(layer, levels = c('SUR', 'SUB', 'PL'))) %>%
   ggplot(aes(Occupancy, Specificity)) +
   # geom_point(aes(size = log10(Abundance_mean), color = 'Taxonomy'), alpha = 0.5) +
-  geom_jitter(aes(size = log10(Abundance_mean), colour = Specificity >= 0.7 & Occupancy >= 0.7), alpha = 0.8) +  #如果觉得普通散点图中的点重叠严重不好看，可以仿照 Gweon et al (2021) 使用抖动点图来展示
-  scale_colour_manual(values = c("grey", "#5f9ea0")) +
+  geom_jitter(aes(size = log10(Abundance_mean), color = group), alpha = 0.8) +  #如果觉得普通散点图中的点重叠严重不好看，可以仿照 Gweon et al (2021) 使用抖动点图来展示
   scale_size(breaks = c(-1, -2, -3, -4), labels = c(expression(10^{-1}), expression(10^{-2}), expression(10^{-3}), expression(10^{-4})), range = c(0, 1)) +
-  #scale_color_manual(values = c('#E7272E', '#F59D1F', '#768CC5', '#9BC648', '#794779', '#A19E9D'), limits = c('Proteobacteria', 'Actinobacteria', 'Acidobacteria', 'Bacteroidetes', 'Firmicutes', 'Others')) +
+  scale_color_manual(values = c("a" = "#f8766d",
+                                "b" = "#a3a500",
+                                "c" = "#00b0f6",
+                                "d" = "grey")) +
   theme(axis.title = element_text(colour = 'black'),
         axis.text = element_text(colour = 'black'),
         panel.grid = element_blank(), 
@@ -92,30 +109,13 @@ p <- spec_occu %>% mutate(layer = factor(layer, levels = c('SUR', 'SUB', 'PL')))
   scale_y_continuous(breaks = c(0, 0.5, 1), expand = c(0, 0), limit = c(0, 1)) +
   labs(x = 'Occupancy', y = 'Specificity', size = 'Average relative abundance') + # add color option, color = 'Taxonomy'
   coord_cartesian(clip = 'off') +
-  geom_segment(aes(x = 0.7, xend = 1, y = 0.7, yend = 0.7), linetype = 2)+
-  geom_segment(aes(x = 0.7, xend = 0.7, y = 0.7, yend = 1), linetype = 2)
-
-# p <- ggplot(spec_occu_specialist, aes(x = Occupancy, y = Specificity, colour = layer, size = log10(Abundance_mean))) +
-#   geom_point(data = spec_occu, colour = "#0087A8", alpha = .2) +
-#   geom_point() + 
-#   scale_size(breaks = c(-1, -2, -3, -4), labels = c(expression(10^{-1}), expression(10^{-2}), expression(10^{-3}), expression(10^{-4})), range = c(0, 1)) +
-#   theme(axis.title = element_text(colour = 'black'),
-#         axis.text = element_text(colour = 'black'),
-#         panel.grid = element_blank(), 
-#         panel.background = element_rect(fill = 'white', color = 'gray30'), 
-#         legend.key = element_blank(), legend.position = "bottom") +
-#   facet_wrap(~layer, ncol = 3) +
-#   scale_x_continuous(breaks = c(0, 0.5, 1), expand = c(0, 0), limit = c(0, 1)) +
-#   scale_y_continuous(breaks = c(0, 0.5, 1), expand = c(0, 0), limit = c(0, 1)) +
-#   labs(x = 'Occupancy', y = 'Specificity', size = 'Average relative abundance') + # add color option, color = 'Taxonomy'
-#   coord_cartesian(clip = 'off') +
-#   geom_segment(aes(x = 0.7, xend = 1, y = 0.7, yend = 0.7), color = "black", linetype = 2)+
-#   geom_segment(aes(x = 0.7, xend = 0.7, y = 0.7, yend = 1), color = "black", linetype = 2)
-# # save plot
-# # cairo_pdf(filename = file.path(save.dir, "./figs/diff_abun/spec_occu_plot.pdf"), width = 8.5, height = 4.1, onefile = TRUE)
-# # p
-# # dev.off()
-# # ggsave(file.path(save.dir, "./figs/diff_abun/spec_occu_plot.pdf"), p, width = 180, height = 90, units = "mm")
+  geom_segment(aes(x = 0.7, xend = 1, y = 0.7, yend = 0.7), linetype = 2, size=.25)+
+  geom_segment(aes(x = 0.7, xend = 0.7, y = 0.7, yend = 1), linetype = 2, size=.25)
+# save plot
+# cairo_pdf(filename = file.path(save.dir, "./figs/diff_abun/spec_occu_plot.pdf"), width = 8.5, height = 4.1, onefile = TRUE)
+# p
+# dev.off()
+ggsave(file.path(save.dir, "./figs/diff_abun/spec_occu_plot1111.pdf"), p, width = 90, height = 90, units = "mm")
 p
 ```
 ## tree图显示特化种的具体类群
@@ -157,7 +157,8 @@ p_sur <- obj_sur %>%
                          supertaxa = TRUE) %>%
   heat_tree(node_label = taxon_names,
             node_size = n_obs,
-            node_color = n_obs) # node_color_range = c("grey", "#F8766D")
+            node_color = n_obs,
+            node_color_range = c("grey", "#f8766d")) # node_color_range = c("grey", "#cfb05b")
 # ggsave(file.path(save.dir, "./figs/diff_abun/spec_sur_tree.pdf"), p_sur, width = 89, height = 59, units = "mm")
 set.seed(1) 
 p_sub = obj_sub %>% 
@@ -165,7 +166,8 @@ p_sub = obj_sub %>%
                          supertaxa = TRUE) %>%
   heat_tree(node_label = taxon_names,
             node_size = n_obs,
-            node_color = n_obs)
+            node_color = n_obs,
+            node_color_range = c("grey", "#a3a500"))
 # ggsave(file.path(save.dir, "./figs/diff_abun/spec_sub_tree.pdf"), p_sub, width = 89, height = 59, units = "mm")
 set.seed(1) 
 p_pl = obj_pl %>% 
@@ -173,10 +175,11 @@ p_pl = obj_pl %>%
                          supertaxa = TRUE) %>%
   heat_tree(node_label = taxon_names,
             node_size = n_obs,
-            node_color = n_obs)
+            node_color = n_obs,
+            node_color_range = c("grey", "#00b0f6"))
 # ggsave(file.path(save.dir, "./figs/diff_abun/spec_pl_tree.pdf"), p_pl, width = 89, height = 59, units = "mm")
-cowplot::plot_grid(p_sur, p_sub, p_pl, ncol = 3)
-# ggsave(file.path(save.dir, "./figs/diff_abun/spec_occu_tree.pdf"), spec_occu_tree, width = 210, height = 120, units = "mm")
+spec_occu_tree <- cowplot::plot_grid(p_sur, p_sub, p_pl, ncol = 2)
+ggsave(file.path(save.dir, "./figs/diff_abun/spec_occu_tree1111.pdf"), spec_occu_tree, width = 180, height = 180, units = "mm")
 ```
 
 
