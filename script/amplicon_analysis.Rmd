@@ -39,7 +39,7 @@ Data input
 source("script/read_data.R")
 ```
 
-## Calculate alpha diversity
+## Alpha diversity
 Determine the alpha diversity including **Observed**, **Chao1**, **Shannon** and **Simpson**.
 ```{r}
 alpha_div <- estimate_richness(phylo_rare, measures = c("Observed", "Chao1", 'Shannon', 'Simpson'))
@@ -84,7 +84,7 @@ p <- ggplot(alpha_div, aes(x = Layers, y = Faith)) +
         panel.grid = element_blank())
 p
 ```
-## beta diversity
+## Beta diversity
 ```{r}
 library(vegan)
 library(pairwiseAdonis)
@@ -119,7 +119,7 @@ pcoa_tax_plot <- data.frame(Layers = metadata$Layer, scores(ord.tax)) %>%
 #        pcoa_tax_plot, width = 89, height = 59, units = "mm")
 pcoa_tax_plot
 ```
-### difference in taxonomic variance among layers
+### Difference in taxonomic variance among layers
 ```{r}
 beta_tax_plot <- sapply(unique(metadata$Layer), function(x) usedist::dist_subset(tax_dist, grep(x, metadata$sample_id, value = T))) %>%
   data.frame() %>% gather("Layers", "distance") %>%
@@ -140,7 +140,7 @@ beta_tax_plot <- sapply(unique(metadata$Layer), function(x) usedist::dist_subset
 #        beta_tax_plot, width = 89, height = 89, units = "mm")
 beta_tax_plot
 ```
-## phylogeny
+## Phylogeny
 PERMANOVA test
 ```{r}
 phy_dist <- as.matrix(UniFrac(phylo, weighted = TRUE, normalized = TRUE, parallel = T, fast = TRUE))
@@ -174,7 +174,7 @@ PCoA_unifrac_plot <- data.frame(Layers = metadata$Layer, ord.phy$vectors[, 1:2])
 PCoA_unifrac_plot 
 ```
 
-### determine the betaMNTD
+### Determine the betaMNTD
 #### Method 1
 ```{r}
 require(picante)
@@ -199,12 +199,12 @@ Dnn.apply.funtion <- function(x) {
 }
 beta.mntd.weighted <- do.call(cbind, lapply(list.of.names, Dnn.apply.funtion))
 ```
-### reading beta.mntd.weighted file
+### Reading beta.mntd.weighted file
 ```{r}
 beta.mntd.weighted <- read.table(file.path(save.dir, './tables/beta.mntd.weighted.txt'),
                                  header = T, row.names = 1)
 ```
-### difference in MNTD among layers
+### Difference in MNTD among layers
 ```{r}
 beta_MNTD_plot <- sapply(unique(metadata$Layer), function(x) usedist::dist_subset(beta.mntd.weighted, grep(x, metadata$sample_id, value = T))) %>%
   data.frame() %>% gather("Layers", "distance") %>%
@@ -225,7 +225,7 @@ beta_MNTD_plot <- sapply(unique(metadata$Layer), function(x) usedist::dist_subse
 #        beta_MNTD_plot, width = 89, height = 89, units = "mm")
 beta_MNTD_plot
 ```
-## functional analysis
+## Functional analysis
 ### PERMANOVA test
 ```{r}
 fun_dist <- as.matrix(vegdist(t(ko_tpm_table), "bray" ))
@@ -257,7 +257,7 @@ pcoa_fun_plot <- data.frame(Layers = metadata$Layer, scores(ord.fun)) %>%
 #        pcoa_fun_plot, width = 89, height = 59, units = "mm")
 pcoa_fun_plot
 ```
-### difference in functional variance among layers
+### Difference in functional variance among layers
 ```{r}
 beta_fun_plot <- sapply(unique(metadata$Layer), function(x) usedist::dist_subset(fun_dist, grep(x, metadata$sample_id, value = T))) %>%
   data.frame() %>% gather("Layers", "distance") %>%
@@ -278,7 +278,7 @@ beta_fun_plot <- sapply(unique(metadata$Layer), function(x) usedist::dist_subset
 #        beta_fun_plot, width = 89, height = 89, units = "mm")
 beta_fun_plot
 ```
-## couple or decouple effect between taxonomic, phylogenetic and functional profile
+## Couple or decouple effect between taxonomic, phylogenetic and functional profile
 
 ```{r}
 pcoa1_tax <- data.frame(Layers = metadata$Layer, scores(ord.tax)) %>%
@@ -342,8 +342,102 @@ p_linear <- ggplot(dist_dat, aes(x = Phylogenetic_distance, y = Functional_dista
         legend.position='none')
 p_linear
 ```
-## composition
-## determine the compositions within top 10 phylums
+## Composition
+### Determine the OTU numbers within each dominant phylum
+```{r}
+# data preparation
+otu_num_in_phylum <- data.frame(table(tax_table(phylo)[,"Phylum"]))
+otu_num_in_phylum <- otu_num_in_phylum %>% arrange(desc(Freq))
+otu_num_in_phylum <- rbind(otu_num_in_phylum[1:11, ], data.frame(Var1 = c('Others'), Freq = sum(otu_num_in_phylum[-c(1:11), 2])))
+
+otu_num_in_phylum <- data.frame(Phylum = otu_num_in_phylum$Var1, otu_num = otu_num_in_phylum$Freq ,
+                                prop = otu_num_in_phylum$Freq/sum(otu_num_in_phylum$Freq)*100)
+otu_count.data <- otu_num_in_phylum %>%
+  mutate(lab.ypos = cumsum(prop) - 0.5*prop)
+otu_count.data$Phylum <- factor(otu_count.data$Phylum, ordered = T, levels = otu_num_in_phylum$Phylum)
+```
+
+```{r}
+# pie plot 
+# Define the colors you want
+mycols <- c("#89c5da", "#ffc15c", "#74d944", "#CE50CA", "#5e738f", "#C0717C", "#CBD5ec", "#5F7FC7", 
+                     "#00718b", "#00b0f6", "#a3a500", "#f8766d", "#D7C1B1", "#689030", "#AD6F3B", "#CD9BCD", 
+                     "#D14285", "#6DDE88", "#652926", "#7FDCC0", "#C84248", "#8569D5", "#5E738F", "#D1A33D", 
+                     "#8A7C64", "#599861")
+
+pie_for_otu_num_phylum <- ggplot(otu_count.data, aes(x="", y=prop, fill=reorder(Phylum, -lab.ypos))) +
+  geom_bar(width = 1, stat = "identity") + 
+  coord_polar("y", start=0) +
+  geom_text(aes(x = 1.35, y = lab.ypos, 
+                label = paste0(otu_num, ' (', round(prop, 1), '%', ')', sep= '')),
+            color = "black", size=3) +
+  scale_fill_manual('Phylum', values = mycols) +
+  guides(fill = guide_legend(reverse=T)) +
+  theme_void() +
+  theme(legend.position = "left")
+pie_for_otu_num_phylum
+```
+
+### Determine the Order compositions within top 10 phyla
+```{r}
+arrange.tab <- function(phylo, N, taxrank, vect) {
+  subphylo <- tax_glom(phylo, taxrank)
+  subphylo.rel <- microbiome::transform(subphylo, "compositional")
+  ra.tab <- otu_table(subphylo.rel)
+  MRA <- rowMeans(ra.tab)
+  group <- tax_table(subphylo.rel)[,vect]
+  mra.tab <- data.frame(group,MRA)
+  colnames(mra.tab) <- c('level1', 'level2', 'MRA')
+  #arrange the class table
+  mra.tab_level1 = mra.tab %>% group_by(level1) %>% 
+    summarise(sum_MRA = sum(MRA)) %>% 
+    arrange(desc(sum_MRA))
+  top_N_level1 = mra.tab_level1[1:N, ]$'level1'
+  top_N_tab = mra.tab[mra.tab$'level1' %in% top_N_level1, ]
+  mra.tab_level2 = top_N_tab %>% group_by(level2) %>% 
+    summarise(sum_MRA = sum(MRA)) %>% 
+    arrange(desc(sum_MRA))
+  order_level2 = mra.tab_level2$'level2'
+  top_N_tab$'level1' = factor(top_N_tab$'level1', ordered = T, levels = top_N_level1)
+  top_N_tab$'level2' = factor(top_N_tab$'level2', ordered = T, levels = rev(order_level2))
+  top_N_tab$MRA = top_N_tab$MRA*100
+  return(top_N_tab)
+}
+top10phylum <- arrange.tab(phylo, 10, 'Order', c(2,4))
+mra.tab_level1 = top10phylum %>% group_by(level1) %>% 
+  summarise(sum_MRA = sum(MRA)) %>% 
+  arrange(desc(sum_MRA))
+mra.tab_level1
+mra.tab_level2 = top10phylum %>% group_by(level2) %>% 
+  summarise(sum_MRA = sum(MRA)) %>% 
+  arrange(desc(sum_MRA))
+mra.tab_level2 [1:20, ]
+order_level2 = mra.tab_level2$'level2'
+```
+
+```{r, fig.width = 8, fig.height = 6}
+#stack bar plot
+taxa_barplot <- ggplot(top10phylum, aes(fill=level2, y=MRA, x=level1)) + 
+  geom_bar(position="stack", stat="identity") +
+  scale_fill_manual('Order', breaks = order_level2[1:15], 
+                    values = rep(c(rev(mycols[1:12]), mycols[-c(1:12)]), 20)[1:nrow(top10phylum)]) + #only the top 10 phylum and top 10 order are showed
+  labs(x = 'Phylum', y = 'Mean relative abundance (%)') +
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 30)) +
+  theme_classic()+
+  theme(legend.position = c(0.6,0.6),
+        panel.grid=element_blank(), 
+        axis.title = element_text(color = 'black', size = 8),
+        axis.ticks.length = unit(0.4, "lines"), axis.ticks = element_line(color = 'black'),
+        axis.line = element_line(colour = "black"), 
+        axis.text.y = element_text(colour = 'black', size = 6),
+        axis.text.x = element_text(colour = 'black', size = 6, angle = 45, hjust = 1),
+        legend.text = element_text(size = 6),
+        legend.key = element_blank(),
+        legend.background = element_rect(colour = "white"))
+taxa_barplot
+```
+
+### Determine the compositions within top 10 phylums for each layer
 ```{r}
 subphylo <- tax_glom(phylo, 'Phylum')
 subphylo.rel  = transform_sample_counts(subphylo, function(x) x / sum(x) )
@@ -351,9 +445,15 @@ ntaxa(subphylo.rel)
 ra.tab <- otu_table(subphylo.rel)
 sum(ra.tab[, 1])
 subtaxa_tab <- tax_table(subphylo.rel)[, 2]
+data.frame(subtaxa_tab, ra.tab) %>% group_by(Phylum) %>% 
+  summarise(across(everything(), sum)) %>% 
+  mutate(MRA = rowMeans(select(., colnames(ra.tab)))) %>%
+  arrange(desc(MRA)) %>% dplyr::top_n(10, MRA) %>%
+  select(., c('Phylum', 'MRA'))
 ```
-## boxplot shows the community composition
+
 ```{r, fig.width = 8, fig.height = 4.5}
+## boxplot shows the community composition for each layer
 box_plot <- data.frame(subtaxa_tab, ra.tab) %>% group_by(Phylum) %>% 
   summarise(across(everything(), sum)) %>% 
   mutate(MRA = rowMeans(select(., colnames(ra.tab)))) %>%
@@ -371,16 +471,16 @@ box_plot <- data.frame(subtaxa_tab, ra.tab) %>% group_by(Phylum) %>%
   labs(x = 'Phylum', y = 'Relative abundance (%)', fill='Layers') +
   theme_bw() +
   guides(fill = guide_legend(keywidth = 0.5, keyheight = 0.5)) +
-  theme(axis.title = element_text(size = 12, colour = "black"),
-        axis.text.x = element_text(size = 10, colour = "black", 
+  theme(axis.title = element_text(size = 8, colour = "black"),
+        axis.text.x = element_text(size = 6, colour = "black", 
                                    angle = 45, vjust = 1, hjust = 1),
-        axis.text.y = element_text(size = 10, colour = "black"),
-        legend.title = element_text(size = 10),
-        legend.text = element_text(size = 8),
+        axis.text.y = element_text(size = 6, colour = "black"),
+        legend.title = element_text(size = 8),
+        legend.text = element_text(size = 6),
         panel.grid = element_blank())
 box_plot
 ```
-## barplot shows the community composition
+### Barplot shows the community composition
 ```{r, fig.width = 8, fig.height = 4.5}
 bar_plot <- data.frame(subtaxa_tab, ra.tab) %>% 
   mutate(MRA = rowMeans(select(., colnames(ra.tab)))) %>%
@@ -400,21 +500,21 @@ bar_plot <- data.frame(subtaxa_tab, ra.tab) %>%
   guides(fill = guide_legend(keywidth = 0.5, keyheight = 0.5)) +
   facet_grid(~layer, scales = "free_x", space = "free_x") + 
   theme(axis.title.x = element_blank(), 
-        axis.title.y = element_text(size = 10, colour = "black"),
+        axis.title.y = element_text(size = 8, colour = "black"),
         panel.grid.minor = element_blank(), 
         panel.grid.major = element_blank(), 
         axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1, size = 6), 
-        axis.text.y = element_text(size = 8), 
+        axis.text.y = element_text(size = 6), 
         panel.spacing = unit(0, "lines"),
         strip.text = element_blank(),
         strip.background = element_blank(),
-        legend.title = element_text(size = 10), 
-        legend.text = element_text(size = 8))
+        legend.title = element_text(size = 8), 
+        legend.text = element_text(size = 6))
 # ggsave(file.path(save.dir, "./figs/composition/tax_composition_10.pdf"), box_plot, width = 189, height = 95, units = "mm")  
 # ggsave(file.path(save.dir, "./figs/composition/tax_composition_bar.pdf"), bar_plot, width = 120, height = 65, units = "mm") 
 bar_plot
 ```
-## unique otus profile among three layers
+### Unique otus profile among three layers
 ```{r, fig.width = 6, fig.height = 4.5}
 # Load the library
 library(limma)
