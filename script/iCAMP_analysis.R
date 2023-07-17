@@ -91,15 +91,15 @@ null_plot <- null_df %>%
   pivot_longer(cols = -c(layer), names_to = "process", values_to = "value") %>%
   mutate(layer = factor(layer, levels = c("SUR", "SUB", "PL"))) %>%
   ggplot(aes(y = value, x = layer)) + 
-  geom_flow(aes(alluvium = process), alpha = 0.9, lty = 2, fill = "white",
-            color = "black", curve_type = "linear", width = 0.5) + 
+  geom_flow(aes(alluvium = process, fill = process,
+                color = process), alpha = 0.4, lty = 2, curve_type = "linear", width = 0.5) + 
   geom_col(aes(fill = process), width = 0.5, color = "black") + 
   labs(x = 'Layers', y = 'Relative importance', fill = 'Processes') +
   # scale_fill_manual(values = c("#000000", "#294e63", "#496a80", "#7c98ac", "#b3c4d2")) + 
   scale_y_continuous(expand = c(0, 0)) + theme_classic() +
   theme(axis.title = element_text(colour = "black"),
         axis.text = element_text(colour = "black"))
-ggsave(file.path(save.dir, './figs/null_model/null_stacked_plot.pdf'), null_plot, width = 6, height = 4)
+# ggsave(file.path(save.dir, './figs/null_model/null_stacked_plot.pdf'), null_plot, width = 6, height = 4)
 
 #boxplot
 library(ggpubr)

@@ -77,6 +77,8 @@ pcoa_MAG_plot <- data.frame(Layers = metadata$Layer, scores(ord.MAG)) %>%
   ggplot(aes(x = Dim1, y = Dim2, shape = Layers, color = Layers)) + 
   geom_point(size = 1, alpha = 0.8) + 
   stat_ellipse(geom = "polygon", aes(fill = Layers), alpha = 0.2, show.legend = FALSE, level = 0.95) +
+  scale_colour_manual(values = c("#f8766d", "#a3a500", "#00b0f6")) +
+  scale_fill_manual(values = c("#f8766d", "#a3a500", "#00b0f6")) +
   labs(x=paste("PCoA1 (", format(100 * ord.MAG$eig[1] / sum(ord.MAG$eig), digits = 3), "%)", sep = ""),
        y=paste("PCoA2 (", format(100 * ord.MAG$eig[2] / sum(ord.MAG$eig), digits = 3), "%)", sep = "")) +
   theme(axis.title = element_text(size = 8, colour = "black"),
@@ -100,8 +102,9 @@ my_comparisons <- list( c("SUR", "SUB"), c("SUB", "PL"), c("SUR", "PL") )
 genome_size_plot <- bin_infor %>% data.frame() %>%
   select(Layers, size) %>%
   ggplot(aes(x = Layers, y = size)) + 
-  geom_boxplot(width = 0.5, aes(fill = Layers))+
-  stat_compare_means(comparisons = my_comparisons,  paired = TRUE, 
+  geom_boxplot(width = 0.5, aes(fill = Layers)) +
+  scale_fill_manual(values = c("#f8766d", "#a3a500", "#00b0f6")) +
+  stat_compare_means(comparisons = my_comparisons, 
                      p.adjust.method = "BH", label = "p.signif") +
   #scale_fill_manual(values= cols)+
   labs(x = 'Layers', y = 'Genome size', fill = 'Layers') +

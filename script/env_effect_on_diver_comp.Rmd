@@ -190,10 +190,19 @@ phylo_pl <- prune_taxa(taxa_sums(phylo_pl)>=1, phylo_pl)
 
 set.seed(123)
 par.mant.sur <- partial.mantel.fun(phylo_sur)
+par.mant.sur
+```
+
+```{r}
 set.seed(123)
 par.mant.sub <- partial.mantel.fun(phylo_sub)
+par.mant.sub
+```
+
+```{r}
 set.seed(123)
 par.mant.pl <- partial.mantel.fun(phylo_pl)
+par.mant.pl
 ```
 PLOT using ggcor package
 ```{r, fig.align='center', fig.width=8, fig.height=5}
