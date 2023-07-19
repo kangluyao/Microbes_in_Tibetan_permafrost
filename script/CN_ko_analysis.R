@@ -40,11 +40,12 @@ C_N_path2 <- C_N_path1 %>% select(c(3:69)) %>%
 # path_result <- C_N_path2 %>% select(-sample_id) %>% 
 #   group_by(Enzyme_protein_encoded, layer) %>%
 #   summarise_all(list(mean = mean, sd = sd, se = ~sd(./sqrt(.))))
+#scale transform
 library(reshape2)
-plot_dat <- apply(C_N_path2, MARGIN = 2, FUN = scale)
-rownames(plot_dat) <- rownames(C_N_path2)
+plot_dat <- apply(C_N_path2, MARGIN = 1, FUN = scale)
+rownames(plot_dat) <- colnames(C_N_path2)
 plot_dat <- t(plot_dat)
-plot_dat <-  setNames(melt(plot_dat), c('samples', 'Enzyme_protein_encoded', 'values'))
+plot_dat <-  setNames(melt(plot_dat), c('Enzyme_protein_encoded', 'samples', 'values'))
 plot_dat$Enzyme_protein_encoded <- factor(plot_dat$Enzyme_protein_encoded, ordered = T,
                                           levels = unique(sel_ko$Enzyme_protein_encoded))
 ggplot(plot_dat) +
@@ -58,6 +59,33 @@ ggplot(plot_dat) +
         axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1, size = 5), 
         panel.spacing = unit(0, "lines"), strip.background = element_blank())
 
+
+#log TPM transform
+library(reshape2)
+plot_dat <- log2(C_N_path2+1)
+plot_dat %>%
+  mutate(Enzyme_protein_encoded = rownames(.)) %>%
+  pivot_longer(cols = -(Enzyme_protein_encoded), names_to = "sample_id", values_to = "TPM") %>%
+  mutate(layer = sapply(stringr::str_split(sample_id, "_",  n = 2), `[`, 1)) %>%
+  mutate(layer = factor(layer, levels = c('SUR', 'SUB', 'PL'))) %>%
+  select(c(Enzyme_protein_encoded, TPM, layer)) %>%
+  group_by(Enzyme_protein_encoded, layer) %>%
+  summarise(across(everything(), mean)) %>%
+  ggplot(aes(Enzyme_protein_encoded, TPM)) + 
+  geom_boxplot(width = 0.5, aes(fill = layer)) +
+  stat_compare_means(aes(group = layer),  paired = TRUE, 
+                     p.adjust.method = "BH", label = "p.signif") +
+  scale_fill_manual(values = c("#f8766d", "#a3a500", "#00b0f6")) +
+  labs(x = 'Genes', y = 'Log2(TPM+1)', fill='Layers') +
+  theme_bw() +
+  guides(fill = guide_legend(keywidth = 0.5, keyheight = 0.5)) +
+  theme(axis.title = element_text(size = 8, colour = "black"),
+        axis.text.x = element_text(size = 6, colour = "black", 
+                                   angle = 45, vjust = 1, hjust = 1),
+        axis.text.y = element_text(size = 6, colour = "black"),
+        legend.title = element_text(size = 8),
+        legend.text = element_text(size = 6),
+        panel.grid = element_blank())
 ##############################################################################################################
 # edgeR analysis
 save.dir <- file.path(getwd(),"result")
@@ -151,15 +179,24 @@ C_names <- c("Alpha-amylase", "Glucoamylase", "Pullulanase", "Isopullulanase",
              "Beta-glucosidase",  "Endoglucanase", "Exoglucanase",
              "Acetylglucosaminidase", "Endochitinase", "Exochitinase",
              "Pectinase", 
-             "Aryl-aldehyde oxidase", "Isocitrate lyase", "Limonene-1, 2-epoxide hydrolase", "Malate synthase", "Vanillate demethylase", 
+             "Aryl-aldehyde oxidase", "Isocitrate lyase", "Limonene-1, 2-epoxide hydrolase", 
+             "Malate synthase", "Vanillate demethylase", 
              "Glyoxal oxidase", "Phenol oxidase (tyrosinase)",
-             "Methyl coenzyme M reductase", "Particulate methane monooxygenase", "Soluable methane monooxygenase",
+             "Methyl coenzyme M reductase", "Particulate methane monooxygenase", 
+             "Soluable methane monooxygenase",
              "Carbon monoxide dehydrogenase", "Tetrahydrofolate formylase", "ATP citrate lyase", 
              "Propionyl-CoA carboxylase", "RuBisCo")
 N_names <- c("amoA",	"amoB",	"amoC",	"hao",	"nxrA",	"nxrB", "narG",	"narH",	"narI", "napA",	
              "napB", "nirK", "nirS",	"norB",	"norC",	"nosZ", "nrfA",	"nrfH", "nirB",	"nirD",	
-             "nasA",	"nasB", "narB",	"NR", "NIT-6", "nirA",	"nifD", "nifK", "nifH", "nrtA",	"nrtB", "nrtC",	
-             "nrtD", "nmo", "gdh_K00261", "gdh_K00262", "gdh_K15371", "glsA", "ureA", "ureC", "glnA")
+             "nasA",	"nasB", "narB",	"NR", "NIT-6", "nirA",	"nifD", "nifK", "nifH", "nrtA",	
+             "nrtB", "nrtC", "nrtD", "nmo", "gdh_K00261", "gdh_K00262", "gdh_K15371", "glsA", 
+             "ureA", "ureC", "glnA")
+S_names <- c("fccB", "sqr", "dsrA", "dsrB", "dsrD", "asrA", "asrB", "asrC", "sdo", "sor", "sreA", 
+             "sreB", "sreC", "soxB", "soxY", "soxC", "aprA", "sat", "phsA")
+
+Other_names <- c( "arrA", "arsC (grx)", "arsC (trx)", "arxA", "aioA", "arsM", "ygfM", 
+                  "xdhD", "YgfK", "acsC", "acsD", "mbtA", 
+                  "mbtB", "mbtE", "mbtC", "mbtG", "mbtF")
 logFC_table <- rbind(data.frame(pathway = rownames(tt_survsrest$table), logFC = tt_survsrest$table$logFC, layer = rep('SUR', nrow(tt_survsrest$table))),
                      data.frame(pathway = rownames(tt_subvsrest$table), logFC = tt_subvsrest$table$logFC, layer = rep('SUB', nrow(tt_subvsrest$table))),
                      data.frame(pathway = rownames(tt_plvsrest$table), logFC = tt_plvsrest$table$logFC, layer = rep('PL', nrow(tt_plvsrest$table)))) %>%
@@ -183,11 +220,11 @@ p_C_enrich <- logFC_table %>% filter(pathway %in% C_names) %>%
         legend.title = element_text(size = 8), 
         legend.text = element_text(size = 6))
 
-plot.name <- paste0(save.dir, "/figs/metagenome/edgeR_Carbon_heatmap.pdf")
-print(plot.name)
-cairo_pdf(filename = plot.name, width = 6.9, height = 2.2, onefile = TRUE)
+# plot.name <- paste0(save.dir, "/figs/metagenome/edgeR_Carbon_heatmap.pdf")
+# print(plot.name)
+# cairo_pdf(filename = plot.name, width = 6.9, height = 2.2, onefile = TRUE)
 p_C_enrich
-dev.off()
+# dev.off()
 
 p_N_enrich <- logFC_table %>% filter(pathway %in% N_names) %>%
   mutate(pathway = factor(pathway, levels = rev(N_names), ordered = T)) %>%
@@ -200,17 +237,33 @@ p_N_enrich <- logFC_table %>% filter(pathway %in% N_names) %>%
   theme(axis.title = element_blank(),
         axis.text = element_text(size = 10, colour = 'black'),
         axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
+p_N_enrich
 
+p_S_enrich <- logFC_table %>% filter(pathway %in% S_names) %>%
+  mutate(pathway = factor(pathway, levels = rev(S_names), ordered = T)) %>%
+  ggplot(aes(x = layer, y = pathway, fill = logFC))+
+  geom_tile() + 
+  scale_fill_gradient2(low = "#2C7BB6", mid = "white", high = "#D7191C") +  # low="#2C7BB6", mid="white", high="#D7191C" or low = "#009E73", mid = "white", high = "#E69F00"
+  geom_text(aes(label = round(logFC, 2)), 
+            color = "black", size = 2)+
+  labs(y = 'Pathway', x = 'Layers', fill = "logFC")+
+  theme(axis.title = element_blank(),
+        axis.text = element_text(size = 10, colour = 'black'),
+        axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
+p_S_enrich
 
-
-
-
-
-
-
-
-
-
+p_other_enrich <- logFC_table %>% filter(pathway %in% Other_names) %>%
+  mutate(pathway = factor(pathway, levels = rev(Other_names), ordered = T)) %>%
+  ggplot(aes(x = layer, y = pathway, fill = logFC))+
+  geom_tile() + 
+  scale_fill_gradient2(low = "#2C7BB6", mid = "white", high = "#D7191C") +  # low="#2C7BB6", mid="white", high="#D7191C" or low = "#009E73", mid = "white", high = "#E69F00"
+  geom_text(aes(label = round(logFC, 2)), 
+            color = "black", size = 2)+
+  labs(y = 'Pathway', x = 'Layers', fill = "logFC")+
+  theme(axis.title = element_blank(),
+        axis.text = element_text(size = 10, colour = 'black'),
+        axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
+p_other_enrich
 
 
 

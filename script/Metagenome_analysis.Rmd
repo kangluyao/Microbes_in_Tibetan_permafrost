@@ -120,6 +120,25 @@ genome_size_plot
 ```
 
 ## count the number of MAGs of each Class
+```{r, fig.width=6, fig.height=4.5}
+tax_tab %>% select(c("Domain")) %>%
+  mutate(number = c(rep(1, nrow(tax_tab)))) %>%
+  group_by(Domain) %>%
+  summarise(across(everything(), sum)) %>%
+  arrange(desc(number)) %>%
+  mutate(Domain = gsub("d__", "", Domain)) %>%
+  mutate(Domain = factor(Domain, levels = Domain))
+```
+
+```{r, fig.width=6, fig.height=4.5}
+tax_tab %>% select(c("Phylum")) %>%
+  mutate(number = c(rep(1, nrow(tax_tab)))) %>%
+  group_by(Phylum) %>%
+  summarise(across(everything(), sum)) %>%
+  arrange(desc(number)) %>%
+  mutate(Phylum = gsub("p__", "", Phylum)) %>%
+  mutate(Phylum = factor(Phylum, levels = Phylum))
+```
 
 ```{r, fig.width=6, fig.height=4.5}
 tax_tab %>% select(c("Class")) %>%
@@ -196,7 +215,6 @@ my_colors <- c("#e4d00a", "#FB8072", "#FDB462", "#80B1D3", "#BEBADA", "#B3DE69",
                
 set.seed(1234)  # Set seed
 my_col <- sample(my_colors) # Sample vector            
-my_col
 values = c("#6A3D9A", "#FCCDE5", "#1F78B4", "#A6CEE3", "#B3DE69", "#E69F00", "#56B4E9", "#009E73",
            "#F0E442", "#0072B2", "#D55E00", "#FB9A99", "#E31A1C", "#FDBF6F", "#8DD3C7", "#FFFFB3", 
            "#BEBADA", "#FB8072", "#B2DF8A", "#33A02C", "#FF7F00", "#000000")
@@ -205,11 +223,13 @@ values = c("#FFFFB3", "#FB8072", "#FDB462", "#80B1D3", "#BEBADA", "#B3DE69", "#F
            "#8DD3C7", "#B2DF8A", "#33A02C", "#FB9A99", "#E31A1C", "#FDBF6F", "#FF7F00", "#1F78B4",
            "#6A3D9A", "#FCCDE5", "#1F78B4", "#A6CEE3", "#B3DE69", "#E69F00", "#56B4E9", "#009E73")
 
-num.mags.plot <- dat3 %>% select(c(1, 2, 4)) %>%
+num.mags.df <- dat3 %>% select(c(1, 2, 4)) %>%
   group_by(Category, Function) %>% 
   summarise(across(everything(), sum)) %>%
   filter(Function %in% c(C_N_metapathway, other_metapathway)) %>% 
-  mutate(Function = factor(Function, levels = c(C_N_metapathway, other_metapathway))) %>%
+  mutate(Function = factor(Function, levels = c(C_N_metapathway, other_metapathway)))
+knitr::kable(num.mags.df)
+num.mags.plot <- num.mags.df %>%
   ggplot(aes(x = Function, y = presence_or_absent, fill = Function)) +
   geom_bar(stat = "identity") +
   scale_fill_manual(values = my_col) +
