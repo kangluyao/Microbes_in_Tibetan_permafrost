@@ -3,6 +3,8 @@ wd_fun <- file.path(getwd(),"data/metagenome")
 sel_ko <- read_csv(file.path(wd_fun, 'CN_ko_input.csv'), col_names = T)
 ko_tax_TPM_table <- read_delim(file.path(wd_fun, './fun/parse_dat.txt'), col_names = T)
 
+source("script/read_data.R")
+
 C_N_ko_count_tab <- ko_count_table[rownames(ko_count_table) %in% sel_ko$KO, ]
 C_N_ko_count_tab <- cbind(KO = rownames(C_N_ko_count_tab), C_N_ko_count_tab)
 
@@ -62,21 +64,22 @@ ggplot(plot_dat) +
 
 #log TPM transform
 library(reshape2)
-plot_dat <- log2(C_N_path2+1)
-plot_dat %>%
-  mutate(Enzyme_protein_encoded = rownames(.)) %>%
-  pivot_longer(cols = -(Enzyme_protein_encoded), names_to = "sample_id", values_to = "TPM") %>%
+library(ggpubr)
+plot_dat <- C_N_path1 %>% select(c(1, 3:69)) %>%
+  mutate(across(3:68, ~ (log2(.+1)))) %>%
+  pivot_longer(cols = -c(Category, Enzyme_protein_encoded), names_to = "sample_id", values_to = "TPM") %>%
   mutate(layer = sapply(stringr::str_split(sample_id, "_",  n = 2), `[`, 1)) %>%
   mutate(layer = factor(layer, levels = c('SUR', 'SUB', 'PL'))) %>%
-  select(c(Enzyme_protein_encoded, TPM, layer)) %>%
-  group_by(Enzyme_protein_encoded, layer) %>%
-  summarise(across(everything(), mean)) %>%
-  ggplot(aes(Enzyme_protein_encoded, TPM)) + 
-  geom_boxplot(width = 0.5, aes(fill = layer)) +
-  stat_compare_means(aes(group = layer),  paired = TRUE, 
-                     p.adjust.method = "BH", label = "p.signif") +
-  scale_fill_manual(values = c("#f8766d", "#a3a500", "#00b0f6")) +
+  select(c(Category, Enzyme_protein_encoded, TPM, layer)) %>%
+  group_by(Category, Enzyme_protein_encoded, layer) %>%
+  summarise_each(funs(mean, se= plotrix::std.error))%>% # Calculating mean and standard error
+  mutate_if(is.numeric, round, digits = 2) %>% # Round off the data
+  ggplot(aes(Enzyme_protein_encoded, mean)) + 
+  geom_point(aes(color = layer)) +
+  geom_errorbar(aes(ymin = mean, ymax = mean + se), width=.2, position = position_dodge(0.7)) +
+  scale_colour_manual(values = c("#f8766d", "#a3a500", "#00b0f6")) +
   labs(x = 'Genes', y = 'Log2(TPM+1)', fill='Layers') +
+  facet_wrap(. ~ Category, scales = "free") +
   theme_bw() +
   guides(fill = guide_legend(keywidth = 0.5, keyheight = 0.5)) +
   theme(axis.title = element_text(size = 8, colour = "black"),
@@ -86,6 +89,33 @@ plot_dat %>%
         legend.title = element_text(size = 8),
         legend.text = element_text(size = 6),
         panel.grid = element_blank())
+
+plot_dat <- C_N_path1 %>% select(c(1, 3:69)) %>%
+  mutate(across(3:68, ~ (log2(.+1)))) %>%
+  pivot_longer(cols = -c(Category, Enzyme_protein_encoded), names_to = "sample_id", values_to = "TPM") %>%
+  mutate(layer = sapply(stringr::str_split(sample_id, "_",  n = 2), `[`, 1)) %>%
+  mutate(layer = factor(layer, levels = c('SUR', 'SUB', 'PL'))) %>%
+  mutate(Category = factor(Category, levels = c('Carbon', 'Nitrogen',
+                                                'Sulfur cycling', 'As cycling',
+                                                'Iron cycling'))) %>%
+  select(c(Category, Enzyme_protein_encoded, TPM, layer)) %>%
+  ggplot(aes(Enzyme_protein_encoded, TPM)) + 
+  geom_boxplot(width = 0.5, aes(fill = layer)) +
+  stat_compare_means(aes(group = layer),  paired = TRUE, 
+                     p.adjust.method = "BH", label = "p.signif") +
+  scale_fill_manual(values = c("#f8766d", "#a3a500", "#00b0f6")) +
+  labs(x = 'Genes', y = 'Log2(TPM+1)', fill='Layers') +
+  facet_grid(. ~ Category, scales = "free", nrow = 4) +
+  theme_bw() +
+  guides(fill = guide_legend(keywidth = 0.5, keyheight = 0.5)) +
+  theme(axis.title = element_text(size = 8, colour = "black"),
+        axis.text.x = element_text(size = 6, colour = "black", 
+                                   angle = 45, vjust = 1, hjust = 1),
+        axis.text.y = element_text(size = 6, colour = "black"),
+        legend.title = element_text(size = 8),
+        legend.text = element_text(size = 6),
+        panel.grid = element_blank())
+plot_dat
 ##############################################################################################################
 # edgeR analysis
 save.dir <- file.path(getwd(),"result")
@@ -193,7 +223,6 @@ N_names <- c("amoA",	"amoB",	"amoC",	"hao",	"nxrA",	"nxrB", "narG",	"narH",	"nar
              "ureA", "ureC", "glnA")
 S_names <- c("fccB", "sqr", "dsrA", "dsrB", "dsrD", "asrA", "asrB", "asrC", "sdo", "sor", "sreA", 
              "sreB", "sreC", "soxB", "soxY", "soxC", "aprA", "sat", "phsA")
-
 Other_names <- c( "arrA", "arsC (grx)", "arsC (trx)", "arxA", "aioA", "arsM", "ygfM", 
                   "xdhD", "YgfK", "acsC", "acsD", "mbtA", 
                   "mbtB", "mbtE", "mbtC", "mbtG", "mbtF")
@@ -228,42 +257,58 @@ p_C_enrich
 
 p_N_enrich <- logFC_table %>% filter(pathway %in% N_names) %>%
   mutate(pathway = factor(pathway, levels = rev(N_names), ordered = T)) %>%
-  ggplot(aes(x = layer, y = pathway, fill = logFC))+
+  ggplot(aes(x = pathway, y = layer, fill = logFC)) +
   geom_tile() + 
   scale_fill_gradient2(low = "#2C7BB6", mid = "white", high = "#D7191C") +  # low="#2C7BB6", mid="white", high="#D7191C" or low = "#009E73", mid = "white", high = "#E69F00"
   geom_text(aes(label = round(logFC, 2)), 
-            color = "black", size = 2)+
-  labs(y = 'Pathway', x = 'Layers', fill = "logFC")+
+            color = "black", size = 1.5) +
+  labs(y = 'Layers', x = 'Pathway', fill = "logFC") +
   theme(axis.title = element_blank(),
-        axis.text = element_text(size = 10, colour = 'black'),
-        axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
+        axis.text = element_text(size = 6, colour = 'black'),
+        axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
+        # legend.key.height= unit(0.35, 'cm'),
+        # legend.key.width= unit(0.35, 'cm'),
+        legend.key.size = unit(0.35, 'cm'),
+        legend.title = element_text(size = 8), 
+        legend.text = element_text(size = 6))
 p_N_enrich
 
 p_S_enrich <- logFC_table %>% filter(pathway %in% S_names) %>%
   mutate(pathway = factor(pathway, levels = rev(S_names), ordered = T)) %>%
-  ggplot(aes(x = layer, y = pathway, fill = logFC))+
+  ggplot(aes(x = pathway, y = layer, fill = logFC)) +
   geom_tile() + 
   scale_fill_gradient2(low = "#2C7BB6", mid = "white", high = "#D7191C") +  # low="#2C7BB6", mid="white", high="#D7191C" or low = "#009E73", mid = "white", high = "#E69F00"
   geom_text(aes(label = round(logFC, 2)), 
-            color = "black", size = 2)+
-  labs(y = 'Pathway', x = 'Layers', fill = "logFC")+
+            color = "black", size = 1.5) +
+  labs(y = 'Layers', x = 'Pathway', fill = "logFC") +
   theme(axis.title = element_blank(),
-        axis.text = element_text(size = 10, colour = 'black'),
-        axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
+        axis.text = element_text(size = 6, colour = 'black'),
+        axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
+        # legend.key.height= unit(0.35, 'cm'),
+        # legend.key.width= unit(0.35, 'cm'),
+        legend.key.size = unit(0.35, 'cm'),
+        legend.title = element_text(size = 8), 
+        legend.text = element_text(size = 6))
 p_S_enrich
 
 p_other_enrich <- logFC_table %>% filter(pathway %in% Other_names) %>%
   mutate(pathway = factor(pathway, levels = rev(Other_names), ordered = T)) %>%
-  ggplot(aes(x = layer, y = pathway, fill = logFC))+
+  ggplot(aes(x = pathway, y = layer, fill = logFC)) +
   geom_tile() + 
   scale_fill_gradient2(low = "#2C7BB6", mid = "white", high = "#D7191C") +  # low="#2C7BB6", mid="white", high="#D7191C" or low = "#009E73", mid = "white", high = "#E69F00"
   geom_text(aes(label = round(logFC, 2)), 
-            color = "black", size = 2)+
-  labs(y = 'Pathway', x = 'Layers', fill = "logFC")+
+            color = "black", size = 1.5) +
+  labs(y = 'Layers', x = 'Pathway', fill = "logFC") +
   theme(axis.title = element_blank(),
-        axis.text = element_text(size = 10, colour = 'black'),
-        axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
+        axis.text = element_text(size = 6, colour = 'black'),
+        axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
+        # legend.key.height= unit(0.35, 'cm'),
+        # legend.key.width= unit(0.35, 'cm'),
+        legend.key.size = unit(0.35, 'cm'),
+        legend.title = element_text(size = 8), 
+        legend.text = element_text(size = 6))
 p_other_enrich
+
 
 
 
