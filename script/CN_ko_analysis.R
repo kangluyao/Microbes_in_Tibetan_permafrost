@@ -54,11 +54,12 @@ ggplot(plot_dat) +
   geom_tile(aes(x = as.factor(samples), y = as.factor(Enzyme_protein_encoded), fill = values)) +
   xlab('') + ylab('') + theme_linedraw() + 
   guides(fill = guide_colourbar(barwidth = 0.5, barheight = 10)) +
-  scale_fill_gradientn(colours = c('white','#00A087FF'), values = c(0,1)) + 
+  scale_fill_gradientn(colours = c('white','#00A087FF'), values = c(0, 1)) + 
   #facet_grid(~Ecosystem, scales = 'free_x', space = 'free_x') +
-  theme(axis.title.x=element_blank(), panel.grid.minor = element_blank(), 
+  theme(axis.title.x = element_blank(), panel.grid.minor = element_blank(), 
         panel.grid.major = element_blank(), 
-        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1, size = 5), 
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1, size = 5),
+        axis.text.y = element_text(size = 5),
         panel.spacing = unit(0, "lines"), strip.background = element_blank())
 
 
@@ -221,18 +222,27 @@ N_names <- c("amoA",	"amoB",	"amoC",	"hao",	"nxrA",	"nxrB", "narG",	"narH",	"nar
              "nasA",	"nasB", "narB",	"NR", "NIT-6", "nirA",	"nifD", "nifK", "nifH", "nrtA",	
              "nrtB", "nrtC", "nrtD", "nmo", "gdh_K00261", "gdh_K00262", "gdh_K15371", "glsA", 
              "ureA", "ureC", "glnA")
-S_names <- c("fccB", "sqr", "dsrA", "dsrB", "dsrD", "asrA", "asrB", "asrC", "sdo", "sor", "sreA", 
-             "sreB", "sreC", "soxB", "soxY", "soxC", "aprA", "sat", "phsA")
-Other_names <- c( "arrA", "arsC (grx)", "arsC (trx)", "arxA", "aioA", "arsM", "ygfM", 
-                  "xdhD", "YgfK", "acsC", "acsD", "mbtA", 
-                  "mbtB", "mbtE", "mbtC", "mbtG", "mbtF")
+S_names <- c("sat", "aprA", "aprB", "dsrA", "dsrB", "sir", "fsr", "cysC", "cysD", "cysNC", "csyH",
+             "cysJ", "cysN", "asrA", "asrB", "asrC", "ttrA", "ttrB", "ttrC", "phsA", "phsB",
+             "phsC", "psrA", "psrB", "psrC", "hydA", "hydD", "fccA", "fccB", "sqr", "soxD",
+             "soxX", "soxA", "soxB", "soxC", "soxY", "soxZ", "tst", "tsdA", "doxD", "sor",
+             "soeA", "soeB", "soeC")
+# S_names <- c("sat", "aprA", "aprB", "dsrA", "dsrB", "sir", "fsr", "cysD", "cysNC", "csyH",
+#              "cysJ", "cysN", "asrA", "asrB", "asrC", "ttrA", "ttrB", "ttrC", "phsA", "phsB",
+#              "phsC", "psrA", "psrB", "psrC", "hydA", "hydD", "fccA", "fccB", "sqr", "soxD",
+#              "soxX", "soxA", "soxB", "soxC", "soxY", "soxZ", "tst", "tsdA", "doxD", "sor",
+#              "soeA", "soeB", "soeC")
+Other_names <- c("arrA", "arsC (grx)", "arsC (trx)", "arxA", "aioA", "arsM", "ygfM", 
+                "xdhD", "YgfK", "acsC", "acsD", "mbtA", 
+                "mbtB", "mbtE", "mbtC", "mbtG", "mbtF")
 logFC_table <- rbind(data.frame(pathway = rownames(tt_survsrest$table), logFC = tt_survsrest$table$logFC, layer = rep('SUR', nrow(tt_survsrest$table))),
                      data.frame(pathway = rownames(tt_subvsrest$table), logFC = tt_subvsrest$table$logFC, layer = rep('SUB', nrow(tt_subvsrest$table))),
-                     data.frame(pathway = rownames(tt_plvsrest$table), logFC = tt_plvsrest$table$logFC, layer = rep('PL', nrow(tt_plvsrest$table)))) %>%
-  mutate(layer = factor(layer, levels = rev(c('SUR', 'SUB', 'PL'))))
+                     data.frame(pathway = rownames(tt_plvsrest$table), logFC = tt_plvsrest$table$logFC, layer = rep('PL', nrow(tt_plvsrest$table))))
 
 #heatmap
-p_C_enrich <- logFC_table %>% filter(pathway %in% C_names) %>%
+p_C_enrich <- logFC_table %>%
+  mutate(layer = factor(layer, levels = rev(c('SUR', 'SUB', 'PL')))) %>% 
+  filter(pathway %in% C_names) %>%
   mutate(pathway = factor(pathway, levels = C_names, ordered = T)) %>%
   ggplot(aes(x = pathway, y = layer, fill = logFC)) +
   geom_tile() + 
@@ -255,7 +265,9 @@ p_C_enrich <- logFC_table %>% filter(pathway %in% C_names) %>%
 p_C_enrich
 # dev.off()
 
-p_N_enrich <- logFC_table %>% filter(pathway %in% N_names) %>%
+p_N_enrich <- logFC_table %>%
+  mutate(layer = factor(layer, levels = c('SUR', 'SUB', 'PL'))) %>% 
+  filter(pathway %in% N_names) %>%
   mutate(pathway = factor(pathway, levels = rev(N_names), ordered = T)) %>%
   ggplot(aes(x = pathway, y = layer, fill = logFC)) +
   geom_tile() + 
@@ -270,14 +282,17 @@ p_N_enrich <- logFC_table %>% filter(pathway %in% N_names) %>%
         # legend.key.width= unit(0.35, 'cm'),
         legend.key.size = unit(0.35, 'cm'),
         legend.title = element_text(size = 8), 
-        legend.text = element_text(size = 6))
+        legend.text = element_text(size = 6)) +
+  coord_flip()
 p_N_enrich
 
-p_S_enrich <- logFC_table %>% filter(pathway %in% S_names) %>%
+p_S_enrich <- logFC_table %>%
+  mutate(layer = factor(layer, levels = c('SUR', 'SUB', 'PL'))) %>% 
+  filter(pathway %in% S_names) %>%
   mutate(pathway = factor(pathway, levels = rev(S_names), ordered = T)) %>%
   ggplot(aes(x = pathway, y = layer, fill = logFC)) +
   geom_tile() + 
-  scale_fill_gradient2(low = "#2C7BB6", mid = "white", high = "#D7191C") +  # low="#2C7BB6", mid="white", high="#D7191C" or low = "#009E73", mid = "white", high = "#E69F00"
+  scale_fill_gradient2(low = "#2C7BB6", mid = "white", high = "#D7191C", midpoint = 0) +  # low="#2C7BB6", mid="white", high="#D7191C" or low = "#009E73", mid = "white", high = "#E69F00"
   geom_text(aes(label = round(logFC, 2)), 
             color = "black", size = 1.5) +
   labs(y = 'Layers', x = 'Pathway', fill = "logFC") +
@@ -288,7 +303,8 @@ p_S_enrich <- logFC_table %>% filter(pathway %in% S_names) %>%
         # legend.key.width= unit(0.35, 'cm'),
         legend.key.size = unit(0.35, 'cm'),
         legend.title = element_text(size = 8), 
-        legend.text = element_text(size = 6))
+        legend.text = element_text(size = 6)) +
+  coord_flip()
 p_S_enrich
 
 p_other_enrich <- logFC_table %>% filter(pathway %in% Other_names) %>%

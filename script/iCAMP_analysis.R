@@ -21,13 +21,13 @@ otu_top500_sur <- as.data.frame(otu[, grep('SUR', colnames(otu))]) %>%
   select(grep('SUR', colnames(otu))) %>% rownames()
 
 phylo_sur <- subset_samples(phylo, layer == 'SUR')
-phylo_sur <- prune_taxa(taxa_sums(phylo_sur)>=1, phylo_sur)
+phylo_sur <- prune_taxa(taxa_sums(phylo_sur) >= 1, phylo_sur)
 phylo_sub <- subset_samples(phylo, layer == 'SUB')
-phylo_sub <- prune_taxa(taxa_sums(phylo_sub)>=1, phylo_sub)
+phylo_sub <- prune_taxa(taxa_sums(phylo_sub) >= 1, phylo_sub)
 phylo_pl <- subset_samples(phylo, layer == 'PL')
-phylo_pl <- prune_taxa(taxa_sums(phylo_pl)>=1, phylo_pl)
+phylo_pl <- prune_taxa(taxa_sums(phylo_pl) >= 1, phylo_pl)
 
-#以 iCAMP 包的内置数据集 example.data 为例(行样本, 列 OTU)，包含一个小型微生物群落数据及它们的系统发育树
+#以iCAMP包的内置数据集example.data为例(行样本, 列 OTU)，包含一个小型微生物群落数据及它们的系统发育树
 comm_sur <- t(otu_table(phylo_sur))
 tree_sur <- phy_tree(phylo_sur)
 
@@ -38,9 +38,9 @@ comm_pl <- t(otu_table(phylo_pl))
 tree_pl <- phy_tree(phylo_pl)
 
 #基于 Ning et al (2020) 的方法的群落构建分析
-#ses.cut = 1.96，以 βNRI=1.96 作为同质和异质选择的阈值；rc.cut=0.95，以 RC=0.95 作为扩散和漂变的阈值
+#ses.cut = 1.96，以 βNRI=1.96 作为同质和异质选择的阈值；rc.cut=0.95，以RC=0.95 作为扩散和漂变的阈值
 #bin.size.limit 用来指定 bin 中的分类单元数,这个数据集太小因此使用使用 5，实际情况中可根据系统发育信号测试或尝试一些设置选择合理的 bin，作者的经验是 12、24、48 等
-#rand 指定随机化次数构建零分布，nworker 用来多线程运行以提升计算速率
+#rand指定随机化次数构建零分布，nworker用来多线程运行以提升计算速率
 #更多详情 ?icamp.big
 set.seed(123)
 icamp.sur.out <- icamp.big(comm = comm_sur, tree = tree_sur, pd.wd = paste0(save.dir,"/tables/null_model/sur"), 
@@ -113,7 +113,7 @@ p <- null_df %>%
   facet_grid(. ~ process, scales = 'free_x', space = 'free_x') +
   stat_compare_means(comparisons = my_comparisons, label = "p.signif") +
   #scale_fill_manual(values= cols) +
-  labs(x = 'Layers', y = 'Relative importance', fill='Layers') +
+  labs(x = 'Layers', y = 'Relative importance', fill = 'Layers') +
   theme_bw() +
   theme(axis.title = element_text(colour = "black"),
         axis.text = element_text(colour = "black"),
