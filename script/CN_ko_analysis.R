@@ -222,11 +222,10 @@ N_names <- c("amoA",	"amoB",	"amoC",	"hao",	"nxrA",	"nxrB", "narG",	"narH",	"nar
              "nasA",	"nasB", "narB",	"NR", "NIT-6", "nirA",	"nifD", "nifK", "nifH", "nrtA",	
              "nrtB", "nrtC", "nrtD", "nmo", "gdh_K00261", "gdh_K00262", "gdh_K15371", "glsA", 
              "ureA", "ureC", "glnA")
-S_names <- c("sat", "aprA", "aprB", "dsrA", "dsrB", "sir", "fsr", "cysC", "cysD", "cysNC", "csyH",
-             "cysJ", "cysN", "asrA", "asrB", "asrC", "ttrA", "ttrB", "ttrC", "phsA", "phsB",
-             "phsC", "psrA", "psrB", "psrC", "hydA", "hydD", "fccA", "fccB", "sqr", "soxD",
-             "soxX", "soxA", "soxB", "soxC", "soxY", "soxZ", "tst", "tsdA", "doxD", "sor",
-             "soeA", "soeB", "soeC")
+S_names <- c("sat", "cysC", "cysD", "cysNC", "csyH", "cysJ", "cysN", "aprA", "aprB", "dsrA", "dsrB",
+             "asrA", "asrB", "asrC", "sir", "sor", "sreA", "sreB", "sreC", "hydA", "hydD", "hydB",
+             "hydG", "psrA", "psrB", "psrC", "sqr", "fccA", "fccB", "soxD", "soxX", "soxA", "soxB",
+             "soxC", "soxY", "soxZ", "ttrA", "ttrB", "ttrC", "phsA", "phsB", "phsC")
 # S_names <- c("sat", "aprA", "aprB", "dsrA", "dsrB", "sir", "fsr", "cysD", "cysNC", "csyH",
 #              "cysJ", "cysN", "asrA", "asrB", "asrC", "ttrA", "ttrB", "ttrC", "phsA", "phsB",
 #              "phsC", "psrA", "psrB", "psrC", "hydA", "hydD", "fccA", "fccB", "sqr", "soxD",
@@ -307,7 +306,9 @@ p_S_enrich <- logFC_table %>%
   coord_flip()
 p_S_enrich
 
-p_other_enrich <- logFC_table %>% filter(pathway %in% Other_names) %>%
+p_other_enrich <- logFC_table %>%
+  mutate(layer = factor(layer, levels = c('SUR', 'SUB', 'PL'))) %>% 
+  filter(pathway %in% Other_names) %>%
   mutate(pathway = factor(pathway, levels = rev(Other_names), ordered = T)) %>%
   ggplot(aes(x = pathway, y = layer, fill = logFC)) +
   geom_tile() + 
@@ -322,7 +323,8 @@ p_other_enrich <- logFC_table %>% filter(pathway %in% Other_names) %>%
         # legend.key.width= unit(0.35, 'cm'),
         legend.key.size = unit(0.35, 'cm'),
         legend.title = element_text(size = 8), 
-        legend.text = element_text(size = 6))
+        legend.text = element_text(size = 6)) +
+  coord_flip()
 p_other_enrich
 
 
