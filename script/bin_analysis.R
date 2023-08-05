@@ -28,7 +28,7 @@ metabolic_tab <- read.csv(metabolic_output_file) %>%
 
 # count the number of MAGs of each Class
 tax_tab %>% select(c("Class")) %>%
-  mutate(number = c(rep(1, nrow(dat1)))) %>%
+  mutate(number = c(rep(1, nrow(.)))) %>%
   group_by(Class) %>%
   summarise(across(everything(), sum)) %>%
   arrange(desc(number)) %>%
