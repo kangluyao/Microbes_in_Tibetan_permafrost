@@ -71,6 +71,10 @@ rownames(MAG_abund_tab) <- row_names
 MAG_abund_tab <- MAG_abund_tab[, metadata$sample_id[metadata$sample_id %in% colnames(MAG_abund_tab)]]
 MAG_dist <- as.matrix(vegdist(t(MAG_abund_tab), "bray" ))
 adonis2(MAG_dist ~ Layer, data = metadata)
+mrpp(MAG_dist, metadata$Layer, perm = 999)
+anosim(MAG_dist, metadata$Layer, perm = 999)
+```
+```{r, fig.align='center', fig.width=4.5, fig.height=4}
 ord.MAG <-  cmdscale(MAG_dist,  k = 2, eig = T, add = T)
 pcoa_MAG_plot <- data.frame(Layers = metadata$Layer, scores(ord.MAG)) %>%
   mutate(Layers = factor(Layers, levels = c('SUR', 'SUB', 'PL'))) %>%
