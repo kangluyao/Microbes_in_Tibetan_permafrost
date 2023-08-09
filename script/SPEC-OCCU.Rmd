@@ -115,8 +115,7 @@ p <- spec_occu %>% mutate(layer = factor(layer, levels = c('SUR', 'SUB', 'PL')))
 # cairo_pdf(filename = file.path(save.dir, "./figs/diff_abun/spec_occu_plot.pdf"), width = 8.5, height = 4.1, onefile = TRUE)
 # p
 # dev.off()
-ggsave(file.path(save.dir, "./figs/diff_abun/spec_occu_plot1111.pdf"), p, width = 90, height = 90, units = "mm")
-p
+# ggsave(file.path(save.dir, "./figs/diff_abun/spec_occu_plot1111.pdf"), p, width = 90, height = 90, units = "mm")
 ```
 ## tree图显示特化种的具体类群
 ```{r}
@@ -150,7 +149,7 @@ obj_sub$data$tax_occ <- calc_n_samples(obj_sub, "tax_abund", groups = metadata$l
 obj_pl$data$tax_occ <- calc_n_samples(obj_pl, "tax_abund", groups = metadata$layer, cols = metadata$sample_id)
 ```
 Plotting taxonomic data
-```{r, fig.align='center', fig.width=12, fig.height=5}
+```{r, fig.align='center', fig.width=8, fig.height=8}
 set.seed(1) # This makes the plot appear the same each time it is run 
 p_sur <- obj_sur %>% 
   metacoder::filter_taxa(obj_sur$data$class_data$taxon_id[obj_sur$data$class_data$tax_rank == 'o'], 
@@ -178,8 +177,8 @@ p_pl = obj_pl %>%
             node_color = n_obs,
             node_color_range = c("grey", "#00b0f6"))
 # ggsave(file.path(save.dir, "./figs/diff_abun/spec_pl_tree.pdf"), p_pl, width = 89, height = 59, units = "mm")
-spec_occu_tree <- cowplot::plot_grid(p_sur, p_sub, p_pl, ncol = 2)
-ggsave(file.path(save.dir, "./figs/diff_abun/spec_occu_tree1111.pdf"), spec_occu_tree, width = 180, height = 180, units = "mm")
+cowplot::plot_grid(p, p_sur, p_sub, p_pl, ncol = 2)
+# ggsave(file.path(save.dir, "./figs/diff_abun/spec_occu_tree1111.pdf"), spec_occu_tree, width = 180, height = 180, units = "mm")
 ```
 
 

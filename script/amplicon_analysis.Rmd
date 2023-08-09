@@ -496,7 +496,7 @@ sum(ra.tab[, 1])
 subtaxa_tab <- tax_table(subphylo.rel)[, 2]
 Phylum_tax_table <- data.frame(subtaxa_tab, ra.tab) %>% 
   mutate(MRA = rowMeans(select(., colnames(ra.tab)))) %>%
-  arrange(desc(MRA)) %>% dplyr::top_n(9, MRA) %>%
+  arrange(desc(MRA)) %>% dplyr::top_n(10, MRA) %>%
   select(., -c('MRA')) %>% 
   bind_rows(summarise_all(., ~if(is.numeric(.)) 1-sum(.) else "Others")) %>%
   mutate(Phylum = factor(Phylum, levels = Phylum)) %>%
