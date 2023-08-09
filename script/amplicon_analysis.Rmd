@@ -385,21 +385,22 @@ mycols <- c("#89c5da", "#ffc15c", "#74d944", "#CE50CA", "#5e738f", "#C0717C", "#
                      "#D14285", "#6DDE88", "#652926", "#7FDCC0", "#C84248", "#8569D5", "#5E738F", "#D1A33D", 
                      "#8A7C64", "#599861")
 
-pie_for_otu_num_phylum <- ggplot(otu_count.data, aes(x="", y=prop, fill=reorder(Phylum, -lab.ypos))) +
+pie_for_otu_num_phylum <- ggplot(otu_count.data, aes(x = "", y = prop, 
+                                                     fill = reorder(Phylum, -lab.ypos))) +
   geom_bar(width = 1, stat = "identity") + 
-  coord_polar("y", start=0) +
+  coord_polar("y", start = 0) +
   geom_text(aes(x = 1.35, y = lab.ypos, 
-                label = paste0(otu_num, ' (', round(prop, 1), '%', ')', sep= '')),
-            color = "black", size=3) +
+                label = paste0(otu_num, ' (', round(prop, 1), '%', ')', sep = '')),
+            color = "black", size = 3) +
   scale_fill_manual('Phylum', values = mycols) +
-  guides(fill = guide_legend(reverse=T)) +
+  guides(fill = guide_legend(reverse = T)) +
   theme_void() +
   theme(legend.position = "left")
-pie_for_otu_num_phylum
 ```
 
-### Determine the Order compositions within top 10 phyla
+### Determine the microbial composition within top 10 phyla
 ```{r}
+# write a function for data organization
 arrange.tab <- function(phylo, N, taxrank, vect) {
   subphylo <- tax_glom(phylo, taxrank)
   subphylo.rel <- microbiome::transform(subphylo, "compositional")
@@ -423,16 +424,44 @@ arrange.tab <- function(phylo, N, taxrank, vect) {
   top_N_tab$MRA = top_N_tab$MRA*100
   return(top_N_tab)
 }
+```
+Determine the relative abundance of the taxa at the phylum level.
+```{r}
 top10phylum <- arrange.tab(phylo, 10, 'Order', c(2,4))
 mra.tab_level1 = top10phylum %>% group_by(level1) %>% 
   summarise(sum_MRA = sum(MRA)) %>% 
-  arrange(desc(sum_MRA))
+  arrange(desc(sum_MRA)) %>%
+  dplyr::rename(Phylum = level1, prop = sum_MRA) %>%
+  bind_rows(summarise_all(., ~if(is.numeric(.)) 100-sum(.) else "Others"))
 mra.tab_level1
+```
+Pie plot for the relative abundance of dominant phyla
+```{r, fig.align='center', fig.width=8, fig.height=4.5}
+rel_abun_phyla_tab <- mra.tab_level1 %>%
+  mutate(lab.ypos = cumsum(prop) - 0.5*prop)
+rel_abun_phyla_tab$Phylum <- factor(rel_abun_phyla_tab$Phylum, 
+                                ordered = T, levels = c(mra.tab_level1$Phylum))
+
+pie_for_abun_phylum <- ggplot(rel_abun_phyla_tab, aes(x = "", y = prop, 
+                                                     fill = reorder(Phylum, -lab.ypos))) +
+  geom_bar(width = 1, stat = "identity") + 
+  coord_polar("y", start = 0) +
+  geom_text(aes(x = 1.35, y = lab.ypos, label = paste0(round(prop, 1), '%', sep= '')),
+            color = "black", size = 3) +
+  scale_fill_manual('Phylum', values = mycols[-1]) +
+  guides(fill = guide_legend(reverse = T)) +
+  theme_void() +
+  theme(legend.position = "left")
+cowplot::plot_grid(pie_for_otu_num_phylum, pie_for_abun_phylum)
+```
+
+Determine the relative abundance of the taxa at the order level.
+```{r}
 mra.tab_level2 = top10phylum %>% group_by(level2) %>% 
   summarise(sum_MRA = sum(MRA)) %>% 
   arrange(desc(sum_MRA))
-mra.tab_level2 [1:20, ]
 order_level2 = mra.tab_level2$'level2'
+mra.tab_level2 [1:20, ]
 ```
 
 ```{r, fig.width = 8, fig.height = 6}
@@ -465,11 +494,18 @@ ntaxa(subphylo.rel)
 ra.tab <- otu_table(subphylo.rel)
 sum(ra.tab[, 1])
 subtaxa_tab <- tax_table(subphylo.rel)[, 2]
-data.frame(subtaxa_tab, ra.tab) %>% group_by(Phylum) %>% 
-  summarise(across(everything(), sum)) %>% 
+Phylum_tax_table <- data.frame(subtaxa_tab, ra.tab) %>% 
   mutate(MRA = rowMeans(select(., colnames(ra.tab)))) %>%
-  arrange(desc(MRA)) %>% dplyr::top_n(10, MRA) %>%
-  select(., c('Phylum', 'MRA'))
+  arrange(desc(MRA)) %>% dplyr::top_n(9, MRA) %>%
+  select(., -c('MRA')) %>% 
+  bind_rows(summarise_all(., ~if(is.numeric(.)) 1-sum(.) else "Others")) %>%
+  mutate(Phylum = factor(Phylum, levels = Phylum)) %>%
+  pivot_longer(cols = -c(Phylum), names_to = "Sample_name", values_to = 'rel_abun') %>%
+  right_join(data.frame(Sample_name = rownames(metadata), Layer = metadata$Layer), by = c("Sample_name")) %>%
+  select(., -c('Sample_name')) %>% 
+  group_by(Layer, Phylum) %>%
+  dplyr::summarise(across(, mean, na.rm = TRUE))
+print(Phylum_tax_table, n = 32)
 ```
 
 ```{r, fig.width = 8, fig.height = 4.5}
@@ -502,7 +538,8 @@ box_plot
 ```
 ### Barplot shows the community composition
 ```{r, fig.width = 8, fig.height = 4.5}
-bar_plot <- data.frame(subtaxa_tab, ra.tab) %>% 
+# Barplot shows the community composition for each sample
+bar_plot_each_sample <- data.frame(subtaxa_tab, ra.tab) %>% 
   mutate(MRA = rowMeans(select(., colnames(ra.tab)))) %>%
   arrange(desc(MRA)) %>% dplyr::top_n(10, MRA) %>%
   select(., -c('MRA')) %>% 
@@ -532,8 +569,47 @@ bar_plot <- data.frame(subtaxa_tab, ra.tab) %>%
         legend.text = element_text(size = 6))
 # ggsave(file.path(save.dir, "./figs/composition/tax_composition_10.pdf"), box_plot, width = 189, height = 95, units = "mm")  
 # ggsave(file.path(save.dir, "./figs/composition/tax_composition_bar.pdf"), bar_plot, width = 120, height = 65, units = "mm") 
-bar_plot
+bar_plot_each_sample
 ```
+
+```{r, fig.width = 8, fig.height = 6}
+# Barplot shows the community composition for each layer
+# bar plot at the Phylum level
+bar_plot_each_layer <- Phylum_tax_table %>%
+  ggplot(aes(x = Layer, y = 100*rel_abun, fill = Phylum))+
+  geom_bar(stat = "identity") +
+  scale_y_continuous(expand = c(0, 0)) +
+  scale_x_discrete(limits = rev(c('SUR', 'SUB', 'PL'))) +
+  scale_fill_manual(values =  mycols) +
+  labs(x = 'Layer', y = 'Mean relative abundance (%)') +
+  guides(fill = guide_legend(keywidth = 0.5, keyheight = 0.5)) +
+  theme_linedraw() + 
+  theme(panel.grid=element_blank(), 
+        strip.text = element_text(colour = 'black', size = 8),
+        strip.background = element_rect(colour = 'grey', fill = 'grey'),
+        axis.title = element_text(color = 'black',size = 8),
+        axis.ticks.length = unit(0.4,"lines"), axis.ticks = element_line(color = 'black'),
+        axis.line = element_line(colour = "black"), 
+        axis.text.y = element_text(colour = 'black', size = 8),
+        axis.text.x = element_text(colour = 'black', size = 8),
+        legend.position = "bottom",
+        legend.title = element_blank(),
+        legend.text = element_text(size = 8),
+        legend.key = element_blank(),
+        legend.background = element_rect(colour = "white")) +
+  guides(fill = guide_legend(ncol = 5)) +
+  coord_flip()
+
+library(cowplot)
+compositional_plot <- ggdraw() +
+  draw_plot(pie_for_otu_num_phylum, x = 0, y = 1/2, width = 0.5, height = 1/2) +
+  draw_plot(pie_for_abun_phylum, x = 0.5, y = 1/2, width = 0.5, height = 1/2) +
+  draw_plot(bar_plot_each_layer, x = 0, y = 0, width = 1, height = 1/2) +
+  draw_plot_label(label = c("A", "B", "C"), size = 8,
+                  x = c(0, 0.5, 0), y = c(1, 1, 0.5))
+compositional_plot
+```
+
 ### Unique otus profile among three layers
 ```{r, fig.width = 6, fig.height = 4.5}
 # Load the library
