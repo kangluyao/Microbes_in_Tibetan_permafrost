@@ -231,3 +231,44 @@ p <- quickcor(env.table, type = "lower") + geom_square() +
 # ggsave(file.path(save.dir, './figs/env_effect/partail_matel_plot.pdf'), p, width = 9, height = 6, units = "in")
 p
 ```
+Test the environmental effects on the funtional genes using dbRDA
+```{r}
+otu_tab <- as.matrix(t(otu_table(phylo)))
+env_df <- as.matrix(sample_data(phylo)[ , -c(1:4)])
+
+otu_tab <- data.frame(decostand(otu_tab, 'hellinger'))
+env <- data.frame(decostand(env_df, "standardize"))
+ord <- dbrda(otu_tab ~., env)
+mode <- anova(ord, by = 'margin')
+eig <- ord$CCA$eig
+vare_spp_sco <- scores(ord, display = "species")
+vare_sam_sco <- scores(ord, display = "sites")
+vare_env_sco <- scores(ord, display = "bp")
+vare_env_sco <- vare_env_sco[which(mode$`Pr(>F)` < 0.05), ]
+vare_env_sco 
+```
+
+```{r}
+points <- data.frame(vare_sam_sco, Layer = metadata$Layer) %>%
+  mutate(Layer = factor(Layer, levels = c("SUR", "SUB", "PL")))
+fit_coord_cont <- data.frame(vare_env_sco, variables = rownames(vare_env_sco))
+p <- ggplot(data = points, aes(x = dbRDA1, y = dbRDA2)) + 
+  geom_point(data = points, aes(color = Layer), size = 1.5, alpha = 0.8) + 
+  scale_colour_manual(values = c("#f8766d", "#a3a500", "#00b0f6")) +
+  geom_segment(data = fit_coord_cont,
+               aes(x = 0, xend = dbRDA1*1.8, y = 0, yend = dbRDA2*1.8),
+               arrow = arrow(length = unit(0.25, "cm")), colour = "black", lwd = 0.5) +
+  geom_text(data = fit_coord_cont, aes(x = dbRDA1*1.8, y = dbRDA2*1.8, label = variables), colour = "black", 
+            size = 2.5) +
+  labs(x=paste("dbRDA1 (", format(100 * eig[1] / sum(eig), digits=4), "%)", sep=""),
+       y=paste("dbRDA2 (", format(100 * eig[2] / sum(eig), digits=4), "%)", sep="")) +
+  theme(axis.title = element_text(size = 9, colour = "black"),
+        axis.text = element_text(size = 7, colour = "black"),
+        legend.title = element_text(size = 8),
+        legend.text = element_text(size = 7),
+        panel.grid = element_blank(),
+        panel.background = element_blank(), 
+        panel.border = element_rect(fill = NA, colour = "black"))
+p
+# ggsave(file.path(save.dir, './figs/env_effect/env_fun_plot.pdf'), p, width = 4.5, height = 3.5, units = "in")
+```
