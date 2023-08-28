@@ -30,6 +30,7 @@ Loading packages
 ```{r}
 library(phyloseq)
 library(ape)
+library(vegan)
 library(Biostrings)
 library(microbiome)
 library(tidyverse)
@@ -94,6 +95,7 @@ library(vegan)
 library(pairwiseAdonis)
 ## taxonomy
 ### PERMANOVA test
+env_dist <- as.matrix(vegdist(scale(metadata[,-c(1:4)]), "euclidean" ))
 tax_dist <- as.matrix(vegdist(t(otu), "bray" ))
 phy_dist <- as.matrix(UniFrac(phylo, weighted = TRUE, normalized = TRUE, parallel = T, fast = TRUE))
 fun_dist <- as.matrix(vegdist(t(ko_tpm_table), "bray" ))
@@ -123,6 +125,27 @@ pairwise.adonis(fun_dist, metadata$Layer)
 ```
 ### PCoA plot with bray-curties as distance
 ```{r, fig.align='center', fig.width=8, fig.height=6}
+# environment
+ord.env <-  cmdscale(env_dist,  k = 2, eig = T, add = T)
+pcoa_env_plot <- data.frame(Layers = metadata$Layer, scores(ord.env)) %>%
+  mutate(Layers = factor(Layers, levels = c('SUR', 'SUB', 'PL'))) %>%
+  ggplot(aes(x = Dim1, y = Dim2, shape = Layers, color = Layers)) + 
+  geom_point(size = 1, alpha = 0.8) + 
+  stat_ellipse(geom = "polygon", aes(fill = Layers), alpha = 0.2, show.legend = FALSE, level = 0.95) +
+  scale_colour_manual(values = c("#f8766d", "#a3a500", "#00b0f6")) +
+  scale_fill_manual(values = c("#f8766d", "#a3a500", "#00b0f6")) +
+  labs(x=paste("PCoA1 (", format(100 * ord.env$eig[1] / sum(ord.env$eig), digits = 3), "%)", sep = ""),
+       y=paste("PCoA2 (", format(100 * ord.env$eig[2] / sum(ord.env$eig), digits = 3), "%)", sep = "")) +
+  theme(axis.title = element_text(size = 8, colour = "black"),
+        axis.text = element_text(size = 6, colour = "black"),
+        legend.title = element_text(size = 8),
+        legend.text = element_text(size = 6),
+        panel.grid = element_blank(),
+        panel.background = element_blank(), 
+        panel.border = element_rect(fill = NA, colour = "black"))
+# ggsave(file.path(save.dir, "./figs/beta/PCoA_env_bray.pdf"),
+#        pcoa_tax_plot, width = 89, height = 59, units = "mm")
+
 # taxa
 ord.tax <-  cmdscale(tax_dist,  k = 2, eig = T, add = T)
 pcoa_tax_plot <- data.frame(Layers = metadata$Layer, scores(ord.tax)) %>%
@@ -189,8 +212,30 @@ pcoa_fun_plot <- data.frame(Layers = metadata$Layer, scores(ord.fun)) %>%
 #        pcoa_fun_plot, width = 89, height = 59, units = "mm")
 
 # arrange the PCoA plot
-cowplot::plot_grid(pcoa_tax_plot, pcoa_unifrac_plot, pcoa_fun_plot)
+cowplot::plot_grid(pcoa_env_plot, pcoa_tax_plot, pcoa_unifrac_plot, pcoa_fun_plot)
 ```
+### Difference in environemtal variance among layers
+```{r}
+beta_env_plot <- sapply(unique(metadata$Layer), function(x) usedist::dist_subset(env_dist, grep(x, metadata$sample_id, value = T))) %>%
+  data.frame() %>% gather("Layers", "distance") %>%
+  mutate(Layers = factor(Layers, levels = c('SUR', 'SUB', 'PL'))) %>%
+  ggplot(aes(x = Layers, y = distance)) + 
+  geom_boxplot(width = 0.5, aes(fill = Layers)) +
+  scale_fill_manual(values = c("#f8766d", "#a3a500", "#00b0f6")) +
+  stat_compare_means(comparisons = my_comparisons,  paired = TRUE, 
+                     p.adjust.method = "BH", label = "p.signif") +
+  #scale_fill_manual(values= cols)+
+  labs(x = 'Layers', y = 'Environmental variance', fill='Layers') +
+  theme_bw() +
+  theme(axis.title = element_text(size = 12, colour = "black"),
+        axis.text = element_text(size = 10, colour = "black"),
+        legend.title = element_text(size = 12),
+        legend.text = element_text(size = 10),
+        panel.grid = element_blank())
+# ggsave(file.path(save.dir, "./figs/beta/env_variance.pdf"),
+#        beta_tax_plot, width = 89, height = 89, units = "mm")
+```
+
 
 ### Difference in taxonomic variance among layers
 ```{r}
@@ -290,7 +335,7 @@ beta_fun_plot <- sapply(unique(metadata$Layer), function(x) usedist::dist_subset
 
 Then, we arrange the plot using cowplot package
 ```{r, fig.align='center', fig.width=8, fig.height=6}
-cowplot::plot_grid(beta_tax_plot, beta_MNTD_plot, beta_fun_plot)
+cowplot::plot_grid(beta_env_plot, beta_tax_plot, beta_MNTD_plot, beta_fun_plot)
 ```
 
 ### Couple or decouple effect between taxonomic, phylogenetic and functional profile
