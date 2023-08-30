@@ -115,7 +115,7 @@ p <- spec_occu %>% mutate(layer = factor(layer, levels = c('SUR', 'SUB', 'PL')))
 # cairo_pdf(filename = file.path(save.dir, "./figs/diff_abun/spec_occu_plot.pdf"), width = 8.5, height = 4.1, onefile = TRUE)
 # p
 # dev.off()
-# ggsave(file.path(save.dir, "./figs/diff_abun/spec_occu_plot1111.pdf"), p, width = 90, height = 90, units = "mm")
+# ggsave(file.path(save.dir, "./figs/diff_abun/spec_occu_plot.pdf"), p, width = 90, height = 90, units = "mm")
 ```
 ## tree图显示特化种的具体类群
 ```{r}
