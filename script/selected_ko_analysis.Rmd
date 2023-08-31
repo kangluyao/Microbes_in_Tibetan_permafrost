@@ -54,7 +54,7 @@ nrow(C_N_ko_tax_tab)
 nrow(C_N_ko_tax_path_tab)
 ```
 
-#### heatmap
+## heatmap
 ```{r, fig.align='center', fig.width=8, fig.height=12}
 C_N_path1 <- C_N_ko_count_tab %>% 
   inner_join(sel_ko, c("KO" = "KO")) %>% 
@@ -95,17 +95,9 @@ ggplot(plot_dat) +
         axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1, size = 5), 
         panel.spacing = unit(0, "lines"), strip.background = element_blank())
 ```
-
-
-
-
-
-
-  
-
-
 ##############################################################################################################
-# edgeR analysis
+## edgeR analysis
+```{r}
 save.dir <- file.path(getwd(),"result")
 # 1. alternately edgeR analysi.
 library("edgeR")
@@ -152,8 +144,11 @@ d <- calcNormFactors(d)
 #calculate dispersion
 d <- estimateCommonDisp(d)
 d <- estimateTagwiseDisp(d)
+```
 
-#compare SUR layer to the remaining two layers.
+
+## Compare SUR layer to the remaining two layers.
+```{r}
 classes <- factor(classDefinitions_RNASeq$Layer)
 modelDesign <- model.matrix(~ 0 + classes)
 contrast_sur <- makeContrasts(
@@ -168,8 +163,10 @@ tt_survsrest <- topTags(survsrest, n = nrow(d))
 select_sur_genes = tt_survsrest$table %>%  filter(FDR < 0.05)
 #output how many genes there are in the set that have FDR < 0.05
 nrow(select_sur_genes)
+```
 
-#compare SUB layer to the remaining two layers.
+## Compare SUB layer to the remaining two layers.
+```{r}
 contrast_sub <- makeContrasts(
   subvsrest = "classesSUB-(classesSUR + classesPL)/2", levels = modelDesign)
 fit_glm <- glmFit(d, modelDesign)
@@ -179,8 +176,10 @@ tt_subvsrest <- topTags(subvsrest, n = nrow(d))
 select_sub_genes = tt_subvsrest$table %>% filter(FDR < 0.05)
 #output how many genes there are in the set that have FDR < 0.05
 nrow(select_sub_genes)
+```
 
-#compare PL layer to the remaining two layers.
+## Compare PL layer to the remaining two layers.
+```{r}
 contrast_pl <- makeContrasts(
   plvsrest = "classesPL-(classesSUR + classesSUB)/2", levels = modelDesign)
 fit_glm <- glmFit(d, modelDesign)
@@ -190,8 +189,11 @@ tt_plvsrest <- topTags(plvsrest, n = nrow(d))
 select_pl_genes = tt_plvsrest$table %>% filter(FDR < 0.05)
 #output how many genes there are in the set that have FDR < 0.05
 nrow(select_pl_genes)
+```
 
-# arrange the log fold change table
+
+## arrange the log fold change table
+```{r}
 C_names <- c("Alpha-amylase", "Glucoamylase", "Pullulanase", "Isopullulanase",
              "Arabinofuranosidase", "Beta_mannanase", "Xylanase", "Xylose isomerase",
              "Beta-glucosidase",  "Endoglucanase", "Exoglucanase",
@@ -206,35 +208,41 @@ N_names <- c("amoA",	"amoB",	"amoC",	"hao",	"nxrA",	"nxrB", "narG",	"narH",	"nar
              "napB", "nirK", "nirS",	"norB",	"norC",	"nosZ", "nrfA",	"nrfH", "nirB",	"nirD",	
              "nasA",	"nasB", "narB",	"NR", "NIT-6", "nirA",	"nifD", "nifK", "nifH", "nrtA",	"nrtB", "nrtC",	
              "nrtD", "nmo", "gdh_K00261", "gdh_K00262", "gdh_K15371", "glsA", "ureA", "ureC", "glnA")
+S_names <- c("sat", "cysC", "cysD", "cysNC", "csyH", "cysJ", "cysN", "aprA", "aprB", "dsrA", "dsrB",
+             "asrA", "asrB", "asrC", "sir", "sor", "sreA", "sreB", "sreC", "hydA", "hydD", "hydB",
+             "hydG", "psrA", "psrB", "psrC", "sqr", "fccA", "fccB", "soxD", "soxX", "soxA", "soxB",
+             "soxC", "soxY", "soxZ", "ttrA", "ttrB", "ttrC", "phsA", "phsB", "phsC")
+Other_names <- c("arrA", "arsC (grx)", "arsC (trx)", "arxA", "aioA", "arsM", "ygfM", 
+                "xdhD", "YgfK", "acsC", "acsD", "mbtA", 
+                "mbtB", "mbtE", "mbtC", "mbtG", "mbtF")
 logFC_table <- rbind(data.frame(pathway = rownames(tt_survsrest$table), logFC = tt_survsrest$table$logFC, layer = rep('SUR', nrow(tt_survsrest$table))),
                      data.frame(pathway = rownames(tt_subvsrest$table), logFC = tt_subvsrest$table$logFC, layer = rep('SUB', nrow(tt_subvsrest$table))),
                      data.frame(pathway = rownames(tt_plvsrest$table), logFC = tt_plvsrest$table$logFC, layer = rep('PL', nrow(tt_plvsrest$table)))) %>%
   mutate(layer = factor(layer, levels = rev(c('SUR', 'SUB', 'PL'))))
+```
 
-#heatmap
+## Heatmap for carbon
+```{r, fig.align='center', fig.width=8, fig.height=4.7}
 p_C_enrich <- logFC_table %>% filter(pathway %in% C_names) %>%
   mutate(pathway = factor(pathway, levels = C_names, ordered = T)) %>%
   ggplot(aes(x = pathway, y = layer, fill = logFC)) +
   geom_tile() + 
   scale_fill_gradient2(low = "#2C7BB6", mid = "white", high = "#D7191C") +  # low="#2C7BB6", mid="white", high="#D7191C" or low = "#009E73", mid = "white", high = "#E69F00"
   geom_text(aes(label = round(logFC, 2)), 
-            color = "black", size = 1.5) +
+            color = "black", size = 2) +
   labs(y = 'Layers', x = 'Pathway', fill = "logFC") +
   theme(axis.title = element_blank(),
-        axis.text = element_text(size = 6, colour = 'black'),
+        axis.text = element_text(size = 10, colour = 'black'),
         axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
         # legend.key.height= unit(0.35, 'cm'),
         # legend.key.width= unit(0.35, 'cm'),
         legend.key.size = unit(0.35, 'cm'),
         legend.title = element_text(size = 8), 
         legend.text = element_text(size = 6))
-
-plot.name <- paste0(save.dir, "/figs/metagenome/edgeR_Carbon_heatmap.pdf")
-print(plot.name)
-cairo_pdf(filename = plot.name, width = 6.9, height = 2.2, onefile = TRUE)
 p_C_enrich
-dev.off()
-
+```
+## Heatmap for nitrogen
+```{r, fig.align='center', fig.height=8, fig.width=4}
 p_N_enrich <- logFC_table %>% filter(pathway %in% N_names) %>%
   mutate(pathway = factor(pathway, levels = rev(N_names), ordered = T)) %>%
   ggplot(aes(x = layer, y = pathway, fill = logFC))+
@@ -246,21 +254,56 @@ p_N_enrich <- logFC_table %>% filter(pathway %in% N_names) %>%
   theme(axis.title = element_blank(),
         axis.text = element_text(size = 10, colour = 'black'),
         axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
+p_N_enrich
+```
 
+## Heatmap for sulfur
+```{r, fig.align='center', fig.height=8, fig.width=4}
+p_S_enrich <- logFC_table %>%
+  mutate(layer = factor(layer, levels = c('SUR', 'SUB', 'PL'))) %>% 
+  filter(pathway %in% S_names) %>%
+  mutate(pathway = factor(pathway, levels = rev(S_names), ordered = T)) %>%
+  ggplot(aes(x = pathway, y = layer, fill = logFC)) +
+  geom_tile() + 
+  scale_fill_gradient2(low = "#2C7BB6", mid = "white", high = "#D7191C", midpoint = 0) +  # low="#2C7BB6", mid="white", high="#D7191C" or low = "#009E73", mid = "white", high = "#E69F00"
+  geom_text(aes(label = round(logFC, 2)), 
+            color = "black", size = 2) +
+  labs(y = 'Layers', x = 'Pathway', fill = "logFC") +
+  theme(axis.title = element_blank(),
+        axis.text = element_text(size = 10, colour = 'black'),
+        axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
+        # legend.key.height= unit(0.35, 'cm'),
+        # legend.key.width= unit(0.35, 'cm'),
+        legend.key.size = unit(0.35, 'cm'),
+        legend.title = element_text(size = 10), 
+        legend.text = element_text(size = 8)) +
+  coord_flip()
+p_S_enrich
+```
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+## Other biogeochemical processes
+```{r}
+p_other_enrich <- logFC_table %>%
+  mutate(layer = factor(layer, levels = c('SUR', 'SUB', 'PL'))) %>% 
+  filter(pathway %in% Other_names) %>%
+  mutate(pathway = factor(pathway, levels = rev(Other_names), ordered = T)) %>%
+  ggplot(aes(x = pathway, y = layer, fill = logFC)) +
+  geom_tile() + 
+  scale_fill_gradient2(low = "#2C7BB6", mid = "white", high = "#D7191C") +  # low="#2C7BB6", mid="white", high="#D7191C" or low = "#009E73", mid = "white", high = "#E69F00"
+  geom_text(aes(label = round(logFC, 2)), 
+            color = "black", size = 1.5) +
+  labs(y = 'Layers', x = 'Pathway', fill = "logFC") +
+  theme(axis.title = element_blank(),
+        axis.text = element_text(size = 10, colour = 'black'),
+        axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
+        # legend.key.height= unit(0.35, 'cm'),
+        # legend.key.width= unit(0.35, 'cm'),
+        legend.key.size = unit(0.35, 'cm'),
+        legend.title = element_text(size = 10), 
+        legend.text = element_text(size = 8)) +
+  coord_flip()
+p_other_enrich
+```
 
 
 
