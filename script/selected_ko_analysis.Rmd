@@ -212,9 +212,8 @@ S_names <- c("sat", "cysC", "cysD", "cysNC", "csyH", "cysJ", "cysN", "aprA", "ap
              "asrA", "asrB", "asrC", "sir", "sor", "sreA", "sreB", "sreC", "hydA", "hydD", "hydB",
              "hydG", "psrA", "psrB", "psrC", "sqr", "fccA", "fccB", "soxD", "soxX", "soxA", "soxB",
              "soxC", "soxY", "soxZ", "ttrA", "ttrB", "ttrC", "phsA", "phsB", "phsC")
-Other_names <- c("arrA", "arsC (grx)", "arsC (trx)", "arxA", "aioA", "arsM", "ygfM", 
-                "xdhD", "YgfK", "acsC", "acsD", "mbtA", 
-                "mbtB", "mbtE", "mbtC", "mbtG", "mbtF")
+Other_names <- c("Cyc1", "Cyc2", "MtrA", "MtrB", "MtrC", "arsC (grx)", "arsC (trx)", 
+                 "aioA", "arsM", "ygfM", "xdhD", "YgfK")
 logFC_table <- rbind(data.frame(pathway = rownames(tt_survsrest$table), logFC = tt_survsrest$table$logFC, layer = rep('SUR', nrow(tt_survsrest$table))),
                      data.frame(pathway = rownames(tt_subvsrest$table), logFC = tt_subvsrest$table$logFC, layer = rep('SUB', nrow(tt_subvsrest$table))),
                      data.frame(pathway = rownames(tt_plvsrest$table), logFC = tt_plvsrest$table$logFC, layer = rep('PL', nrow(tt_plvsrest$table)))) %>%
@@ -229,10 +228,10 @@ p_C_enrich <- logFC_table %>% filter(pathway %in% C_names) %>%
   geom_tile() + 
   scale_fill_gradient2(low = "#2C7BB6", mid = "white", high = "#D7191C") +  # low="#2C7BB6", mid="white", high="#D7191C" or low = "#009E73", mid = "white", high = "#E69F00"
   geom_text(aes(label = round(logFC, 2)), 
-            color = "black", size = 2) +
+            color = "black", size = 1.5) +
   labs(y = 'Layers', x = 'Pathway', fill = "logFC") +
   theme(axis.title = element_blank(),
-        axis.text = element_text(size = 10, colour = 'black'),
+        axis.text = element_text(size = 6, colour = 'black'),
         axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
         # legend.key.height= unit(0.35, 'cm'),
         # legend.key.width= unit(0.35, 'cm'),
@@ -249,11 +248,17 @@ p_N_enrich <- logFC_table %>% filter(pathway %in% N_names) %>%
   geom_tile() + 
   scale_fill_gradient2(low = "#2C7BB6", mid = "white", high = "#D7191C") +  # low="#2C7BB6", mid="white", high="#D7191C" or low = "#009E73", mid = "white", high = "#E69F00"
   geom_text(aes(label = round(logFC, 2)), 
-            color = "black", size = 2)+
-  labs(y = 'Pathway', x = 'Layers', fill = "logFC")+
+            color = "black", size = 1.5) +
+  labs(y = 'Layers', x = 'Pathway', fill = "logFC") +
   theme(axis.title = element_blank(),
-        axis.text = element_text(size = 10, colour = 'black'),
-        axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
+        axis.text = element_text(size = 6, colour = 'black'),
+        axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
+        # legend.key.height= unit(0.35, 'cm'),
+        # legend.key.width= unit(0.35, 'cm'),
+        legend.key.size = unit(0.35, 'cm'),
+        legend.title = element_text(size = 8), 
+        legend.text = element_text(size = 6)) +
+  coord_flip()
 p_N_enrich
 ```
 
@@ -267,16 +272,16 @@ p_S_enrich <- logFC_table %>%
   geom_tile() + 
   scale_fill_gradient2(low = "#2C7BB6", mid = "white", high = "#D7191C", midpoint = 0) +  # low="#2C7BB6", mid="white", high="#D7191C" or low = "#009E73", mid = "white", high = "#E69F00"
   geom_text(aes(label = round(logFC, 2)), 
-            color = "black", size = 2) +
+            color = "black", size = 1.5) +
   labs(y = 'Layers', x = 'Pathway', fill = "logFC") +
   theme(axis.title = element_blank(),
-        axis.text = element_text(size = 10, colour = 'black'),
+        axis.text = element_text(size = 6, colour = 'black'),
         axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
         # legend.key.height= unit(0.35, 'cm'),
         # legend.key.width= unit(0.35, 'cm'),
         legend.key.size = unit(0.35, 'cm'),
-        legend.title = element_text(size = 10), 
-        legend.text = element_text(size = 8)) +
+        legend.title = element_text(size = 8), 
+        legend.text = element_text(size = 6)) +
   coord_flip()
 p_S_enrich
 ```
@@ -294,18 +299,16 @@ p_other_enrich <- logFC_table %>%
             color = "black", size = 1.5) +
   labs(y = 'Layers', x = 'Pathway', fill = "logFC") +
   theme(axis.title = element_blank(),
-        axis.text = element_text(size = 10, colour = 'black'),
+        axis.text = element_text(size = 6, colour = 'black'),
         axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
         # legend.key.height= unit(0.35, 'cm'),
         # legend.key.width= unit(0.35, 'cm'),
         legend.key.size = unit(0.35, 'cm'),
-        legend.title = element_text(size = 10), 
-        legend.text = element_text(size = 8)) +
+        legend.title = element_text(size = 8), 
+        legend.text = element_text(size = 6)) +
   coord_flip()
 p_other_enrich
 ```
-
-
 
 
 

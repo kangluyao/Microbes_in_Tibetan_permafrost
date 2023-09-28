@@ -211,6 +211,15 @@ dat3 <- metabolic_tab %>%
 ## Determine the total number of MAGs for each metabolic pathway
 
 ```{r, fig.width=10, fig.height=8}
+num.mags.df <- dat3 %>% select(c(1, 2, 4)) %>%
+  group_by(Category, Function) %>% 
+  summarise(across(everything(), sum)) %>%
+  filter(Function %in% c(C_N_metapathway, other_metapathway)) %>% 
+  mutate(Function = factor(Function, levels = c(C_N_metapathway, other_metapathway)))
+knitr::kable(arrange(num.mags.df, desc(presence_or_absent)))
+```
+
+```{r, fig.width=10, fig.height=8}
 my_colors <- c("#e4d00a", "#FB8072", "#FDB462", "#80B1D3", "#BEBADA", "#B3DE69", "#FCCDE5", "#A6CEE3",
                "#8DD3C7", "#B2DF8A", "#33A02C", "#FB9A99", "#E31A1C", "#893f45", "#FF7F00", "#1F78B4",
                "#6A3D9A", "#b31b1b", "#5d3954", "#008b8b", "#8b008b", "#e75480", "#872657", "#8fbc8f",
@@ -227,12 +236,6 @@ values = c("#FFFFB3", "#FB8072", "#FDB462", "#80B1D3", "#BEBADA", "#B3DE69", "#F
            "#8DD3C7", "#B2DF8A", "#33A02C", "#FB9A99", "#E31A1C", "#FDBF6F", "#FF7F00", "#1F78B4",
            "#6A3D9A", "#FCCDE5", "#1F78B4", "#A6CEE3", "#B3DE69", "#E69F00", "#56B4E9", "#009E73")
 
-num.mags.df <- dat3 %>% select(c(1, 2, 4)) %>%
-  group_by(Category, Function) %>% 
-  summarise(across(everything(), sum)) %>%
-  filter(Function %in% c(C_N_metapathway, other_metapathway)) %>% 
-  mutate(Function = factor(Function, levels = c(C_N_metapathway, other_metapathway)))
-knitr::kable(num.mags.df)
 num.mags.plot <- num.mags.df %>%
   ggplot(aes(x = Function, y = presence_or_absent, fill = Function)) +
   geom_bar(stat = "identity") +
@@ -479,13 +482,15 @@ P <- sankeyNetwork(Links = links, Nodes = nodes, Source = "IDsource", Target = "
                    nodeWidth = 20, nodePadding = 10, height = 700, width = 1600,
                    sinksRight = F)
 # save the widget
-library(htmlwidgets)
-saveWidget(p, file = paste0(sankey.plots.folder, "/sankey_plot.html"))
+# 推荐使用htmlwidgets
+# library(htmlwidgets)
+# saveWidget(p, file = paste0(sankey.plots.folder, "/sankey_plot.html"))
 # library(webshot)
 # install phantom:
 # webshot::install_phantomjs()
 # Make a webshot in pdf : high quality but can not choose printed zone
 # webshot(paste0(sankey.plots.folder, "/sankey_plot.html"), delay = 0.2)
+P
 ```
 
 ## Metabolic network plot with reactions

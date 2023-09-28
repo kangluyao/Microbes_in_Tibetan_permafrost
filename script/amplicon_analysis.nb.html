@@ -11,7 +11,7 @@
 
 <meta name="author" content="Luyao Kang" />
 
-<meta name="date" content="2023-08-27" />
+<meta name="date" content="2023-09-02" />
 
 <title>Amplicon_analysis</title>
 
@@ -1750,7 +1750,7 @@ display: none;
 
 <h1 class="title toc-ignore">Amplicon_analysis</h1>
 <h4 class="author">Luyao Kang</h4>
-<h4 class="date">2023-08-27</h4>
+<h4 class="date">2023-09-02</h4>
 
 </div>
 
@@ -1922,21 +1922,176 @@ fun_dist &lt;- as.matrix(vegdist(t(ko_tpm_table), &quot;bray&quot; ))</code></pr
 <!-- rnb-text-begin -->
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI3Blcm1hbm92YSwgQU5PU0lNIGFuZCBNUlBQIGFuYWx5c2lzXG5saWJyYXJ5KHZlZ2FuKVxuYWRvbmlzMih0YXhfZGlzdCB+IExheWVyLCBkYXRhID0gbWV0YWRhdGEpXG5hZG9uaXMyKHBoeV9kaXN0IH4gTGF5ZXIsIGRhdGEgPSBtZXRhZGF0YSlcbmFkb25pczIoZnVuX2Rpc3QgfiBMYXllciwgZGF0YSA9IG1ldGFkYXRhKVxuXG5tcnBwKHRheF9kaXN0LCBtZXRhZGF0YSRMYXllciwgcGVybSA9IDk5OSlcbm1ycHAocGh5X2Rpc3QsIG1ldGFkYXRhJExheWVyLCBwZXJtID0gOTk5KVxubXJwcChmdW5fZGlzdCwgbWV0YWRhdGEkTGF5ZXIsIHBlcm0gPSA5OTkpXG5cbmFub3NpbSh0YXhfZGlzdCwgbWV0YWRhdGEkTGF5ZXIsIHBlcm0gPSA5OTkpXG5hbm9zaW0ocGh5X2Rpc3QsIG1ldGFkYXRhJExheWVyLCBwZXJtID0gOTk5KVxuYW5vc2ltKGZ1bl9kaXN0LCBtZXRhZGF0YSRMYXllciwgcGVybSA9IDk5OSlcbmBgYCJ9 -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI3Blcm1hbm92YSwgQU5PU0lNIGFuZCBNUlBQIGFuYWx5c2lzXG5saWJyYXJ5KHZlZ2FuKVxuYWRvbmlzMih0YXhfZGlzdCB+IExheWVyLCBkYXRhID0gbWV0YWRhdGEpXG5gYGAifQ== -->
 <pre class="r"><code>#permanova, ANOSIM and MRPP analysis
 library(vegan)
-adonis2(tax_dist ~ Layer, data = metadata)
-adonis2(phy_dist ~ Layer, data = metadata)
-adonis2(fun_dist ~ Layer, data = metadata)
-
-mrpp(tax_dist, metadata$Layer, perm = 999)
-mrpp(phy_dist, metadata$Layer, perm = 999)
-mrpp(fun_dist, metadata$Layer, perm = 999)
-
-anosim(tax_dist, metadata$Layer, perm = 999)
-anosim(phy_dist, metadata$Layer, perm = 999)
-anosim(fun_dist, metadata$Layer, perm = 999)</code></pre>
+adonis2(tax_dist ~ Layer, data = metadata)</code></pre>
 <!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiUGVybXV0YXRpb24gdGVzdCBmb3IgYWRvbmlzIHVuZGVyIHJlZHVjZWQgbW9kZWxcblRlcm1zIGFkZGVkIHNlcXVlbnRpYWxseSAoZmlyc3QgdG8gbGFzdClcblBlcm11dGF0aW9uOiBmcmVlXG5OdW1iZXIgb2YgcGVybXV0YXRpb25zOiA5OTlcblxuYWRvbmlzMihmb3JtdWxhID0gdGF4X2Rpc3QgfiBMYXllciwgZGF0YSA9IG1ldGFkYXRhKVxuICAgICAgICAgRGYgU3VtT2ZTcXMgICAgICBSMiAgICAgIEYgUHIoPkYpICAgIFxuTGF5ZXIgICAgIDIgICAzLjE1MTIgMC4xNjE2NyA2LjA3NDUgIDAuMDAxICoqKlxuUmVzaWR1YWwgNjMgIDE2LjM0MDkgMC44MzgzMyAgICAgICAgICAgICAgICAgIFxuVG90YWwgICAgNjUgIDE5LjQ5MjEgMS4wMDAwMCAgICAgICAgICAgICAgICAgIFxuLS0tXG5TaWduaWYuIGNvZGVzOiAgMCDigJgqKirigJkgMC4wMDEg4oCYKirigJkgMC4wMSDigJgq4oCZIDAuMDUg4oCYLuKAmSAwLjEg4oCYIOKAmSAxXG4ifQ== -->
+<pre><code>Permutation test for adonis under reduced model
+Terms added sequentially (first to last)
+Permutation: free
+Number of permutations: 999
+
+adonis2(formula = tax_dist ~ Layer, data = metadata)
+         Df SumOfSqs      R2      F Pr(&gt;F)    
+Layer     2   3.1512 0.16167 6.0745  0.001 ***
+Residual 63  16.3409 0.83833                  
+Total    65  19.4921 1.00000                  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYWRvbmlzMihwaHlfZGlzdCB+IExheWVyLCBkYXRhID0gbWV0YWRhdGEpXG5gYGAifQ== -->
+<pre class="r"><code>adonis2(phy_dist ~ Layer, data = metadata)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiUGVybXV0YXRpb24gdGVzdCBmb3IgYWRvbmlzIHVuZGVyIHJlZHVjZWQgbW9kZWxcblRlcm1zIGFkZGVkIHNlcXVlbnRpYWxseSAoZmlyc3QgdG8gbGFzdClcblBlcm11dGF0aW9uOiBmcmVlXG5OdW1iZXIgb2YgcGVybXV0YXRpb25zOiA5OTlcblxuYWRvbmlzMihmb3JtdWxhID0gcGh5X2Rpc3QgfiBMYXllciwgZGF0YSA9IG1ldGFkYXRhKVxuICAgICAgICAgRGYgU3VtT2ZTcXMgICAgICBSMiAgICAgIEYgUHIoPkYpICAgIFxuTGF5ZXIgICAgIDIgIDAuNDM3MDcgMC4xNzY4OSA2Ljc2OTQgIDAuMDAxICoqKlxuUmVzaWR1YWwgNjMgIDIuMDMzODIgMC44MjMxMSAgICAgICAgICAgICAgICAgIFxuVG90YWwgICAgNjUgIDIuNDcwOTAgMS4wMDAwMCAgICAgICAgICAgICAgICAgIFxuLS0tXG5TaWduaWYuIGNvZGVzOiAgMCDigJgqKirigJkgMC4wMDEg4oCYKirigJkgMC4wMSDigJgq4oCZIDAuMDUg4oCYLuKAmSAwLjEg4oCYIOKAmSAxXG4ifQ== -->
+<pre><code>Permutation test for adonis under reduced model
+Terms added sequentially (first to last)
+Permutation: free
+Number of permutations: 999
+
+adonis2(formula = phy_dist ~ Layer, data = metadata)
+         Df SumOfSqs      R2      F Pr(&gt;F)    
+Layer     2  0.43707 0.17689 6.7694  0.001 ***
+Residual 63  2.03382 0.82311                  
+Total    65  2.47090 1.00000                  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYWRvbmlzMihmdW5fZGlzdCB+IExheWVyLCBkYXRhID0gbWV0YWRhdGEpXG5gYGAifQ== -->
+<pre class="r"><code>adonis2(fun_dist ~ Layer, data = metadata)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiUGVybXV0YXRpb24gdGVzdCBmb3IgYWRvbmlzIHVuZGVyIHJlZHVjZWQgbW9kZWxcblRlcm1zIGFkZGVkIHNlcXVlbnRpYWxseSAoZmlyc3QgdG8gbGFzdClcblBlcm11dGF0aW9uOiBmcmVlXG5OdW1iZXIgb2YgcGVybXV0YXRpb25zOiA5OTlcblxuYWRvbmlzMihmb3JtdWxhID0gZnVuX2Rpc3QgfiBMYXllciwgZGF0YSA9IG1ldGFkYXRhKVxuICAgICAgICAgRGYgU3VtT2ZTcXMgICAgICBSMiAgICAgIEYgUHIoPkYpICAgIFxuTGF5ZXIgICAgIDIgICAwLjE3ODUgMC4yMjE2NiA4Ljk3MDYgIDAuMDAxICoqKlxuUmVzaWR1YWwgNjMgICAwLjYyNjggMC43NzgzNCAgICAgICAgICAgICAgICAgIFxuVG90YWwgICAgNjUgICAwLjgwNTMgMS4wMDAwMCAgICAgICAgICAgICAgICAgIFxuLS0tXG5TaWduaWYuIGNvZGVzOiAgMCDigJgqKirigJkgMC4wMDEg4oCYKirigJkgMC4wMSDigJgq4oCZIDAuMDUg4oCYLuKAmSAwLjEg4oCYIOKAmSAxXG4ifQ== -->
+<pre><code>Permutation test for adonis under reduced model
+Terms added sequentially (first to last)
+Permutation: free
+Number of permutations: 999
+
+adonis2(formula = fun_dist ~ Layer, data = metadata)
+         Df SumOfSqs      R2      F Pr(&gt;F)    
+Layer     2   0.1785 0.22166 8.9706  0.001 ***
+Residual 63   0.6268 0.77834                  
+Total    65   0.8053 1.00000                  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubXJwcCh0YXhfZGlzdCwgbWV0YWRhdGEkTGF5ZXIsIHBlcm0gPSA5OTkpXG5gYGAifQ== -->
+<pre class="r"><code>mrpp(tax_dist, metadata$Layer, perm = 999)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiXG5DYWxsOlxubXJwcChkYXQgPSB0YXhfZGlzdCwgZ3JvdXBpbmcgPSBtZXRhZGF0YSRMYXllciwgcGVybXV0YXRpb25zID0gOTk5KSBcblxuRGlzc2ltaWxhcml0eSBpbmRleDogdXNlciBzdXBwbGllZCBzcXVhcmUgbWF0cml4IFxuV2VpZ2h0cyBmb3IgZ3JvdXBzOiAgbiBcblxuQ2xhc3MgbWVhbnMgYW5kIGNvdW50czpcblxuICAgICAgUEwgICAgIFNVQiAgICBTVVIgICBcbmRlbHRhIDAuNzg2OCAwLjcwMTggMC42MzU2XG5uICAgICAyMiAgICAgMjIgICAgIDIyICAgIFxuXG5DaGFuY2UgY29ycmVjdGVkIHdpdGhpbi1ncm91cCBhZ3JlZW1lbnQgQTogMC4wNzU3NSBcbkJhc2VkIG9uIG9ic2VydmVkIGRlbHRhIDAuNzA4MSBhbmQgZXhwZWN0ZWQgZGVsdGEgMC43NjYxIFxuXG5TaWduaWZpY2FuY2Ugb2YgZGVsdGE6IDAuMDAxIFxuUGVybXV0YXRpb246IGZyZWVcbk51bWJlciBvZiBwZXJtdXRhdGlvbnM6IDk5OVxuIn0= -->
+<pre><code>
+Call:
+mrpp(dat = tax_dist, grouping = metadata$Layer, permutations = 999) 
+
+Dissimilarity index: user supplied square matrix 
+Weights for groups:  n 
+
+Class means and counts:
+
+      PL     SUB    SUR   
+delta 0.7868 0.7018 0.6356
+n     22     22     22    
+
+Chance corrected within-group agreement A: 0.07575 
+Based on observed delta 0.7081 and expected delta 0.7661 
+
+Significance of delta: 0.001 
+Permutation: free
+Number of permutations: 999</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubXJwcChwaHlfZGlzdCwgbWV0YWRhdGEkTGF5ZXIsIHBlcm0gPSA5OTkpXG5gYGAifQ== -->
+<pre class="r"><code>mrpp(phy_dist, metadata$Layer, perm = 999)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiXG5DYWxsOlxubXJwcChkYXQgPSBwaHlfZGlzdCwgZ3JvdXBpbmcgPSBtZXRhZGF0YSRMYXllciwgcGVybXV0YXRpb25zID0gOTk5KSBcblxuRGlzc2ltaWxhcml0eSBpbmRleDogdXNlciBzdXBwbGllZCBzcXVhcmUgbWF0cml4IFxuV2VpZ2h0cyBmb3IgZ3JvdXBzOiAgbiBcblxuQ2xhc3MgbWVhbnMgYW5kIGNvdW50czpcblxuICAgICAgUEwgICAgIFNVQiAgICBTVVIgICBcbmRlbHRhIDAuMzAyNSAwLjIyMzEgMC4xODgzXG5uICAgICAyMiAgICAgMjIgICAgIDIyICAgIFxuXG5DaGFuY2UgY29ycmVjdGVkIHdpdGhpbi1ncm91cCBhZ3JlZW1lbnQgQTogMC4wOTM5NCBcbkJhc2VkIG9uIG9ic2VydmVkIGRlbHRhIDAuMjM4IGFuZCBleHBlY3RlZCBkZWx0YSAwLjI2MjcgXG5cblNpZ25pZmljYW5jZSBvZiBkZWx0YTogMC4wMDEgXG5QZXJtdXRhdGlvbjogZnJlZVxuTnVtYmVyIG9mIHBlcm11dGF0aW9uczogOTk5XG4ifQ== -->
+<pre><code>
+Call:
+mrpp(dat = phy_dist, grouping = metadata$Layer, permutations = 999) 
+
+Dissimilarity index: user supplied square matrix 
+Weights for groups:  n 
+
+Class means and counts:
+
+      PL     SUB    SUR   
+delta 0.3025 0.2231 0.1883
+n     22     22     22    
+
+Chance corrected within-group agreement A: 0.09394 
+Based on observed delta 0.238 and expected delta 0.2627 
+
+Significance of delta: 0.001 
+Permutation: free
+Number of permutations: 999</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubXJwcChmdW5fZGlzdCwgbWV0YWRhdGEkTGF5ZXIsIHBlcm0gPSA5OTkpXG5gYGAifQ== -->
+<pre class="r"><code>mrpp(fun_dist, metadata$Layer, perm = 999)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiXG5DYWxsOlxubXJwcChkYXQgPSBmdW5fZGlzdCwgZ3JvdXBpbmcgPSBtZXRhZGF0YSRMYXllciwgcGVybXV0YXRpb25zID0gOTk5KSBcblxuRGlzc2ltaWxhcml0eSBpbmRleDogdXNlciBzdXBwbGllZCBzcXVhcmUgbWF0cml4IFxuV2VpZ2h0cyBmb3IgZ3JvdXBzOiAgbiBcblxuQ2xhc3MgbWVhbnMgYW5kIGNvdW50czpcblxuICAgICAgUEwgICAgIFNVQiAgICBTVVIgICBcbmRlbHRhIDAuMTY4MyAwLjEwMTIgMC4xMDIxXG5uICAgICAyMiAgICAgMjIgICAgIDIyICAgIFxuXG5DaGFuY2UgY29ycmVjdGVkIHdpdGhpbi1ncm91cCBhZ3JlZW1lbnQgQTogMC4xMzg0IFxuQmFzZWQgb24gb2JzZXJ2ZWQgZGVsdGEgMC4xMjM5IGFuZCBleHBlY3RlZCBkZWx0YSAwLjE0MzggXG5cblNpZ25pZmljYW5jZSBvZiBkZWx0YTogMC4wMDEgXG5QZXJtdXRhdGlvbjogZnJlZVxuTnVtYmVyIG9mIHBlcm11dGF0aW9uczogOTk5XG4ifQ== -->
+<pre><code>
+Call:
+mrpp(dat = fun_dist, grouping = metadata$Layer, permutations = 999) 
+
+Dissimilarity index: user supplied square matrix 
+Weights for groups:  n 
+
+Class means and counts:
+
+      PL     SUB    SUR   
+delta 0.1683 0.1012 0.1021
+n     22     22     22    
+
+Chance corrected within-group agreement A: 0.1384 
+Based on observed delta 0.1239 and expected delta 0.1438 
+
+Significance of delta: 0.001 
+Permutation: free
+Number of permutations: 999</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYW5vc2ltKHRheF9kaXN0LCBtZXRhZGF0YSRMYXllciwgcGVybSA9IDk5OSlcbmBgYCJ9 -->
+<pre class="r"><code>anosim(tax_dist, metadata$Layer, perm = 999)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiXG5DYWxsOlxuYW5vc2ltKHggPSB0YXhfZGlzdCwgZ3JvdXBpbmcgPSBtZXRhZGF0YSRMYXllciwgcGVybXV0YXRpb25zID0gOTk5KSBcbkRpc3NpbWlsYXJpdHk6IHVzZXIgc3VwcGxpZWQgc3F1YXJlIG1hdHJpeCBcblxuQU5PU0lNIHN0YXRpc3RpYyBSOiAwLjM5MzggXG4gICAgICBTaWduaWZpY2FuY2U6IDAuMDAxIFxuXG5QZXJtdXRhdGlvbjogZnJlZVxuTnVtYmVyIG9mIHBlcm11dGF0aW9uczogOTk5XG4ifQ== -->
+<pre><code>
+Call:
+anosim(x = tax_dist, grouping = metadata$Layer, permutations = 999) 
+Dissimilarity: user supplied square matrix 
+
+ANOSIM statistic R: 0.3938 
+      Significance: 0.001 
+
+Permutation: free
+Number of permutations: 999</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYW5vc2ltKHBoeV9kaXN0LCBtZXRhZGF0YSRMYXllciwgcGVybSA9IDk5OSlcbmBgYCJ9 -->
+<pre class="r"><code>anosim(phy_dist, metadata$Layer, perm = 999)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiXG5DYWxsOlxuYW5vc2ltKHggPSBwaHlfZGlzdCwgZ3JvdXBpbmcgPSBtZXRhZGF0YSRMYXllciwgcGVybXV0YXRpb25zID0gOTk5KSBcbkRpc3NpbWlsYXJpdHk6IHVzZXIgc3VwcGxpZWQgc3F1YXJlIG1hdHJpeCBcblxuQU5PU0lNIHN0YXRpc3RpYyBSOiAwLjMxMTUgXG4gICAgICBTaWduaWZpY2FuY2U6IDAuMDAxIFxuXG5QZXJtdXRhdGlvbjogZnJlZVxuTnVtYmVyIG9mIHBlcm11dGF0aW9uczogOTk5XG4ifQ== -->
+<pre><code>
+Call:
+anosim(x = phy_dist, grouping = metadata$Layer, permutations = 999) 
+Dissimilarity: user supplied square matrix 
+
+ANOSIM statistic R: 0.3115 
+      Significance: 0.001 
+
+Permutation: free
+Number of permutations: 999</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYW5vc2ltKGZ1bl9kaXN0LCBtZXRhZGF0YSRMYXllciwgcGVybSA9IDk5OSlcbmBgYCJ9 -->
+<pre class="r"><code>anosim(fun_dist, metadata$Layer, perm = 999)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiXG5DYWxsOlxuYW5vc2ltKHggPSBmdW5fZGlzdCwgZ3JvdXBpbmcgPSBtZXRhZGF0YSRMYXllciwgcGVybXV0YXRpb25zID0gOTk5KSBcbkRpc3NpbWlsYXJpdHk6IHVzZXIgc3VwcGxpZWQgc3F1YXJlIG1hdHJpeCBcblxuQU5PU0lNIHN0YXRpc3RpYyBSOiAwLjM4NzkgXG4gICAgICBTaWduaWZpY2FuY2U6IDAuMDAxIFxuXG5QZXJtdXRhdGlvbjogZnJlZVxuTnVtYmVyIG9mIHBlcm11dGF0aW9uczogOTk5XG4ifQ== -->
+<pre><code>
+Call:
+anosim(x = fun_dist, grouping = metadata$Layer, permutations = 999) 
+Dissimilarity: user supplied square matrix 
+
+ANOSIM statistic R: 0.3879 
+      Significance: 0.001 
+
+Permutation: free
+Number of permutations: 999</code></pre>
+<!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <p>Pairwise adonis test</p>
