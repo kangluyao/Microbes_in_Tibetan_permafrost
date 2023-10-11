@@ -46,8 +46,7 @@ Determine the alpha diversity including **Observed**, **Chao1**, **Shannon** and
 alpha_div <- estimate_richness(phylo_rare, measures = c("Observed", "Chao1", 'Shannon', 'Simpson'))
 library(picante)
 pd <- pd(t(otu), tree, include.root = F) # estimate the phylogenetic diversity
-alpha_div <- cbind(Layers = metadata$Layer, alpha_div, Faith = pd$PD,
-                   Evenness = alpha_div$Shannon/log(alpha_div$Observed)) %>%
+alpha_div <- cbind(Layers = metadata$Layer, alpha_div, Faith = pd$PD) %>%
   mutate(Layers = factor(Layers, levels = c('SUR', 'SUB', 'PL')))
 ```
 Box plot for evenness index using ggplot2
