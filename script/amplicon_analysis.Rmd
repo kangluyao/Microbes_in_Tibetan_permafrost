@@ -55,13 +55,13 @@ Box plot for evenness index using ggplot2
 library(ggpubr)
 library(ggplot2)
 my_comparisons <- list( c("SUR", "SUB"), c("SUB", "PL"), c("SUR", "PL"))
-p_evenness <- ggplot(alpha_div, aes(x = Layers, y = Evenness)) + 
+p_shannon <- ggplot(alpha_div, aes(x = Layers, y = Shannon)) + 
   geom_boxplot(width = 0.5, aes(fill = Layers)) +
   scale_fill_manual(values = c("#f8766d", "#a3a500", "#00b0f6")) +
   stat_compare_means(comparisons = my_comparisons, paired = TRUE, 
                      p.adjust.method = "BH", label = "p.signif") +
   #scale_fill_manual(values= cols)+
-  labs(x = 'Layers', y = 'Evenness', fill='Layers') +
+  labs(x = 'Layers', y = 'Shannon', fill='Layers') +
   theme_bw() +
   theme(axis.title = element_text(size = 12, colour = "black"),
         axis.text = element_text(size = 10, colour = "black"),
@@ -87,7 +87,7 @@ p_faith <- ggplot(alpha_div, aes(x = Layers, y = Faith)) +
 ```
 Then, we combine above two alpha diversity plot into one.
 ```{r, fig.align='center', fig.width=8, fig.height=4}
-cowplot::plot_grid(p_evenness, p_faith)
+cowplot::plot_grid(p_shannon, p_faith)
 ```
 ## Beta diversity
 ```{r}
