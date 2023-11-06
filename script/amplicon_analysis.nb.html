@@ -11,7 +11,7 @@
 
 <meta name="author" content="Luyao Kang" />
 
-<meta name="date" content="2023-10-11" />
+<meta name="date" content="2023-11-05" />
 
 <title>Amplicon_analysis</title>
 
@@ -1750,7 +1750,7 @@ display: none;
 
 <h1 class="title toc-ignore">Amplicon_analysis</h1>
 <h4 class="author">Luyao Kang</h4>
-<h4 class="date">2023-10-11</h4>
+<h4 class="date">2023-11-05</h4>
 
 </div>
 
@@ -1839,12 +1839,11 @@ library(tidyverse)</code></pre>
 <strong>Simpson</strong>.</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYWxwaGFfZGl2IDwtIGVzdGltYXRlX3JpY2huZXNzKHBoeWxvX3JhcmUsIG1lYXN1cmVzID0gYyhcIk9ic2VydmVkXCIsIFwiQ2hhbzFcIiwgJ1NoYW5ub24nLCAnU2ltcHNvbicpKVxubGlicmFyeShwaWNhbnRlKVxucGQgPC0gcGQodChvdHUpLCB0cmVlLCBpbmNsdWRlLnJvb3QgPSBGKSAjIGVzdGltYXRlIHRoZSBwaHlsb2dlbmV0aWMgZGl2ZXJzaXR5XG5hbHBoYV9kaXYgPC0gY2JpbmQoTGF5ZXJzID0gbWV0YWRhdGEkTGF5ZXIsIGFscGhhX2RpdiwgRmFpdGggPSBwZCRQRCxcbiAgICAgICAgICAgICAgICAgICBFdmVubmVzcyA9IGFscGhhX2RpdiRTaGFubm9uL2xvZyhhbHBoYV9kaXYkT2JzZXJ2ZWQpKSAlPiVcbiAgbXV0YXRlKExheWVycyA9IGZhY3RvcihMYXllcnMsIGxldmVscyA9IGMoJ1NVUicsICdTVUInLCAnUEwnKSkpXG5gYGAifQ== -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuYWxwaGFfZGl2IDwtIGVzdGltYXRlX3JpY2huZXNzKHBoeWxvX3JhcmUsIG1lYXN1cmVzID0gYyhcIk9ic2VydmVkXCIsIFwiQ2hhbzFcIiwgJ1NoYW5ub24nLCAnU2ltcHNvbicpKVxubGlicmFyeShwaWNhbnRlKVxucGQgPC0gcGQodChvdHUpLCB0cmVlLCBpbmNsdWRlLnJvb3QgPSBGKSAjIGVzdGltYXRlIHRoZSBwaHlsb2dlbmV0aWMgZGl2ZXJzaXR5XG5hbHBoYV9kaXYgPC0gY2JpbmQoTGF5ZXJzID0gbWV0YWRhdGEkTGF5ZXIsIGFscGhhX2RpdiwgRmFpdGggPSBwZCRQRCkgJT4lXG4gIG11dGF0ZShMYXllcnMgPSBmYWN0b3IoTGF5ZXJzLCBsZXZlbHMgPSBjKCdTVVInLCAnU1VCJywgJ1BMJykpKVxuYGBgIn0= -->
 <pre class="r"><code>alpha_div &lt;- estimate_richness(phylo_rare, measures = c(&quot;Observed&quot;, &quot;Chao1&quot;, &#39;Shannon&#39;, &#39;Simpson&#39;))
 library(picante)
 pd &lt;- pd(t(otu), tree, include.root = F) # estimate the phylogenetic diversity
-alpha_div &lt;- cbind(Layers = metadata$Layer, alpha_div, Faith = pd$PD,
-                   Evenness = alpha_div$Shannon/log(alpha_div$Observed)) %&gt;%
+alpha_div &lt;- cbind(Layers = metadata$Layer, alpha_div, Faith = pd$PD) %&gt;%
   mutate(Layers = factor(Layers, levels = c(&#39;SUR&#39;, &#39;SUB&#39;, &#39;PL&#39;)))</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-chunk-end -->

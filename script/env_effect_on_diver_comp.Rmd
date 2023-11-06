@@ -42,11 +42,12 @@ library(tidyr)
 library(dplyr)
 library(tibble)
 library(ggpubr)
+library(vegan)
 ```
 ## Difference in environmental factors among layers
 ```{r, fig.align='center', fig.width=8, fig.height=6}
 my_comparisons <- list( c("SUR", "SUB"), c("SUB", "PL"), c("SUR", "PL") )
-env_vars <- c("Layer", "Clay", "Silt", "Sand", "pH", "Moisture", "TC", "SOC", "DOC", "LCP1", "LCP2", "RCP", "TN", "NH4_N", "NO3_N", "DON")
+env_vars <- c("Layer", "Clay", "Silt", "pH", "Moisture", "SOC", "DOC", "LCP1", "LCP2", "RCP", "NH4_N", "NO3_N", "DON")
 meta_dat %>% as.tibble() %>% select(env_vars) %>%
   group_by(Layer) %>%
   summarise_all(list(mean = mean, se = plotrix::std.error)) %>%
@@ -59,7 +60,7 @@ p <- meta_dat %>% as.tibble() %>% select("Layer", env_vars) %>%
   ggbarplot(x = "Layer", y = "value", fill = "Layer", 
           facet.by = "env", palette = "jco",
           add = "mean_se", position = position_dodge(0.8)) + 
-  facet_wrap(vars(env), scales = "free", ncol = 5) +
+  facet_wrap(vars(env), scales = "free", ncol = 4) +
   scale_y_continuous(expand = expansion(mult = c(0, 0.15))) +
   stat_compare_means(comparisons=my_comparisons, paired = TRUE, label = "p.signif",
                      test = "wilcox.test", size = 4, p.adjust.method = "BH",
@@ -153,6 +154,18 @@ p <- p + coord_polar(start = -0.15, theta = "x") +
 p
 ```
 ## Test the environmental effects on the community structure
+First, because there was strong collinearity among particular environmental factors, before applying partial mantel test, we used variable clustering to assess the redundancy of the environmental variables by the varclus procedure in the Hmisc R package. The variables with higher correlation (Spearman’s ρ > 0.7) were removed.
+```{r, fig.align='center', fig.width=6, fig.height=4.5}
+library(Hmisc)
+envs <- metadata[, c("AI", "MAT", "Clay", "Silt", "Sand", "Moisture", "pH",  "NH4_N", "NO3_N", "DON",       "SOC", "DOC", "LCP1", "LCP2", "RCP")]
+envsn <- data.matrix(envs)
+clust <- Hmisc::varclus(envsn)
+clust
+plot(clust)
+```
+
+Based on the variable clustering results, we retain Clay, Silt, AI, NH<sub>4</sub><sup>+</sup>-N, Moisture, NO<sub>3</sub><sup>-</sup>-N, pH, MAT, LCP1, and RCP for the partial mantel test. 
+
 Partial mantel test function for the relationship between the envs and community
 ```{r}
 partial.mantel.fun <- function(phylo) {
@@ -163,8 +176,7 @@ partial.mantel.fun <- function(phylo) {
   otu_table_hel_dist <- vegdist(otu_table_hel, 'bray',upper=F)
   df <- NULL
   vars <- c("MAT", "AI", "Moisture",	"pH",	"Clay",	"Silt",	 
-            "SOC", "DOC", "NH4_N",	"NO3_N",	"DON",	
-            "LCP1",	"LCP2",	"RCP")
+            "NH4_N",	"NO3_N", "LCP1", "RCP")
   for (x in vars) {
     y.dist <- vegdist(scale(env.table[,x]), 'euclidean', na.rm = T)
     z.dist <- vegdist(scale(env.table[ , setdiff(vars, x)]), 'euclidean', na.rm = T)
@@ -208,12 +220,12 @@ PLOT using ggcor package
 ```{r, fig.align='center', fig.width=8, fig.height=5}
 ## devtools::install_github('hannet91/ggcor')
 library(ggcor)
+library(linkET)
 par.man.tibble <- tibble(spec = c(rep('SUR', nrow(par.mant.sur)), rep('SUB', nrow(par.mant.sub)), rep('PL', nrow(par.mant.pl))), 
                          rbind(par.mant.sur, par.mant.sub, par.mant.pl))
 
 vars <- c("MAT", "AI", "Moisture",	"pH",	"Clay",	"Silt",	 
-          "SOC", "DOC", "NH4_N",	"NO3_N",	"DON",	
-          "LCP1",	"LCP2",	"RCP")
+            "NH4_N",	"NO3_N", "LCP1", "RCP")
 env.table <- sample_data(phylo)[ , vars]
 mantel02 <- par.man.tibble %>% 
   mutate(r = cut(r, breaks = c(-Inf, 0.2, 0.5, Inf), 
@@ -222,13 +234,29 @@ mantel02 <- par.man.tibble %>%
          p.value = cut(p.value, breaks = c(-Inf, 0.001, 0.01, 0.05, Inf),
                        labels = c("<0.001", "0.001-0.01", "0.01-0.05", ">0.05"),
                        right = T))
-p <- quickcor(env.table, type = "lower") + geom_square() + 
-  add_link(mantel02, mapping = aes(colour = p.value, size = r),
-           diag.label = TRUE) +
-  scale_color_manual(values = c('#d95f02', '#1b9e77', '#3C5488FF', 'grey')) +
-  scale_size_manual(values = c(0.5, 2, 3)) +
-  geom_diag_label() + remove_axis("x")
-# ggsave(file.path(save.dir, './figs/env_effect/partail_matel_plot.pdf'), p, width = 9, height = 6, units = "in")
+set_corrplot_style()
+p <-  qcorrplot(correlate(env.table, engine = "Hmisc", method = "spearman"), type = "lower", diag = FALSE) +
+  geom_square() +
+  geom_couple(aes(colour = p.value, size = r), 
+              data = mantel02, 
+              curvature = nice_curvature()) +
+  scale_size_manual(values = c(0.5, 1, 2)) +
+  scale_colour_manual(values = c('#d95f02', '#1b9e77', '#3C5488FF', 'grey')) +
+  guides(size = guide_legend(title = "Mantel's r",
+                             override.aes = list(colour = "grey35"), 
+                             order = 2),
+         colour = guide_legend(title = "Mantel's p", 
+                               override.aes = list(size = 3), 
+                               order = 1),
+         fill = guide_colorbar(title = "Spearman's rho", order = 3))
+
+# p <- quickcor(env.table, type = "lower") + geom_square() + 
+#   add_link(mantel02, mapping = aes(colour = p.value, size = r),
+#            diag.label = TRUE) +
+#   scale_color_manual(values = c('#d95f02', '#1b9e77', '#3C5488FF', 'grey')) +
+#   scale_size_manual(values = c(0.5, 2, 3)) +
+#   geom_diag_label() + remove_axis("x")
+# ggsave(file.path(save.dir, './figs/env_effect/partail_matel_plot_11.6.pdf'), p, width = 9, height = 6, units = "in")
 p
 ```
 Test the environmental effects on the funtional genes using dbRDA
