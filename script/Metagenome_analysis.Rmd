@@ -28,15 +28,7 @@ save.dir <- file.path(getwd(),"result")
 ## loading packages
 
 ```{r}
-ipak <- function(pkg){
-  new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
-  if (length(new.pkg)) 
-    install.packages(new.pkg, dependencies = TRUE)
-  sapply(pkg, require, character.only = TRUE)
-}
-pkgs <- c('phyloseq', 'picante', 'microbiome', 'readxl', 'tidyverse',
-          'ggpubr', 'ggplot2')
-ipak(pkgs)
+pacman::p_load(phyloseq, picante, microbiome, readxl, tidyverse, ggpubr, ggplot2)
 ```
 
 ## reading input files
@@ -295,6 +287,54 @@ p <- ggplot(bin_flux, aes(x = s_SUB_15_15, y = Cumulative_5)) +
 # ggsave(file.path(save.dir, "./figs/bin/bin_flux.pdf"),
 #        p, width = 110, height = 120, units = "mm")
 p
+```
+
+## MW-score analysis
+```{r, fig.align='center', fig.width=10, fig.height=8}
+# input the data
+MW_score_input_table <- file.path(wd_fun, "/metabolic/results/MW_score_result/MW_score_result.csv")
+MW_score_table <- read.csv(MW_score_input_table, header = T, row.names = 1, stringsAsFactors = F)
+
+# load libraries
+pacman::p_load(ggplot2, ggplotify, pheatmap, patchwork, aplot)
+
+# plot
+mw_score_df <- data.frame(MW_score_table[, 1])
+p1 <- as.ggplot(pheatmap(mw_score_df, 
+         cluster_rows = F,
+         cluster_cols = F,
+         show_rownames = F,
+         number_color = "black",
+         gaps_row = c(18, 29, 37),
+         border_color = 'Black', # scale = "column",
+         cellwidth = 18, cellheight = 10,
+         fontsize_col = 8, fontsize_row = 8,
+               display_numbers =  round(mw_score_df, 1), 
+               fontsize_number = 6,
+               color = colorRampPalette(c("white", "#F8696B"), bias=0.5)(10),
+         legend = F, silent = T
+         ))
+
+
+cper_df <- data.frame(MW_score_table[, -1])
+p2 <- as.ggplot(pheatmap(cper_df, 
+               cluster_rows = F,
+               cluster_cols = F,
+               number_color = "black",
+               gaps_row = c(18, 29, 37),
+               border_color = 'Black', scale = "row",
+               cellwidth = 18, cellheight = 10,
+               fontsize_col = 8, fontsize_row = 8,
+         display_numbers = round(cper_df, 1), fontsize_number = 6,
+               color = colorRampPalette(c("#5A8AC6", "white", "#F8696B"), bias=0.9)(100),
+         legend = F, , silent = T
+         ))
+
+# Decorate a 'ggplot' with Associated Information
+heatmap_MW_score <- p2 %>% insert_left(p1, width = 0.05)
+ggsave(file.path(save.dir, "./figs/metagenome/MW_score/heatmap_MW_score.pdf"),
+       heatmap_MW_score, width = 10, height = 8, units = "in")
+heatmap_MW_score
 ```
 
 ## Metabolic difference among different layers
@@ -591,3 +631,4 @@ community.plot_pl <- table_pl[, c(2,3,4,5)] %>%
 # dev.off()
 cowplot::plot_grid(community.plot_sur, community.plot_sub, community.plot_pl)
 ```
+
