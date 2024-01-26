@@ -748,3 +748,116 @@ venn_plot <- venn.diagram(
 grid::grid.draw(venn_plot)
 ```
 
+## NULL model analyse the ecological processes
+First, prepare for the community tables and phylogenetic trees for each layer
+```{r}
+save.dir = "E:/permafrost/result"
+if(!dir.exists(save.dir)){dir.create(save.dir)}
+setwd(save.dir)
+# prune the phylo object into three layers
+phylo_sur <- subset_samples(phylo, Layer == 'SUR')
+phylo_sur <- prune_taxa(taxa_sums(phylo_sur) >= 1, phylo_sur)
+phylo_sub <- subset_samples(phylo, Layer == 'SUB')
+phylo_sub <- prune_taxa(taxa_sums(phylo_sub) >= 1, phylo_sub)
+phylo_pl <- subset_samples(phylo, Layer == 'PL')
+phylo_pl <- prune_taxa(taxa_sums(phylo_pl) >= 1, phylo_pl)
+
+# extract the community tables and phylogenetic trees for each layer
+comm_sur <- t(otu_table(phylo_sur))
+tree_sur <- phy_tree(phylo_sur)
+
+comm_sub <- t(otu_table(phylo_sub))
+tree_sub <- phy_tree(phylo_sub)
+
+comm_pl <- t(otu_table(phylo_pl))
+tree_pl <- phy_tree(phylo_pl)
+```
+
+Community assembly analysis based on the iCAMP framwork developed by Ning et al (2020) 
+```{r}
+# Community assembly analysis based on the iCAMP framwork developed by Ning et al (2020) 
+# ses.cut = 1.96, with βNRI=1.96 as the threshold for homogeneous and heterogeneous selection; 
+# rc.cut=0.95, with RC=0.95 as the threshold for diffusion and drift.
+library(iCAMP)
+set.seed(123)
+icamp.sur.out <- icamp.big(comm = comm_sur, tree = tree_sur, pd.wd = paste0(save.dir,"/tables/null_model/sur"), 
+                       ses.cut = 1.96, rc.cut = 0.95, bin.size.limit = 24, 
+                       rand = 1000, nworker = 8)
+# Heterogeneous.Selection, Homogeneous Selection, Dispersal Limitation, Homogenizing.Dispersal, Drift and Others
+head(icamp.sur.out$CbMPDiCBraya)
+write.csv(icamp.sur.out$CbMPDiCBraya, 
+          file.path(save.dir, './tables/null_model/sur/iCAMP.process.CbMPDiCBraya.csv'))
+
+set.seed(123)
+icamp.sub.out <- icamp.big(comm = comm_sub, tree = tree_sub, pd.wd = paste0(save.dir,"/tables/null_model/sub"), 
+                           ses.cut = 1.96, rc.cut = 0.95, bin.size.limit = 24, 
+                           rand = 1000, nworker = 8)
+head(icamp.sub.out$CbMPDiCBraya)
+write.csv(icamp.sub.out$CbMPDiCBraya, 
+          file.path(save.dir, './tables/null_model/sub/iCAMP.process.CbMPDiCBraya.csv'))
+
+
+set.seed(123)
+icamp.pl.out <- icamp.big(comm = comm_pl, tree = tree_pl, 
+                          pd.wd = paste0(save.dir,"/tables/null_model/pl"),
+                          ses.cut = 1.96, rc.cut = 0.95, bin.size.limit = 24,
+                          rand = 1000, nworker = 8)
+head(icamp.pl.out$CbMPDiCBraya)
+write.csv(icamp.pl.out$CbMPDiCBraya, 
+          file.path(save.dir, './tables/null_model/pl/iCAMP.process.CbMPDiCBraya.csv'))
+
+
+null_sur <- read.csv(file.path(save.dir, './tables/null_model/sur/iCAMP.process.CbMPDiCBraya.csv'),
+                     header = T, row.names = 1, stringsAsFactors = F)
+null_sub <- read.csv(file.path(save.dir, './tables/null_model/sub/iCAMP.process.CbMPDiCBraya.csv'),
+                     header = T, row.names = 1, stringsAsFactors = F)
+null_pl <- read.csv(file.path(save.dir, './tables/null_model/pl/iCAMP.process.CbMPDiCBraya.csv'),
+                    header = T, row.names = 1, stringsAsFactors = F)
+
+null_df <- rbind(cbind(layer = rep('SUR', nrow(null_sur)), null_sur[, 3:7]),
+                 cbind(layer = rep('SUB', nrow(null_sub)), null_sub[, 3:7]),
+                 cbind(layer = rep('PL', nrow(null_pl)), null_pl[, 3:7]))
+```
+
+Plot
+```{r, fig.align='center', fig.width=8.9, fig.height=4}
+library(ggalluvial)
+# alluvial diagram
+null_plot <- null_df %>%
+  group_by(layer) %>%
+  summarise(across(everything(), mean)) %>%
+  pivot_longer(cols = -c(layer), names_to = "process", values_to = "value") %>%
+  mutate(layer = factor(layer, levels = c("SUR", "SUB", "PL"))) %>%
+  ggplot(aes(y = value, x = layer)) + 
+  geom_flow(aes(alluvium = process, fill = process,
+                color = process), alpha = 0.4, lty = 2, curve_type = "linear", width = 0.5) + 
+  geom_col(aes(fill = process), width = 0.5, color = "black") + 
+  labs(x = 'Layers', y = 'Relative importance', fill = 'Processes') +
+  # scale_fill_manual(values = c("#000000", "#294e63", "#496a80", "#7c98ac", "#b3c4d2")) + 
+  scale_y_continuous(expand = c(0, 0)) + theme_classic() +
+  theme(axis.title = element_text(colour = "black"),
+        axis.text = element_text(colour = "black"))
+# ggsave(file.path(save.dir, './figs/null_model/null_stacked_plot.pdf'), null_plot, width = 6, height = 4)
+
+#boxplot
+library(ggpubr)
+my_comparisons <- list( c("SUR", "SUB"), c("SUB", "PL"), c("SUR", "PL") )
+p <- null_df %>%
+  select(c('layer', 'Homogeneous.Selection', 'Dispersal.Limitation', 'Drift.and.Others')) %>%
+  pivot_longer(cols = -c(layer), names_to = "process", values_to = "value") %>%
+  mutate(layer = factor(layer, levels = c("SUR", "SUB", "PL"))) %>%
+  ggplot(aes(layer, value))+
+  geom_boxplot(width = 0.5, aes(fill = layer))+
+  facet_grid(. ~ process, scales = 'free_x', space = 'free_x') +
+  stat_compare_means(comparisons = my_comparisons, label = "p.signif") +
+  #scale_fill_manual(values= cols) +
+  labs(x = 'Layers', y = 'Relative importance', fill = 'Layers') +
+  theme_bw() +
+  theme(axis.title = element_text(colour = "black"),
+        axis.text = element_text(colour = "black"),
+        panel.grid = element_blank(),
+        panel.spacing = unit(0, "lines"))
+# ggsave(file.path(save.dir, './figs/null_model/null_box_plot.pdf'), p, width = 8, height = 4)
+cowplot::plot_grid(null_plot, p, ncol = 2)
+```
+
