@@ -820,7 +820,7 @@ null_df <- rbind(cbind(layer = rep('SUR', nrow(null_sur)), null_sur[, 3:7]),
 ```
 
 Plot
-```{r, fig.align='center', fig.width=6.9, fig.height=7.5}
+```{r, fig.align='center', fig.width=6.9, fig.height=8.9}
 legend_label_rep <- c("DL: Dispersal Limitation", "DR: Drift and Others",
             "HoS: Homogeneous Selection", "HD: Homogenizing Dispersal",
             "HeS: Heterogeneous Selection")
@@ -857,28 +857,16 @@ null_plot <- null_df %>%
         legend.key.size = unit(1,"line"))
 # ggsave(file.path(save.dir, './figs/null_model/null_stacked_plot.pdf'), null_plot, width = 6, height = 4)
 
-#boxplot
-library(ggpubr)
-my_comparisons <- list( c("SUR", "SUB"), c("SUB", "PL"), c("SUR", "PL") )
-process_among_layers <- null_df %>%
-  select(c('layer', 'Heterogeneous.Selection', 'Homogeneous.Selection', 'Dispersal.Limitation', 'Homogenizing.Dispersal', 'Drift.and.Others')) %>%
-  pivot_longer(cols = -c(layer), names_to = "process", values_to = "value") %>%
-  mutate(layer = factor(layer, levels = c("SUR", "SUB", "PL"))) %>%
-  mutate(process = factor(process, levels = c('Dispersal.Limitation', 'Drift.and.Others', 'Homogeneous.Selection', 'Homogenizing.Dispersal', 'Heterogeneous.Selection'))) %>%
-  ggplot(aes(layer, value))+
-  geom_boxplot(width = 0.5, aes(fill = process))+
-  facet_grid(. ~ process, scales = 'free_x', space = 'free_x', labeller = facet_labeller) +
-  stat_compare_means(comparisons = my_comparisons, label = "p.signif") +
-  # scale_fill_manual(labels = legend_label_rep) +
-  labs(x = 'Layers', y = 'Relative importance', fill = 'Process') +
-  theme_bw() +
-  theme(axis.title = element_text(colour = "black"),
-        axis.text = element_text(colour = "black"),
-        legend.key.size = unit(1,"line"),
-        panel.grid = element_blank(),
-        panel.spacing = unit(0, "lines"))
-# ggsave(file.path(save.dir, './figs/null_model/null_box_plot.pdf'), process_among_layers, width = 8, height = 4)
-
+my_comparisons_process <- list( c("Heterogeneous.Selection", "Homogeneous.Selection"), 
+                              c('Heterogeneous.Selection', 'Dispersal.Limitation'), 
+                              c('Heterogeneous.Selection', 'Homogenizing.Dispersal'),
+                              c('Heterogeneous.Selection', 'Drift.and.Others'),
+                              c('Homogeneous.Selection', 'Dispersal.Limitation'),
+                              c('Homogeneous.Selection', 'Homogenizing.Dispersal'),
+                              c('Homogeneous.Selection', 'Drift.and.Others'),
+                              c('Dispersal.Limitation', 'Homogenizing.Dispersal'),
+                              c('Dispersal.Limitation', 'Drift.and.Others'),
+                              c('Homogenizing.Dispersal', 'Drift.and.Others'))
 process_within_layer <- null_df %>%
   select(c('layer', 'Heterogeneous.Selection', 'Homogeneous.Selection', 'Dispersal.Limitation', 'Homogenizing.Dispersal', 'Drift.and.Others')) %>%
   pivot_longer(cols = -c(layer), names_to = "process", values_to = "value") %>%
@@ -887,7 +875,7 @@ process_within_layer <- null_df %>%
   ggplot(aes(process, value))+
   geom_boxplot(width = 0.5, aes(fill = process))+
   facet_grid(. ~ layer, scales = 'free_x', space = 'free_x') +
-  stat_compare_means(comparisons = my_comparisons, label = "p.signif") +
+  stat_compare_means(comparisons = my_comparisons_process, label = "p.signif") +
   # scale_fill_manual(labels = legend_label_rep) +
   labs(x = 'Ecological process', y = 'Relative importance', fill = 'Process') +
   scale_x_discrete(labels = rep_str) +
@@ -898,6 +886,28 @@ process_within_layer <- null_df %>%
         panel.grid = element_blank(),
         panel.spacing = unit(0, "lines"))
 
-cowplot::plot_grid(null_plot, process_among_layers, process_within_layer, ncol = 1)
+#boxplot
+library(ggpubr)
+my_comparisons_layer <- list( c("SUR", "SUB"), c("SUB", "PL"), c("SUR", "PL"))
+process_among_layers <- null_df %>%
+  select(c('layer', 'Heterogeneous.Selection', 'Homogeneous.Selection', 'Dispersal.Limitation', 'Homogenizing.Dispersal', 'Drift.and.Others')) %>%
+  pivot_longer(cols = -c(layer), names_to = "process", values_to = "value") %>%
+  mutate(layer = factor(layer, levels = c("SUR", "SUB", "PL"))) %>%
+  mutate(process = factor(process, levels = c('Dispersal.Limitation', 'Drift.and.Others', 'Homogeneous.Selection', 'Homogenizing.Dispersal', 'Heterogeneous.Selection'))) %>%
+  ggplot(aes(layer, value))+
+  geom_boxplot(width = 0.5, aes(fill = process))+
+  facet_grid(. ~ process, scales = 'free_x', space = 'free_x', labeller = facet_labeller) +
+  stat_compare_means(comparisons = my_comparisons_layer, label = "p.signif") +
+  # scale_fill_manual(labels = legend_label_rep) +
+  labs(x = 'Layers', y = 'Relative importance', fill = 'Process') +
+  theme_bw() +
+  theme(axis.title = element_text(colour = "black"),
+        axis.text = element_text(colour = "black"),
+        legend.key.size = unit(1,"line"),
+        panel.grid = element_blank(),
+        panel.spacing = unit(0, "lines"))
+# ggsave(file.path(save.dir, './figs/null_model/null_box_plot.pdf'), process_among_layers, width = 8, height = 4)
+
+cowplot::plot_grid(null_plot, process_within_layer, process_among_layers, ncol = 1)
 ```
 
