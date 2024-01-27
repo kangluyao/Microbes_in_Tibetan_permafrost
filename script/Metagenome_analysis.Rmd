@@ -215,7 +215,7 @@ num.mags.df <- dat3 %>% select(c(1, 2, 4)) %>%
 knitr::kable(arrange(num.mags.df, desc(presence_or_absent)))
 ```
 
-```{r, fig.width=10, fig.height=8}
+```{r,fig.align='center', fig.width=6, fig.height=5}
 my_colors <- c("#e4d00a", "#FB8072", "#FDB462", "#80B1D3", "#BEBADA", "#B3DE69", "#FCCDE5", "#A6CEE3",
                "#8DD3C7", "#B2DF8A", "#33A02C", "#FB9A99", "#E31A1C", "#893f45", "#FF7F00", "#1F78B4",
                "#6A3D9A", "#b31b1b", "#5d3954", "#008b8b", "#8b008b", "#e75480", "#872657", "#8fbc8f",
@@ -234,21 +234,20 @@ values = c("#FFFFB3", "#FB8072", "#FDB462", "#80B1D3", "#BEBADA", "#B3DE69", "#F
 
 num.mags.plot <- num.mags.df %>%
   ggplot(aes(x = Function, y = presence_or_absent, fill = Function)) +
-  geom_bar(stat = "identity") +
+  geom_bar(stat = "identity", width = 0.7, position = position_dodge(0.7)) +
   scale_fill_manual(values = my_col) +
   scale_y_continuous(limits = c(0, 300), expand = c(0, 0)) +
   labs(x = NULL, y = 'Number of MAGs') +
   theme_classic() +
   theme(axis.text = element_text(colour = 'black'),
-        legend.key.size = unit(1, "line")) +
-  guides(fill = guide_legend(ncol = 1, reverse = TRUE)) +
+        legend.key.size = unit(1, "line"),
+        legend.position = "none") +
+  # guides(fill = guide_legend(ncol = 1, reverse = TRUE)) +
   coord_flip()
+
+ggsave(file.path(save.dir, "./figs/metagenome/num_mags_each_pathway.pdf"),
+       num.mags.plot, width = 6, height = 5, units = "in")
 num.mags.plot
-# plot.name <- paste0(wd_fun, "/metabolic/results/number_of_MAGs_Plot.PDF")
-# print(num.mags.plot)
-# cairo_pdf(filename = plot.name, width = 10, height = 8, onefile = TRUE)
-# num.mags.plot
-# dev.off()
 ```
 
 ## Determine the ratio of presence of each metabolic pathway in each layers

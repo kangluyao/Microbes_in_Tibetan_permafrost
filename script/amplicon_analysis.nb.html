@@ -2914,56 +2914,34 @@ grid::grid.draw(venn_plot)</code></pre>
 each layer</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc2F2ZS5kaXIgPSBcIkU6L3Blcm1hZnJvc3QvcmVzdWx0XCJcbmlmKCFkaXIuZXhpc3RzKHNhdmUuZGlyKSl7ZGlyLmNyZWF0ZShzYXZlLmRpcil9XG5zZXR3ZChzYXZlLmRpcilcbiMgcHJ1bmUgdGhlIHBoeWxvIG9iamVjdCBpbnRvIHRocmVlIGxheWVyc1xucGh5bG9fc3VyIDwtIHN1YnNldF9zYW1wbGVzKHBoeWxvLCBMYXllciA9PSAnU1VSJylcbnBoeWxvX3N1ciA8LSBwcnVuZV90YXhhKHRheGFfc3VtcyhwaHlsb19zdXIpID49IDEsIHBoeWxvX3N1cilcbnBoeWxvX3N1YiA8LSBzdWJzZXRfc2FtcGxlcyhwaHlsbywgTGF5ZXIgPT0gJ1NVQicpXG5waHlsb19zdWIgPC0gcHJ1bmVfdGF4YSh0YXhhX3N1bXMocGh5bG9fc3ViKSA+PSAxLCBwaHlsb19zdWIpXG5waHlsb19wbCA8LSBzdWJzZXRfc2FtcGxlcyhwaHlsbywgTGF5ZXIgPT0gJ1BMJylcbnBoeWxvX3BsIDwtIHBydW5lX3RheGEodGF4YV9zdW1zKHBoeWxvX3BsKSA+PSAxLCBwaHlsb19wbClcblxuIyBleHRyYWN0IHRoZSBjb21tdW5pdHkgdGFibGVzIGFuZCBwaHlsb2dlbmV0aWMgdHJlZXMgZm9yIGVhY2ggbGF5ZXJcbmNvbW1fc3VyIDwtIHQob3R1X3RhYmxlKHBoeWxvX3N1cikpXG50cmVlX3N1ciA8LSBwaHlfdHJlZShwaHlsb19zdXIpXG5cbmNvbW1fc3ViIDwtIHQob3R1X3RhYmxlKHBoeWxvX3N1YikpXG50cmVlX3N1YiA8LSBwaHlfdHJlZShwaHlsb19zdWIpXG5cbmNvbW1fcGwgPC0gdChvdHVfdGFibGUocGh5bG9fcGwpKVxudHJlZV9wbCA8LSBwaHlfdHJlZShwaHlsb19wbClcbmBgYCJ9 -->
+<pre class="r"><code>save.dir = &quot;E:/permafrost/result&quot;
+if(!dir.exists(save.dir)){dir.create(save.dir)}
+setwd(save.dir)
+# prune the phylo object into three layers
+phylo_sur &lt;- subset_samples(phylo, Layer == &#39;SUR&#39;)
+phylo_sur &lt;- prune_taxa(taxa_sums(phylo_sur) &gt;= 1, phylo_sur)
+phylo_sub &lt;- subset_samples(phylo, Layer == &#39;SUB&#39;)
+phylo_sub &lt;- prune_taxa(taxa_sums(phylo_sub) &gt;= 1, phylo_sub)
+phylo_pl &lt;- subset_samples(phylo, Layer == &#39;PL&#39;)
+phylo_pl &lt;- prune_taxa(taxa_sums(phylo_pl) &gt;= 1, phylo_pl)
+
+# extract the community tables and phylogenetic trees for each layer
+comm_sur &lt;- t(otu_table(phylo_sur))
+tree_sur &lt;- phy_tree(phylo_sur)
+
+comm_sub &lt;- t(otu_table(phylo_sub))
+tree_sub &lt;- phy_tree(phylo_sub)
+
+comm_pl &lt;- t(otu_table(phylo_pl))
+tree_pl &lt;- phy_tree(phylo_pl)</code></pre>
+<!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <p>Community assembly analysis based on the iCAMP framwork developed by
 Ning et al (2020)</p>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBDb21tdW5pdHkgYXNzZW1ibHkgYW5hbHlzaXMgYmFzZWQgb24gdGhlIGlDQU1QIGZyYW13b3JrIGRldmVsb3BlZCBieSBOaW5nIGV0IGFsICgyMDIwKSBcbiMgc2VzLmN1dCA9IDEuOTYsIHdpdGggzrJOUkk9MS45NiBhcyB0aGUgdGhyZXNob2xkIGZvciBob21vZ2VuZW91cyBhbmQgaGV0ZXJvZ2VuZW91cyBzZWxlY3Rpb247IFxuIyByYy5jdXQ9MC45NSwgd2l0aCBSQz0wLjk1IGFzIHRoZSB0aHJlc2hvbGQgZm9yIGRpZmZ1c2lvbiBhbmQgZHJpZnQuXG5saWJyYXJ5KGlDQU1QKVxuc2V0LnNlZWQoMTIzKVxuaWNhbXAuc3VyLm91dCA8LSBpY2FtcC5iaWcoY29tbSA9IGNvbW1fc3VyLCB0cmVlID0gdHJlZV9zdXIsIHBkLndkID0gcGFzdGUwKHNhdmUuZGlyLFwiL3RhYmxlcy9udWxsX21vZGVsL3N1clwiKSwgXG4gICAgICAgICAgICAgICAgICAgICAgIHNlcy5jdXQgPSAxLjk2LCByYy5jdXQgPSAwLjk1LCBiaW4uc2l6ZS5saW1pdCA9IDI0LCBcbiAgICAgICAgICAgICAgICAgICAgICAgcmFuZCA9IDEwMDAsIG53b3JrZXIgPSA4KVxuIyBIZXRlcm9nZW5lb3VzLlNlbGVjdGlvbiwgSG9tb2dlbmVvdXMgU2VsZWN0aW9uLCBEaXNwZXJzYWwgTGltaXRhdGlvbiwgSG9tb2dlbml6aW5nLkRpc3BlcnNhbCwgRHJpZnQgYW5kIE90aGVyc1xuaGVhZChpY2FtcC5zdXIub3V0JENiTVBEaUNCcmF5YSlcbndyaXRlLmNzdihpY2FtcC5zdXIub3V0JENiTVBEaUNCcmF5YSwgXG4gICAgICAgICAgZmlsZS5wYXRoKHNhdmUuZGlyLCAnLi90YWJsZXMvbnVsbF9tb2RlbC9zdXIvaUNBTVAucHJvY2Vzcy5DYk1QRGlDQnJheWEuY3N2JykpXG5cbnNldC5zZWVkKDEyMylcbmljYW1wLnN1Yi5vdXQgPC0gaWNhbXAuYmlnKGNvbW0gPSBjb21tX3N1YiwgdHJlZSA9IHRyZWVfc3ViLCBwZC53ZCA9IHBhc3RlMChzYXZlLmRpcixcIi90YWJsZXMvbnVsbF9tb2RlbC9zdWJcIiksIFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgc2VzLmN1dCA9IDEuOTYsIHJjLmN1dCA9IDAuOTUsIGJpbi5zaXplLmxpbWl0ID0gMjQsIFxuICAgICAgICAgICAgICAgICAgICAgICAgICAgcmFuZCA9IDEwMDAsIG53b3JrZXIgPSA4KVxuaGVhZChpY2FtcC5zdWIub3V0JENiTVBEaUNCcmF5YSlcbndyaXRlLmNzdihpY2FtcC5zdWIub3V0JENiTVBEaUNCcmF5YSwgXG4gICAgICAgICAgZmlsZS5wYXRoKHNhdmUuZGlyLCAnLi90YWJsZXMvbnVsbF9tb2RlbC9zdWIvaUNBTVAucHJvY2Vzcy5DYk1QRGlDQnJheWEuY3N2JykpXG5cblxuc2V0LnNlZWQoMTIzKVxuaWNhbXAucGwub3V0IDwtIGljYW1wLmJpZyhjb21tID0gY29tbV9wbCwgdHJlZSA9IHRyZWVfcGwsIFxuICAgICAgICAgICAgICAgICAgICAgICAgICBwZC53ZCA9IHBhc3RlMChzYXZlLmRpcixcIi90YWJsZXMvbnVsbF9tb2RlbC9wbFwiKSxcbiAgICAgICAgICAgICAgICAgICAgICAgICAgc2VzLmN1dCA9IDEuOTYsIHJjLmN1dCA9IDAuOTUsIGJpbi5zaXplLmxpbWl0ID0gMjQsXG4gICAgICAgICAgICAgICAgICAgICAgICAgIHJhbmQgPSAxMDAwLCBud29ya2VyID0gOClcbmhlYWQoaWNhbXAucGwub3V0JENiTVBEaUNCcmF5YSlcbndyaXRlLmNzdihpY2FtcC5wbC5vdXQkQ2JNUERpQ0JyYXlhLCBcbiAgICAgICAgICBmaWxlLnBhdGgoc2F2ZS5kaXIsICcuL3RhYmxlcy9udWxsX21vZGVsL3BsL2lDQU1QLnByb2Nlc3MuQ2JNUERpQ0JyYXlhLmNzdicpKVxuXG5cbm51bGxfc3VyIDwtIHJlYWQuY3N2KGZpbGUucGF0aChzYXZlLmRpciwgJy4vdGFibGVzL251bGxfbW9kZWwvc3VyL2lDQU1QLnByb2Nlc3MuQ2JNUERpQ0JyYXlhLmNzdicpLFxuICAgICAgICAgICAgICAgICAgICAgaGVhZGVyID0gVCwgcm93Lm5hbWVzID0gMSwgc3RyaW5nc0FzRmFjdG9ycyA9IEYpXG5udWxsX3N1YiA8LSByZWFkLmNzdihmaWxlLnBhdGgoc2F2ZS5kaXIsICcuL3RhYmxlcy9udWxsX21vZGVsL3N1Yi9pQ0FNUC5wcm9jZXNzLkNiTVBEaUNCcmF5YS5jc3YnKSxcbiAgICAgICAgICAgICAgICAgICAgIGhlYWRlciA9IFQsIHJvdy5uYW1lcyA9IDEsIHN0cmluZ3NBc0ZhY3RvcnMgPSBGKVxubnVsbF9wbCA8LSByZWFkLmNzdihmaWxlLnBhdGgoc2F2ZS5kaXIsICcuL3RhYmxlcy9udWxsX21vZGVsL3BsL2lDQU1QLnByb2Nlc3MuQ2JNUERpQ0JyYXlhLmNzdicpLFxuICAgICAgICAgICAgICAgICAgICBoZWFkZXIgPSBULCByb3cubmFtZXMgPSAxLCBzdHJpbmdzQXNGYWN0b3JzID0gRilcblxubnVsbF9kZiA8LSByYmluZChjYmluZChsYXllciA9IHJlcCgnU1VSJywgbnJvdyhudWxsX3N1cikpLCBudWxsX3N1clssIDM6N10pLFxuICAgICAgICAgICAgICAgICBjYmluZChsYXllciA9IHJlcCgnU1VCJywgbnJvdyhudWxsX3N1YikpLCBudWxsX3N1YlssIDM6N10pLFxuICAgICAgICAgICAgICAgICBjYmluZChsYXllciA9IHJlcCgnUEwnLCBucm93KG51bGxfcGwpKSwgbnVsbF9wbFssIDM6N10pKVxuYGBgIn0= -->
-<pre class="r"><code># Community assembly analysis based on the iCAMP framwork developed by Ning et al (2020) 
-# ses.cut = 1.96, with βNRI=1.96 as the threshold for homogeneous and heterogeneous selection; 
-# rc.cut=0.95, with RC=0.95 as the threshold for diffusion and drift.
-library(iCAMP)
-set.seed(123)
-icamp.sur.out &lt;- icamp.big(comm = comm_sur, tree = tree_sur, pd.wd = paste0(save.dir,&quot;/tables/null_model/sur&quot;), 
-                       ses.cut = 1.96, rc.cut = 0.95, bin.size.limit = 24, 
-                       rand = 1000, nworker = 8)
-# Heterogeneous.Selection, Homogeneous Selection, Dispersal Limitation, Homogenizing.Dispersal, Drift and Others
-head(icamp.sur.out$CbMPDiCBraya)
-write.csv(icamp.sur.out$CbMPDiCBraya, 
-          file.path(save.dir, &#39;./tables/null_model/sur/iCAMP.process.CbMPDiCBraya.csv&#39;))
-
-set.seed(123)
-icamp.sub.out &lt;- icamp.big(comm = comm_sub, tree = tree_sub, pd.wd = paste0(save.dir,&quot;/tables/null_model/sub&quot;), 
-                           ses.cut = 1.96, rc.cut = 0.95, bin.size.limit = 24, 
-                           rand = 1000, nworker = 8)
-head(icamp.sub.out$CbMPDiCBraya)
-write.csv(icamp.sub.out$CbMPDiCBraya, 
-          file.path(save.dir, &#39;./tables/null_model/sub/iCAMP.process.CbMPDiCBraya.csv&#39;))
-
-
-set.seed(123)
-icamp.pl.out &lt;- icamp.big(comm = comm_pl, tree = tree_pl, 
-                          pd.wd = paste0(save.dir,&quot;/tables/null_model/pl&quot;),
-                          ses.cut = 1.96, rc.cut = 0.95, bin.size.limit = 24,
-                          rand = 1000, nworker = 8)
-head(icamp.pl.out$CbMPDiCBraya)
-write.csv(icamp.pl.out$CbMPDiCBraya, 
-          file.path(save.dir, &#39;./tables/null_model/pl/iCAMP.process.CbMPDiCBraya.csv&#39;))
-
-
-null_sur &lt;- read.csv(file.path(save.dir, &#39;./tables/null_model/sur/iCAMP.process.CbMPDiCBraya.csv&#39;),
-                     header = T, row.names = 1, stringsAsFactors = F)
-null_sub &lt;- read.csv(file.path(save.dir, &#39;./tables/null_model/sub/iCAMP.process.CbMPDiCBraya.csv&#39;),
-                     header = T, row.names = 1, stringsAsFactors = F)
-null_pl &lt;- read.csv(file.path(save.dir, &#39;./tables/null_model/pl/iCAMP.process.CbMPDiCBraya.csv&#39;),
-                    header = T, row.names = 1, stringsAsFactors = F)
-
-null_df &lt;- rbind(cbind(layer = rep(&#39;SUR&#39;, nrow(null_sur)), null_sur[, 3:7]),
-                 cbind(layer = rep(&#39;SUB&#39;, nrow(null_sub)), null_sub[, 3:7]),
-                 cbind(layer = rep(&#39;PL&#39;, nrow(null_pl)), null_pl[, 3:7]))</code></pre>
-<!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <p>Plot</p>
