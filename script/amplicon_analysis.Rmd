@@ -803,8 +803,8 @@ icamp.pl.out <- icamp.big(comm = comm_pl, tree = tree_pl,
                           ses.cut = 1.96, rc.cut = 0.95, bin.size.limit = 24,
                           rand = 1000, nworker = 8)
 head(icamp.pl.out$CbMPDiCBraya)
-write.csv(icamp.pl.out$CbMPDiCBraya, 
-          file.path(save.dir, './tables/null_model/pl/iCAMP.process.CbMPDiCBraya.csv'))
+# write.csv(icamp.pl.out$CbMPDiCBraya,
+#           file.path(save.dir, './tables/null_model/pl/iCAMP.process.CbMPDiCBraya.csv'))
 
 
 null_sur <- read.csv(file.path(save.dir, './tables/null_model/sur/iCAMP.process.CbMPDiCBraya.csv'),
@@ -915,7 +915,7 @@ process_among_layers <- null_df %>%
         legend.position = "none")
 # ggsave(file.path(save.dir, './figs/null_model/process_among_layers.pdf'), process_among_layers, width = 8, height = 3)
 
-cowplot::plot_grid(null_plot, process_within_layer, process_among_layers, ncol = 1)
+cowplot::plot_grid(process_within_layer, process_among_layers, ncol = 1)
 ```
 
 ```{r}
