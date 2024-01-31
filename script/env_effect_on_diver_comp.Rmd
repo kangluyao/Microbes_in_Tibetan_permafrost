@@ -89,7 +89,7 @@ alpha_div <- cbind(Layers = metadata$Layer, alpha_div, Faith = pd$PD,
   mutate(Layers = factor(Layers, levels = c('SUR', 'SUB', 'PL')))
 cor_div_env_tab <- data.frame(metadata[-c(1, 2, 4:6)], Evenness = alpha_div$Evenness)
 # You can use sel_env to specify the variables you want to use and sel_env_label to specify the labes for the pannel
-sel_env <- c("MAT", "AI", "Moisture",	"pH",	"Clay",	"Silt",	
+sel_env <- c("MAT", "AI", "NDVI", "HF", "Moisture",	"pH",	"Clay",	"Silt",	
            "SOC", "DOC", "NH4_N",	"NO3_N",	"DON",	
            "LCP1",	"LCP2",	"RCP")
 ```
@@ -157,14 +157,13 @@ p
 First, because there was strong collinearity among particular environmental factors, before applying partial mantel test, we used variable clustering to assess the redundancy of the environmental variables by the varclus procedure in the Hmisc R package. The variables with higher correlation (Spearman’s ρ > 0.7) were removed.
 ```{r, fig.align='center', fig.width=6, fig.height=4.5}
 library(Hmisc)
-envs <- metadata[, c("AI", "MAT", "Clay", "Silt", "Sand", "Moisture", "pH",  "NH4_N", "NO3_N", "DON",       "SOC", "DOC", "LCP1", "LCP2", "RCP")]
+envs <- metadata[, c("AI", "MAT", "NDVI", "HF", "Clay", "Silt", "Sand", "Moisture", "pH",  "NH4_N", "NO3_N", "DON",       "SOC", "DOC", "LCP1", "LCP2", "RCP")]
 envsn <- data.matrix(envs)
 clust <- Hmisc::varclus(envsn)
-clust
 plot(clust)
 ```
 
-Based on the variable clustering results, we retain Clay, Silt, AI, NH<sub>4</sub><sup>+</sup>-N, Moisture, NO<sub>3</sub><sup>-</sup>-N, pH, MAT, LCP1, and RCP for the partial mantel test. 
+Based on the variable clustering results, we retain Clay, Silt, AI, "NDVI", "HF", NH<sub>4</sub><sup>+</sup>-N, Moisture, NO<sub>3</sub><sup>-</sup>-N, pH, MAT, LCP1, and RCP for the partial mantel test. 
 
 Partial mantel test function for the relationship between the envs and community
 ```{r}
@@ -175,7 +174,7 @@ partial.mantel.fun <- function(phylo) {
   otu_table_hel <- decostand(otu_table, 'hellinger')
   otu_table_hel_dist <- vegdist(otu_table_hel, 'bray',upper=F)
   df <- NULL
-  vars <- c("MAT", "AI", "Moisture",	"pH",	"Clay",	"Silt",	 
+  vars <- c("MAT", "AI", "NDVI", "HF", "Moisture",	"pH",	"Clay",	"Silt",	 
             "NH4_N",	"NO3_N", "LCP1", "RCP")
   for (x in vars) {
     y.dist <- vegdist(scale(env.table[,x]), 'euclidean', na.rm = T)
@@ -218,13 +217,16 @@ par.mant.pl
 ```
 PLOT using ggcor package
 ```{r, fig.align='center', fig.width=8, fig.height=5}
+rep_str = c("NH4_N" = expression(paste("NH"[4]^"+", "-N")),
+            "NO3_N" = expression(paste("NO"[3]^"-", "-N"))
+)
 ## devtools::install_github('hannet91/ggcor')
 library(ggcor)
 library(linkET)
 par.man.tibble <- tibble(spec = c(rep('SUR', nrow(par.mant.sur)), rep('SUB', nrow(par.mant.sub)), rep('PL', nrow(par.mant.pl))), 
                          rbind(par.mant.sur, par.mant.sub, par.mant.pl))
 
-vars <- c("MAT", "AI", "Moisture",	"pH",	"Clay",	"Silt",	 
+vars <- c("MAT", "AI", "NDVI", "HF", "Moisture",	"pH",	"Clay",	"Silt",	 
             "NH4_N",	"NO3_N", "LCP1", "RCP")
 env.table <- sample_data(phylo)[ , vars]
 mantel02 <- par.man.tibble %>% 
