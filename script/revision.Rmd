@@ -70,11 +70,76 @@ p1
 
 ## Explor the phylogenecy of specific taxonomic groups and comparing the phylogenetic difference among layers
 ```{r}
+# First, we want to know which taxonomic groups are dominant taxa in our samples
 
 
 ```
 
+```{r}
+# write a function for data organization
+arrange.tab <- function(phylo, N, taxrank, vect) {
+  subphylo <- tax_glom(phylo, taxrank)
+  subphylo.rel <- microbiome::transform(subphylo, "compositional")
+  ra.tab <- otu_table(subphylo.rel)
+  MRA <- rowMeans(ra.tab)
+  group <- tax_table(subphylo.rel)[,vect]
+  mra.tab <- data.frame(group,MRA)
+  colnames(mra.tab) <- c('level1', 'level2', 'MRA')
+  #arrange the class table
+  mra.tab_level1 = mra.tab %>% group_by(level1) %>% 
+    summarise(sum_MRA = sum(MRA)) %>% 
+    arrange(desc(sum_MRA))
+  top_N_level1 = mra.tab_level1[1:N, ]$'level1'
+  top_N_tab = mra.tab[mra.tab$'level1' %in% top_N_level1, ]
+  mra.tab_level2 = top_N_tab %>% group_by(level2) %>% 
+    summarise(sum_MRA = sum(MRA)) %>% 
+    arrange(desc(sum_MRA))
+  order_level2 = mra.tab_level2$'level2'
+  top_N_tab$'level1' = factor(top_N_tab$'level1', ordered = T, levels = top_N_level1)
+  top_N_tab$'level2' = factor(top_N_tab$'level2', ordered = T, levels = rev(order_level2))
+  top_N_tab$MRA = top_N_tab$MRA*100
+  return(top_N_tab)
+}
+```
+Determine the relative abundance of the taxa at the phylum level.
+```{r}
+top10family <- arrange.tab(phylo, 10, 'Family', c(5,7))
+mra.tab_level1 = top10family %>% group_by(level1) %>% 
+  summarise(sum_MRA = sum(MRA)) %>% 
+  arrange(desc(sum_MRA)) %>%
+  dplyr::rename(Family = level1, prop = sum_MRA) %>%
+  bind_rows(summarise_all(., ~if(is.numeric(.)) 100-sum(.) else "Others"))
+mra.tab_level1
+```
+## Extract the phylogenetic trees of the top 5 familys
+```{r}
+fam_names <- c("KD4-96", "Defluviicoccaceae", "67-14", "Nitrosomonadaceae", "Comamonadaceae")
+kd4_96_phylo <- subset_taxa(phylo, Family == "KD4-96")
+kd4_96_tree <- phy_tree(kd4_96_phylo)
+Deflu_phylo <- subset_taxa(phylo, Family == "Defluviicoccaceae")
+Deflu_tree <- phy_tree(Deflu_phylo)
+fam67_14_phylo <- subset_taxa(phylo, Family == "67-14")
+fam67_14_tree <- phy_tree(fam67_14_phylo)
+Nitro_phylo <- subset_taxa(phylo, Family == "Nitrosomonadaceae")
+Nitro_tree <- phy_tree(Nitro_phylo)
+Comamo_phylo <- subset_taxa(phylo, Family == "Comamonadaceae")
+Comamo_tree <- phy_tree(Comamo_phylo)
+# plot the trees
+library(ape)
+library(ggplot2)
+library("phytools") # for sims and ASRs
+library("ggtree")
+g1 <- ggtree(kd4_96_tree, layout = 'circular', open.angle = 20)
+g2 <- ggtree(Deflu_tree, layout = 'circular', open.angle = 20)
+g3 <- ggtree(fam67_14_tree, layout = 'circular', open.angle = 20)
+g4 <- ggtree(Nitro_tree, layout = 'circular', open.angle = 20)
+g5 <- ggtree(Comamo_tree, layout = 'circular', open.angle = 20)
+cowplot::plot_grid(g1, g2, g3, g4, g5, nrow = 2)
+```
+
+```{r}
 
 
-
+```
+tax.distinctiveness()
 
