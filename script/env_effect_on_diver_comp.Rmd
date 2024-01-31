@@ -252,7 +252,7 @@ p <-  qcorrplot(correlate(env.table, engine = "Hmisc", method = "spearman"), typ
          colour = guide_legend(title = "Mantel's p", 
                                override.aes = list(size = 3), 
                                order = 1),
-         fill = guide_colorbar(title = "Spearman's rho", order = 3))
+         fill = guide_colorbar(title = expression(paste("Spearman's ", rho), order = 3)))
 
 # p <- quickcor(env.table, type = "lower") + geom_square() + 
 #   add_link(mantel02, mapping = aes(colour = p.value, size = r),
@@ -260,7 +260,8 @@ p <-  qcorrplot(correlate(env.table, engine = "Hmisc", method = "spearman"), typ
 #   scale_color_manual(values = c('#d95f02', '#1b9e77', '#3C5488FF', 'grey')) +
 #   scale_size_manual(values = c(0.5, 2, 3)) +
 #   geom_diag_label() + remove_axis("x")
-# ggsave(file.path(save.dir, './figs/env_effect/partail_matel_plot_11.6.pdf'), p, width = 9, height = 6, units = "in")
+
+# ggsave(file.path(save.dir, './figs/env_effect/partail_matel_plot_11.6.pdf'), p, width = 8.9, height = 4.5, units = "in")
 p
 ```
 Test the environmental effects on the funtional genes using dbRDA

@@ -1,0 +1,43 @@
+# set work directory
+wd <- 'e:/permafrost'
+setwd(wd)
+HF_df <- read.table(file = file.path(wd, 'revision/data/HF.csv'),
+                            sep = ',',  header = T, stringsAsFactors = F)
+# plot
+library(gghalves)
+main_theme = theme_bw() + 
+  theme(panel.grid = element_blank(),
+        panel.border = element_rect(size = 0.5),
+        strip.text = element_text(colour = 'black', size = 7),
+        strip.background = element_rect(colour = 'black', fill = 'grey'),
+        axis.title = element_text(color = 'black',size = 7),
+        axis.ticks = element_line(color = "black", linewidth = 0.5),
+        axis.text.y = element_text(colour = 'black', size = 6),
+        axis.text.x = element_text(colour = 'black', size = 6),
+        legend.title = element_text(colour = 'black', size = 7),
+        legend.text = element_text(colour = 'black', size = 6),
+        legend.key.size = unit(0.5, 'cm'))
+my_comparisons <- list(c('Sampling_sites', 'Cities'))
+p1 <- HF_df %>%
+  mutate(Type = factor(Type, levels = c("Sampling_sites", "Cities"))) %>%
+  ggplot(aes(Type, HF_2000_2015, fill = Type)) +
+  geom_half_violin(position = position_nudge(x = 0.25), side = "r", width = 0.8, color = NA) +
+  geom_boxplot(width = 0.4, size = 0.75, outlier.color = NA) +
+  geom_jitter(aes(fill = Type), shape = 21, size = 1.5, width = 0.2) +
+  scale_y_continuous(expand = expansion(mult = c(0.05, 0.1))) +
+  scale_x_discrete(labels = c("Sampling_sites" = "Sampling sites", "Cities" = "Cities")) +
+  stat_compare_means(comparisons = my_comparisons, paired = F,
+                     p.adjust.method = "BH", label = "p.signif", bracket.size = 0.3,
+                     size = 3.5, tip.length = 0.00, method = "wilcox.test") +
+  labs(x = NULL, y = "Human footprint index") +
+  scale_fill_manual(values = c("#5cc3e8", "#ffdb00")) +
+  main_theme + theme(legend.position = "none")
+
+save.dir.revision <- file.path(wd,"revision/results")
+if (!dir.exists(save.dir.revision)) {
+  dir.create(save.dir.revision)
+}
+ggsave(file.path(save.dir.revision, "./HF.pdf"),
+       p1, width = 3.5, height = 2.5, units = "in")
+p1
+
