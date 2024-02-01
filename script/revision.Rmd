@@ -172,7 +172,7 @@ MPD_top5 <- pd_top5 %>%
                      na.rm = T, size = 2.5) +
   #scale_fill_manual(values= cols)+
   labs(x = 'Layers', y = 'Mean pairwise distance', fill='Layers') +
-  main_theme + theme(legend.position = "none", panel.spacing = unit(0.5, "lines"))
+  main_theme + theme(legend.position = "none")
 # save plot
 ggsave(file.path(save.dir.revision, "./MPD.pdf"), MPD_top5, width = 6, height = 4.5, units = "in")
 MPD_top5
