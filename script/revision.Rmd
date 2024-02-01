@@ -51,7 +51,6 @@ my_comparisons <- list(c('Sampling_sites', 'Cities'))
 p1 <- HF_df %>%
   mutate(Type = factor(Type, levels = c("Sampling_sites", "Cities"))) %>%
   ggplot(aes(Type, HF_2000_2015, fill = Type)) +
-  geom_half_violin(position = position_nudge(x = 0.25), side = "r", width = 0.8, color = NA) +
   geom_boxplot(width = 0.4, size = 0.75, outlier.color = NA) +
   geom_jitter(aes(fill = Type), shape = 21, size = 1.5, width = 0.2) +
   scale_y_continuous(expand = expansion(mult = c(0.05, 0.1))) +
@@ -60,11 +59,10 @@ p1 <- HF_df %>%
                      p.adjust.method = "BH", label = "p.signif", bracket.size = 0.3,
                      size = 3.5, tip.length = 0.00, method = "wilcox.test") +
   labs(x = NULL, y = "Human footprint index") +
-  scale_fill_manual(values = c("#5cc3e8", "#ffdb00")) +
+  scale_fill_manual(values = c("#f8766d", "#a3a500")) +
   main_theme + theme(legend.position = "none")
 # save plot
-# ggsave(file.path(save.dir.revision, "./HF.pdf"),
-#        p1, width = 3.5, height = 2.5, units = "in")
+# ggsave(file.path(save.dir.revision, "./HF.pdf"), p1, width = 3.5, height = 2.5, units = "in")
 p1
 ```
 
@@ -136,10 +134,48 @@ g4 <- ggtree(Nitro_tree, layout = 'circular', open.angle = 20)
 g5 <- ggtree(Comamo_tree, layout = 'circular', open.angle = 20)
 cowplot::plot_grid(g1, g2, g3, g4, g5, nrow = 2)
 ```
-
+## Determine the phylogenitic distance between clades within each site among three layers
 ```{r}
+# here we use mean pairwise distance to measure the phylogenetic distance between clades within samples
+pd_kd4_96 <- mpd(t(data.frame(otu_table(kd4_96_phylo))), cophenetic(kd4_96_tree), abundance.weighted = F)
+pd_Deflu <- mpd(t(data.frame(otu_table(Deflu_phylo))), cophenetic(Deflu_tree), abundance.weighted = F) 
+pd_67_14 <- mpd(t(data.frame(otu_table(fam67_14_phylo))), cophenetic(fam67_14_tree), abundance.weighted = F) 
+pd_Nitro <- mpd(t(data.frame(otu_table(Nitro_phylo))), cophenetic(Nitro_tree), abundance.weighted = F) 
+pd_Comamo <- mpd(t(data.frame(otu_table(Comamo_phylo))), cophenetic(Comamo_tree), abundance.weighted = F) 
 
+pd_top5 <- data.frame(Layers = metadata$Layer, kd4_96 = pd_kd4_96, Deflu = pd_Deflu, fam67_14 = pd_67_14, Nitro = pd_Nitro, Comamo = pd_Comamo)
 
+# Box plot for evenness index using ggplot2
+rep_str = c("kd4_96" = "KD4-96",
+            "Deflu" = "Defluviicoccaceae",
+            "fam67_14" = "67-14",
+            "Nitro" = "Nitrosomonadaceae",
+            "Comamo" = "Comamonadaceae")
+# write a function to change the facet labels
+facet_labeller <- function(variable,value){
+  return(rep_str[value])
+}
+
+library(ggpubr)
+library(ggplot2)
+my_comparisons <- list( c("SUR", "SUB"), c("SUB", "PL"), c("SUR", "PL"))
+MPD_top5 <- pd_top5 %>%
+  pivot_longer(-c(Layers), names_to = "Family", values_to = "MPD") %>%
+  mutate(Layers = factor(Layers, levels = c("SUR", "SUB", "PL"))) %>%
+  mutate(Family = factor(Family, levels = c("kd4_96", "Deflu", "fam67_14", "Nitro", "Comamo"))) %>%
+  ggplot(aes(x = Layers, y = MPD)) + 
+  geom_boxplot(width = 0.5, aes(fill = Layers)) +
+  facet_wrap(. ~ Family, scales = 'free', labeller = facet_labeller) +
+  scale_fill_manual(values = c("#f8766d", "#a3a500", "#00b0f6")) +
+  stat_compare_means(comparisons = my_comparisons, paired = TRUE, 
+                     p.adjust.method = "BH", label = "p.signif", 
+                     na.rm = T, size = 2.5) +
+  #scale_fill_manual(values= cols)+
+  labs(x = 'Layers', y = 'Mean pairwise distance', fill='Layers') +
+  main_theme + theme(legend.position = "none", panel.spacing = unit(0.5, "lines"))
+# save plot
+ggsave(file.path(save.dir.revision, "./MPD.pdf"), MPD_top5, width = 6, height = 4.5, units = "in")
+MPD_top5
 ```
-tax.distinctiveness()
+
 
