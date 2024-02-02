@@ -62,7 +62,7 @@ p1 <- HF_df %>%
   scale_fill_manual(values = c("#f8766d", "#a3a500")) +
   main_theme + theme(legend.position = "none")
 # save plot
-# ggsave(file.path(save.dir.revision, "./HF.pdf"), p1, width = 3.5, height = 2.5, units = "in")
+ggsave(file.path(save.dir.revision, "./HF.pdf"), p1, width = 3.5, height = 2.5, units = "in")
 p1
 ```
 
@@ -132,7 +132,9 @@ g2 <- ggtree(Deflu_tree, layout = 'circular', open.angle = 20)
 g3 <- ggtree(fam67_14_tree, layout = 'circular', open.angle = 20)
 g4 <- ggtree(Nitro_tree, layout = 'circular', open.angle = 20)
 g5 <- ggtree(Comamo_tree, layout = 'circular', open.angle = 20)
-cowplot::plot_grid(g1, g2, g3, g4, g5, nrow = 2)
+trees_plot <- cowplot::plot_grid(g1, g2, g3, g4, g5, nrow = 2)
+# ggsave(file.path(save.dir.revision, "./trees_plot.pdf"), trees_plot, width = 6, height = 4.5, units = "in")
+trees_plot
 ```
 ## Determine the phylogenitic distance between clades within each site among three layers
 ```{r}
@@ -166,12 +168,13 @@ MPD_top5 <- pd_top5 %>%
   ggplot(aes(x = Layers, y = MPD)) + 
   geom_boxplot(width = 0.5, aes(fill = Layers)) +
   facet_wrap(. ~ Family, scales = 'free', labeller = facet_labeller) +
+  scale_y_continuous(expand = expansion(mult = c(0.05, 0.1))) +
   scale_fill_manual(values = c("#f8766d", "#a3a500", "#00b0f6")) +
   stat_compare_means(comparisons = my_comparisons, paired = TRUE, 
                      p.adjust.method = "BH", label = "p.signif", 
-                     na.rm = T, size = 2.5) +
+                     na.rm = T, size = 2.5, tip.length = 0.00, method = "wilcox.test") +
   #scale_fill_manual(values= cols)+
-  labs(x = 'Layers', y = 'Mean pairwise distance', fill='Layers') +
+  labs(x = 'Layers', y = 'Mean pairwise distance (MPD)', fill='Layers') +
   main_theme + theme(legend.position = "none")
 # save plot
 ggsave(file.path(save.dir.revision, "./MPD.pdf"), MPD_top5, width = 6, height = 4.5, units = "in")

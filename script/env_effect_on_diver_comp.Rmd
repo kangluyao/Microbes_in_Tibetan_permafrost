@@ -261,7 +261,7 @@ p <-  qcorrplot(correlate(env.table, engine = "Hmisc", method = "spearman"), typ
 #   scale_size_manual(values = c(0.5, 2, 3)) +
 #   geom_diag_label() + remove_axis("x")
 
-# ggsave(file.path(save.dir, './figs/env_effect/partail_matel_plot_11.6.pdf'), p, width = 8.9, height = 4.5, units = "in")
+ggsave(file.path(save.dir, './figs/env_effect/partail_matel_plot_for_revision.pdf'), p, width = 8.9, height = 4.5, units = "in")
 p
 ```
 Test the environmental effects on the funtional genes using dbRDA
