@@ -62,7 +62,7 @@ p1 <- HF_df %>%
   scale_fill_manual(values = c("#f8766d", "#a3a500")) +
   main_theme + theme(legend.position = "none")
 # save plot
-ggsave(file.path(save.dir.revision, "./HF.pdf"), p1, width = 3.5, height = 2.5, units = "in")
+# ggsave(file.path(save.dir.revision, "./HF.pdf"), p1, width = 3.5, height = 2.5, units = "in")
 p1
 ```
 
@@ -177,8 +177,60 @@ MPD_top5 <- pd_top5 %>%
   labs(x = 'Layers', y = 'Mean pairwise distance (MPD)', fill='Layers') +
   main_theme + theme(legend.position = "none")
 # save plot
-ggsave(file.path(save.dir.revision, "./MPD.pdf"), MPD_top5, width = 6, height = 4.5, units = "in")
+# ggsave(file.path(save.dir.revision, "./MPD.pdf"), MPD_top5, width = 6, height = 4.5, units = "in")
 MPD_top5
 ```
 
+## Explore the charecteristics of MAGs
+```{r}
+MAG_df <- read.table(file = file.path(wd, 'revision/data/Widb.csv'),
+                           sep = ',',  header = T, stringsAsFactors = F)
+seq_df <- read.table(file = file.path(wd, 'revision/data/cleandata.txt'),
+                           sep = '\t',  header = T, stringsAsFactors = F)
+MAG_tab <- rbind(MAG_df %>% select(Layer, completeness, contamination) %>%
+  pivot_longer(cols = -c("Layer"), names_to = "Index", values_to = "Value"),
+  seq_df %>% select(Layer, Clean_data, Recovery_rate_MAGs) %>%
+  pivot_longer(cols = -c("Layer"), names_to = "Index", values_to = "Value"))
+
+# Box plot for evenness index using ggplot2
+rep_str = c("Clean_data" = "Sequencing depth (G)",
+            "completeness" = "Completeness (%)",
+            "contamination" = "Contamination (%)",
+            "Recovery_rate_MAGs" = "Recovery rate of MAGs")
+# write a function to change the facet labels
+facet_labeller <- function(variable,value){
+  return(rep_str[value])
+}
+#ggplot
+library(ggpubr)
+library(ggplot2)
+my_comparisons <- list( c("SUR", "SUB"), c("SUB", "PL"), c("SUR", "PL"))
+MAG_plot <- MAG_tab %>%
+  mutate(Layer = factor(Layer, levels = c("SUR", "SUB", "PL"))) %>%
+  # mutate(Family = factor(Family, levels = c("kd4_96", "Deflu", "fam67_14", "Nitro", "Comamo"))) %>%
+  ggplot(aes(x = Layer, y = Value)) + 
+  geom_boxplot(width = 0.5, aes(fill = Layer)) +
+  facet_wrap(. ~ Index, scales = 'free', labeller = facet_labeller) +
+  scale_y_continuous(expand = expansion(mult = c(0.05, 0.1))) +
+  scale_fill_manual(values = c("#f8766d", "#a3a500", "#00b0f6")) +
+  stat_compare_means(comparisons = my_comparisons, paired = F, 
+                     p.adjust.method = "BH", label = "p.signif", 
+                     na.rm = T, size = 2.5, tip.length = 0.00, method = "wilcox.test") +
+  #scale_fill_manual(values= cols)+
+  labs(x = 'Layer', fill='Layer') +
+  main_theme + theme(legend.position = "none")
+
+# save plot
+# ggsave(file.path(save.dir.revision, "./MAG_plot.pdf"), MAG_plot, width = 4.5, height = 4.5, units = "in")
+MAG_plot
+```
+
+```{r}
+num.mags.df <- dat3 %>% select(c(1, 2, 4)) %>%
+  group_by(Category, Function) %>% 
+  summarise(across(everything(), sum)) %>%
+  filter(Function %in% c(C_N_metapathway, other_metapathway)) %>% 
+  mutate(Function = factor(Function, levels = c(C_N_metapathway, other_metapathway)))
+knitr::kable(arrange(num.mags.df, desc(presence_or_absent)))
+```
 

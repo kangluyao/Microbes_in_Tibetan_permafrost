@@ -41,7 +41,7 @@ pacman::p_load(phyloseq, picante, microbiome, readxl, tidyverse, ggpubr, ggplot2
 source("script/read_data.R")
 # tree.file <- file.path(wd_fun, 'binning_70/result/gtdb_tree/bacteria/tax.unrooted.tree')
 abundance_tab.file <- file.path(wd_fun, "metabolic/METABOLIC_70_layer/METABOLIC_70_all/bin_abundance_table.tab")
-tax.file <- file.path(wd_fun, "binning_70/result/tax.txt")
+tax.file <- file.path(wd_fun, "metabolic/METABOLIC_70_layer/METABOLIC_70_all/tax.txt")
 # bin genome information
 bin_infor_file <- file.path(wd_fun, "metabolic/METABOLIC_70_layer/METABOLIC_70_all/Widb.csv")
 metabolic_output_file <- file.path(wd_fun, "/metabolic/METABOLIC_70_layer/METABOLIC_70_all/metabolic.csv")
@@ -150,7 +150,7 @@ tax_tab %>% select(c("Class")) %>%
   mutate(Class = factor(Class, levels = Class)) %>%
   ggplot(aes(x = Class, y = number)) +
   geom_bar(stat = "identity", fill = "#0073c2", width = 0.65) +
-  scale_y_continuous(limits = c(0, 38), expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0, 45), expand = c(0, 0)) +
   labs(x = "Class", y = "Number of MAGs") +
   theme_bw() +
   theme(axis.title = element_text(color = "black", size = 12),
@@ -245,8 +245,8 @@ num.mags.plot <- num.mags.df %>%
   # guides(fill = guide_legend(ncol = 1, reverse = TRUE)) +
   coord_flip()
 
-ggsave(file.path(save.dir, "./figs/metagenome/num_mags_each_pathway.pdf"),
-       num.mags.plot, width = 6, height = 5, units = "in")
+# ggsave(file.path(save.dir, "./figs/metagenome/num_mags_each_pathway.pdf"),
+#        num.mags.plot, width = 6, height = 5, units = "in")
 num.mags.plot
 ```
 
