@@ -204,6 +204,7 @@ C_names <- c("Alpha-amylase", "Glucoamylase", "Pullulanase", "Isopullulanase",
              "Methyl coenzyme M reductase", "Particulate methane monooxygenase", "Soluable methane monooxygenase",
              "Carbon monoxide dehydrogenase", "Tetrahydrofolate formylase", "ATP citrate lyase", 
              "Propionyl-CoA carboxylase", "RuBisCo")
+fermentation_names <- c("Pyruvate oxidation", "Pyruvate <=> acetyl-CoA + formate", "Acetogenesis", "Lactate utilization")
 N_names <- c("amoA",	"amoB",	"amoC",	"hao",	"nxrA",	"nxrB", "narG",	"narH",	"narI", "napA",	
              "napB", "nirK", "nirS",	"norB",	"norC",	"nosZ", "nrfA",	"nrfH", "nirB",	"nirD",	
              "nasA",	"nasB", "narB",	"NR", "NIT-6", "nirA",	"nifD", "nifK", "nifH", "nrtA",	"nrtB", "nrtC",	
@@ -222,8 +223,8 @@ logFC_table <- rbind(data.frame(pathway = rownames(tt_survsrest$table), logFC = 
 
 ## Heatmap for carbon
 ```{r, fig.align='center', fig.width=8, fig.height=4.7}
-p_C_enrich <- logFC_table %>% filter(pathway %in% C_names) %>%
-  mutate(pathway = factor(pathway, levels = C_names, ordered = T)) %>%
+p_C_enrich <- logFC_table %>% filter(pathway %in% c(C_names, fermentation_names)) %>%
+  mutate(pathway = factor(pathway, levels = c(C_names, fermentation_names), ordered = T)) %>%
   ggplot(aes(x = pathway, y = layer, fill = logFC)) +
   geom_tile() + 
   scale_fill_gradient2(low = "#2C7BB6", mid = "white", high = "#D7191C") +  # low="#2C7BB6", mid="white", high="#D7191C" or low = "#009E73", mid = "white", high = "#E69F00"
@@ -240,8 +241,29 @@ p_C_enrich <- logFC_table %>% filter(pathway %in% C_names) %>%
         legend.text = element_text(size = 6))
 p_C_enrich
 ```
+## Heatmap for fermentation
+```{r, fig.align='center', fig.width=8, fig.height=4.7}
+p_fer_enrich <- logFC_table %>% filter(pathway %in% fermentation_names) %>%
+  mutate(pathway = factor(pathway, levels = fermentation_names, ordered = T)) %>%
+  ggplot(aes(x = pathway, y = layer, fill = logFC)) +
+  geom_tile() + 
+  scale_fill_gradient2(low = "#2C7BB6", mid = "white", high = "#D7191C") +  # low="#2C7BB6", mid="white", high="#D7191C" or low = "#009E73", mid = "white", high = "#E69F00"
+  geom_text(aes(label = round(logFC, 2)), 
+            color = "black", size = 1.5) +
+  labs(y = 'Layers', x = 'Pathway', fill = "logFC") +
+  theme(axis.title = element_blank(),
+        axis.text = element_text(size = 6, colour = 'black'),
+        axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
+        # legend.key.height= unit(0.35, 'cm'),
+        # legend.key.width= unit(0.35, 'cm'),
+        legend.key.size = unit(0.35, 'cm'),
+        legend.title = element_text(size = 8), 
+        legend.text = element_text(size = 6))
+p_fer_enrich
+```
+
 ## Heatmap for nitrogen
-```{r, fig.align='center', fig.height=8, fig.width=4}
+```{r, fig.align='center', fig.height=4, fig.width=8}
 p_N_enrich <- logFC_table %>% filter(pathway %in% N_names) %>%
   mutate(pathway = factor(pathway, levels = rev(N_names), ordered = T)) %>%
   ggplot(aes(x = layer, y = pathway, fill = logFC))+

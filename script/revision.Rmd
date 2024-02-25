@@ -224,13 +224,171 @@ MAG_plot <- MAG_tab %>%
 # ggsave(file.path(save.dir.revision, "./MAG_plot.pdf"), MAG_plot, width = 4.5, height = 4.5, units = "in")
 MAG_plot
 ```
+## SUR
+```{r, fig.align='center', fig.width=8, fig.height=4}
+MAGs_all <- merge(dat3, tax_tab, by = "ID", all = T)
 
-```{r}
-num.mags.df <- dat3 %>% select(c(1, 2, 4)) %>%
-  group_by(Category, Function) %>% 
+MAGs_SUR_df <- rbind(MAGs_all %>% filter(ID %in% grep("_SUR_", ID, value = T),
+                    Phylum == "p__Acidobacteriota") %>% select(c(2, 3, 4)) %>%
+                      group_by(Category, Function) %>% 
   summarise(across(everything(), sum)) %>%
-  filter(Function %in% c(C_N_metapathway, other_metapathway)) %>% 
-  mutate(Function = factor(Function, levels = c(C_N_metapathway, other_metapathway)))
-knitr::kable(arrange(num.mags.df, desc(presence_or_absent)))
+  filter(Function %in% c(C_N_metapathway, other_metapathway), presence_or_absent >= 1) %>% 
+    as.data.frame() %>%
+  mutate(Taxa = rep("p__Acidobacteriota", nrow(.))), 
+  MAGs_all %>% filter(ID %in% grep("_SUR_", ID, value = T),
+                    Phylum == "p__Chloroflexota") %>% select(c(2, 3, 4)) %>%
+    group_by(Category, Function) %>% 
+  summarise(across(everything(), sum)) %>%
+  filter(Function %in% c(C_N_metapathway, other_metapathway), presence_or_absent >= 1) %>% 
+    as.data.frame() %>%
+  arrange(desc(presence_or_absent)) %>%
+  mutate(Taxa = rep("p__Chloroflexota", nrow(.))), 
+  MAGs_all %>% filter(ID %in% grep("_SUR_", ID, value = T),
+                    Class == "c__Gammaproteobacteria") %>% select(c(2, 3, 4)) %>%
+    group_by(Category, Function) %>% 
+  summarise(across(everything(), sum)) %>%
+  filter(Function %in% c(C_N_metapathway, other_metapathway), presence_or_absent >= 1) %>% 
+    as.data.frame() %>%
+  arrange(desc(presence_or_absent)) %>%
+  mutate(Taxa = rep("c__Gammaproteobacteria", nrow(.))), 
+  MAGs_all %>% filter(ID %in% grep("_SUR_", ID, value = T),
+                    Phylum == "p__Desulfobacterota") %>% select(c(2, 3, 4)) %>%
+    group_by(Category, Function) %>% 
+  summarise(across(everything(), sum)) %>%
+  filter(Function %in% c(C_N_metapathway, other_metapathway), presence_or_absent >= 1) %>% 
+    as.data.frame() %>%
+  arrange(desc(presence_or_absent)) %>%
+  mutate(Taxa = rep("p__Desulfobacterota", nrow(.))))
+
+library(tidytext)
+SUR_num.mags.plot <- MAGs_SUR_df %>%
+  mutate(Taxa = as.factor(Taxa),
+           Function = reorder_within(Function, presence_or_absent, Taxa)) %>%
+  ggplot(aes(x = Function, y = presence_or_absent, fill = Taxa)) +
+  geom_bar(stat = "identity", width = 0.7, position = position_dodge(0.7)) +
+  # scale_fill_manual(values = rep(my_col, 4)) +
+  facet_wrap(. ~ Taxa, scales = 'free') +
+  scale_x_reordered() +
+  scale_y_continuous(limits = c(0, 4), expand = c(0, 0)) +
+  labs(x = NULL, y = 'Number of MAGs') +
+  theme_classic() +
+  theme(axis.text = element_text(colour = 'black'),
+        legend.key.size = unit(1, "line"),
+        legend.position = "none") +
+  # guides(fill = guide_legend(ncol = 1, reverse = TRUE)) +
+  coord_flip()
+SUR_num.mags.plot
 ```
 
+## SUB
+```{r, fig.align='center', fig.width=8.9, fig.height=8.9}
+MAGs_SUB_df <- rbind(MAGs_all %>% filter(ID %in% grep("_SUB_", ID, value = T),
+                    Phylum == "p__Acidobacteriota") %>% select(c(2, 3, 4)) %>%
+                      group_by(Category, Function) %>% 
+  summarise(across(everything(), sum)) %>%
+  filter(Function %in% c(C_N_metapathway, other_metapathway), presence_or_absent >= 1) %>% 
+    as.data.frame() %>%
+  mutate(Taxa = rep("p__Acidobacteriota", nrow(.))), 
+  MAGs_all %>% filter(ID %in% grep("_SUB_", ID, value = T),
+                    Phylum == "p__Chloroflexota") %>% select(c(2, 3, 4)) %>%
+    group_by(Category, Function) %>% 
+  summarise(across(everything(), sum)) %>%
+  filter(Function %in% c(C_N_metapathway, other_metapathway), presence_or_absent >= 1) %>% 
+    as.data.frame() %>%
+  arrange(desc(presence_or_absent)) %>%
+  mutate(Taxa = rep("p__Chloroflexota", nrow(.))), 
+  MAGs_all %>% filter(ID %in% grep("_SUB_", ID, value = T),
+                    Class == "c__Gammaproteobacteria") %>% select(c(2, 3, 4)) %>%
+    group_by(Category, Function) %>% 
+  summarise(across(everything(), sum)) %>%
+  filter(Function %in% c(C_N_metapathway, other_metapathway), presence_or_absent >= 1) %>% 
+    as.data.frame() %>%
+  arrange(desc(presence_or_absent)) %>%
+  mutate(Taxa = rep("c__Gammaproteobacteria", nrow(.))), 
+  MAGs_all %>% filter(ID %in% grep("_SUB_", ID, value = T),
+                    Phylum == "p__Desulfobacterota") %>% select(c(2, 3, 4)) %>%
+    group_by(Category, Function) %>% 
+  summarise(across(everything(), sum)) %>%
+  filter(Function %in% c(C_N_metapathway, other_metapathway), presence_or_absent >= 1) %>% 
+    as.data.frame() %>%
+  arrange(desc(presence_or_absent)) %>%
+  mutate(Taxa = rep("p__Desulfobacterota", nrow(.))))
+
+library(tidytext)
+SUB_num.mags.plot <- MAGs_SUB_df %>%
+  mutate(Taxa = as.factor(Taxa),
+           Function = reorder_within(Function, presence_or_absent, Taxa)) %>%
+  ggplot(aes(x = Function, y = presence_or_absent, fill = Taxa)) +
+  geom_bar(stat = "identity", width = 0.7, position = position_dodge(0.7)) +
+  # scale_fill_manual(values = rep(my_col, 4)) +
+  facet_wrap(. ~ Taxa, scales = 'free') +
+  scale_x_reordered() +
+  scale_y_continuous(limits = c(0, 20), expand = c(0, 0)) +
+  labs(x = NULL, y = 'Number of MAGs') +
+  theme_classic() +
+  theme(axis.text = element_text(colour = 'black'),
+        legend.key.size = unit(1, "line"),
+        legend.position = "none") +
+  # guides(fill = guide_legend(ncol = 1, reverse = TRUE)) +
+  coord_flip()
+SUB_num.mags.plot
+```
+
+## PF
+```{r, fig.align='center', fig.width=8.9, fig.height=8.9}
+MAGs_PL_df <- rbind(MAGs_all %>% filter(ID %in% grep("_PL_", ID, value = T),
+                    Phylum == "p__Acidobacteriota") %>% select(c(2, 3, 4)) %>%
+                      group_by(Category, Function) %>% 
+  summarise(across(everything(), sum)) %>%
+  filter(Function %in% c(C_N_metapathway, other_metapathway), presence_or_absent >= 1) %>% 
+    as.data.frame() %>%
+  mutate(Taxa = rep("p__Acidobacteriota", nrow(.))), 
+  MAGs_all %>% filter(ID %in% grep("_PL_", ID, value = T),
+                    Phylum == "p__Chloroflexota") %>% select(c(2, 3, 4)) %>%
+    group_by(Category, Function) %>% 
+  summarise(across(everything(), sum)) %>%
+  filter(Function %in% c(C_N_metapathway, other_metapathway), presence_or_absent >= 1) %>% 
+    as.data.frame() %>%
+  arrange(desc(presence_or_absent)) %>%
+  mutate(Taxa = rep("p__Chloroflexota", nrow(.))), 
+  MAGs_all %>% filter(ID %in% grep("_PL_", ID, value = T),
+                    Class == "c__Gammaproteobacteria") %>% select(c(2, 3, 4)) %>%
+    group_by(Category, Function) %>% 
+  summarise(across(everything(), sum)) %>%
+  filter(Function %in% c(C_N_metapathway, other_metapathway), presence_or_absent >= 1) %>% 
+    as.data.frame() %>%
+  arrange(desc(presence_or_absent)) %>%
+  mutate(Taxa = rep("c__Gammaproteobacteria", nrow(.))), 
+  MAGs_all %>% filter(ID %in% grep("_PL_", ID, value = T),
+                    Phylum == "p__Desulfobacterota") %>% select(c(2, 3, 4)) %>%
+    group_by(Category, Function) %>% 
+  summarise(across(everything(), sum)) %>%
+  filter(Function %in% c(C_N_metapathway, other_metapathway), presence_or_absent >= 1) %>% 
+    as.data.frame() %>%
+  arrange(desc(presence_or_absent)) %>%
+  mutate(Taxa = rep("p__Desulfobacterota", nrow(.))))
+
+library(tidytext)
+PL_num.mags.plot <- MAGs_PL_df %>%
+  mutate(Taxa = as.factor(Taxa),
+           Function = reorder_within(Function, presence_or_absent, Taxa)) %>%
+  ggplot(aes(x = Function, y = presence_or_absent, fill = Taxa)) +
+  geom_bar(stat = "identity", width = 0.7, position = position_dodge(0.7)) +
+  # scale_fill_manual(values = rep(my_col, 4)) +
+  facet_wrap(. ~ Taxa, scales = 'free') +
+  scale_x_reordered() +
+  scale_y_continuous(limits = c(0, 20), expand = c(0, 0)) +
+  labs(x = NULL, y = 'Number of MAGs') +
+  theme_classic() +
+  theme(axis.text = element_text(colour = 'black'),
+        legend.key.size = unit(1, "line"),
+        legend.position = "none") +
+  # guides(fill = guide_legend(ncol = 1, reverse = TRUE)) +
+  coord_flip()
+PL_num.mags.plot
+```
+
+```{r}
+
+
+```
