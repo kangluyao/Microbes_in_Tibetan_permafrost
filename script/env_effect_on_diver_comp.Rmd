@@ -30,10 +30,6 @@ wd_16s <- file.path(getwd(),"data/16S")
 wd_fun <- file.path(getwd(),"data/metagenome")
 save.dir <- file.path(getwd(),"result")
 ```
-Read data
-```{r}
-source("script/read_data.R")
-```
 ## Test the environmetanl effects on the microbial diversity
 Loading packages
 ```{r}
@@ -44,10 +40,27 @@ library(tibble)
 library(ggpubr)
 library(vegan)
 ```
+Read data
+```{r}
+source("script/read_data.R")
+```
+
+## Test the environmental effects on the community structure
+First, because there was strong collinearity among particular environmental factors, before applying partial mantel test, we used variable clustering to assess the redundancy of the environmental variables by the varclus procedure in the Hmisc R package. The variables with higher correlation (Spearman’s ρ > 0.7) were removed.
+```{r, fig.align='center', fig.width=6, fig.height=4.5}
+library(Hmisc)
+envs <- metadata[, c("AI", "MAT", "NDVI", "HF", "Eh", "Clay", "Silt", "Sand", "Moisture", "pH",  "NH4_N", "NO3_N", "DON",       "SOC", "DOC", "LCP1", "LCP2", "RCP")]
+envsn <- data.matrix(envs)
+clust <- Hmisc::varclus(envsn)
+plot(clust)
+```
+
+Based on the variable clustering results, we retain Clay, Silt, AI, NDVI, HF, NH<sub>4</sub><sup>+</sup>-N, Moisture, NO<sub>3</sub><sup>-</sup>-N, pH, MAT, Eh, LCP1, and RCP for the partial mantel test. 
+
 ## Difference in environmental factors among layers
 ```{r, fig.align='center', fig.width=8, fig.height=6}
 my_comparisons <- list( c("SUR", "SUB"), c("SUB", "PL"), c("SUR", "PL") )
-env_vars <- c("Layer", "Clay", "Silt", "pH", "Moisture", "SOC", "DOC", "LCP1", "LCP2", "RCP", "NH4_N", "NO3_N", "DON")
+env_vars <- c("Layer", "Clay", "Silt", "pH", "Eh",  "Moisture", "SOC", "DOC", "LCP1", "RCP", "NH4_N", "NO3_N", "DON")
 meta_dat %>% as.tibble() %>% select(env_vars) %>%
   group_by(Layer) %>%
   summarise_all(list(mean = mean, se = plotrix::std.error)) %>%
@@ -89,9 +102,8 @@ alpha_div <- cbind(Layers = metadata$Layer, alpha_div, Faith = pd$PD,
   mutate(Layers = factor(Layers, levels = c('SUR', 'SUB', 'PL')))
 cor_div_env_tab <- data.frame(metadata[-c(1, 2, 4:6)], Evenness = alpha_div$Evenness)
 # You can use sel_env to specify the variables you want to use and sel_env_label to specify the labes for the pannel
-sel_env <- c("MAT", "AI", "NDVI", "HF", "Moisture",	"pH",	"Clay",	"Silt",	
-           "SOC", "DOC", "NH4_N",	"NO3_N",	"DON",	
-           "LCP1",	"LCP2",	"RCP")
+sel_env <- c("MAT", "AI", "NDVI", "HF", "Moisture",	"pH",	"Eh", "Clay",	"Silt",	 
+            "NH4_N",	"NO3_N", "LCP1", "RCP")
 ```
 Correlation analysis
 ```{r}
@@ -134,6 +146,7 @@ df <- df[, c("Env", "Layer", "r", "Significance")]
 df$Env <- factor(df$Env, levels = sel_env)
 df$Layer <- factor(df$Layer, levels = rev(c("SUR", "SUB", "PL")))
 ```
+
 Heatmap for alpha diversity and environmental factors
 ```{r, fig.align='center', fig.width=6.5, fig.height=6.5}
 row_num = length(levels(df$Layer))
@@ -153,17 +166,6 @@ p <- p + coord_polar(start = -0.15, theta = "x") +
 # ggsave(file.path(save.dir, './figs/env_effect/env_alpha_plot.pdf'), p, width = 9, height = 6, units = "in")
 p
 ```
-## Test the environmental effects on the community structure
-First, because there was strong collinearity among particular environmental factors, before applying partial mantel test, we used variable clustering to assess the redundancy of the environmental variables by the varclus procedure in the Hmisc R package. The variables with higher correlation (Spearman’s ρ > 0.7) were removed.
-```{r, fig.align='center', fig.width=6, fig.height=4.5}
-library(Hmisc)
-envs <- metadata[, c("AI", "MAT", "NDVI", "HF", "Clay", "Silt", "Sand", "Moisture", "pH",  "NH4_N", "NO3_N", "DON",       "SOC", "DOC", "LCP1", "LCP2", "RCP")]
-envsn <- data.matrix(envs)
-clust <- Hmisc::varclus(envsn)
-plot(clust)
-```
-
-Based on the variable clustering results, we retain Clay, Silt, AI, "NDVI", "HF", NH<sub>4</sub><sup>+</sup>-N, Moisture, NO<sub>3</sub><sup>-</sup>-N, pH, MAT, LCP1, and RCP for the partial mantel test. 
 
 Partial mantel test function for the relationship between the envs and community
 ```{r}
@@ -174,7 +176,7 @@ partial.mantel.fun <- function(phylo) {
   otu_table_hel <- decostand(otu_table, 'hellinger')
   otu_table_hel_dist <- vegdist(otu_table_hel, 'bray',upper=F)
   df <- NULL
-  vars <- c("MAT", "AI", "NDVI", "HF", "Moisture",	"pH",	"Clay",	"Silt",	 
+  vars <- c("MAT", "AI", "NDVI", "HF", "Moisture",	"pH",	"Eh", "Clay",	"Silt",	 
             "NH4_N",	"NO3_N", "LCP1", "RCP")
   for (x in vars) {
     y.dist <- vegdist(scale(env.table[,x]), 'euclidean', na.rm = T)
@@ -226,7 +228,7 @@ library(linkET)
 par.man.tibble <- tibble(spec = c(rep('SUR', nrow(par.mant.sur)), rep('SUB', nrow(par.mant.sub)), rep('PL', nrow(par.mant.pl))), 
                          rbind(par.mant.sur, par.mant.sub, par.mant.pl))
 
-vars <- c("MAT", "AI", "NDVI", "HF", "Moisture",	"pH",	"Clay",	"Silt",	 
+vars <- c("MAT", "AI", "NDVI", "HF", "Moisture",	"pH",	"Eh", "Clay",	"Silt",	 
             "NH4_N",	"NO3_N", "LCP1", "RCP")
 env.table <- sample_data(phylo)[ , vars]
 mantel02 <- par.man.tibble %>% 
@@ -278,7 +280,7 @@ vare_spp_sco <- scores(ord, display = "species")
 vare_sam_sco <- scores(ord, display = "sites")
 vare_env_sco <- scores(ord, display = "bp")
 vare_env_sco <- vare_env_sco[which(mode$`Pr(>F)` < 0.05), ]
-vare_env_sco 
+vare_env_sco
 ```
 
 ```{r}
