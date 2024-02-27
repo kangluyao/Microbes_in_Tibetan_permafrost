@@ -13,7 +13,7 @@ library(Biostrings)
 library(tidyverse)
 # read data
 ## metadata
-metadata <- read.delim(file.path(wd_16s, "metadata_final.txt"), header = T, sep = "\t")
+metadata <- read.delim(file.path(wd_16s, "metadata.txt"), header = T, sep = "\t")
 rownames(metadata) <- (metadata$sample_id)
 ## dna sequences
 dna_seqs <- readDNAStringSet(file.path(wd_16s, "otus.fa"), format = "fasta", nrec = -1L, 
