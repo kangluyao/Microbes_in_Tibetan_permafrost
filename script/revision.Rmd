@@ -387,8 +387,26 @@ PL_num.mags.plot <- MAGs_PL_df %>%
   coord_flip()
 PL_num.mags.plot
 ```
-
+# determine the difference in Eh among soil layers
 ```{r}
+Eh_stat_data <- meta_dat %>% as.tibble() %>% select(Layer, Eh) %>%
+   group_by(Layer) %>%
+   summarise(mean.value = mean(Eh),
+             sd.value = sd(Eh), count = n(),
+             se.mean = sd.value/sqrt(count)) %>%
+   mutate(Layer = factor(Layer, levels = c("SUR", "SUB", "PL")))
 
+Eh_paired_wilcox_test <- ggplot(Eh_stat_data, aes(x = Layer, y = mean.value, fill = Layer)) + 
+   geom_bar(stat = "identity", color = "black", width = 0.7)+  
+   geom_errorbar(aes(ymin = mean.value - se.mean, ymax = mean.value + se.mean), 
+                 width = 0.2) +
+   scale_fill_manual(values = c("#f8766d", "#a3a500", "#00b0f6")) + 
+   xlab("Layers") + ylab("Values") + 
+   scale_y_continuous(expand = expansion(mult = c(0, 0.35))) +
+   main_theme
 
+# save plot
+ggsave(file.path(save.dir.revision, "Eh_paired_wilcox_test.pdf"),
+       Eh_paired_wilcox_test, width = 2.5, height = 2.5, units = "in")
+Eh_paired_wilcox_test
 ```
