@@ -323,7 +323,7 @@ SUB_num.mags.plot <- MAGs_SUB_df %>%
   # scale_fill_manual(values = rep(my_col, 4)) +
   facet_wrap(. ~ Taxa, scales = 'free') +
   scale_x_reordered() +
-  scale_y_continuous(limits = c(0, 20), expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
   labs(x = NULL, y = 'Number of MAGs') +
   theme_classic() +
   theme(axis.text = element_text(colour = 'black'),
@@ -335,7 +335,7 @@ SUB_num.mags.plot
 ```
 
 ## PF
-```{r, fig.align='center', fig.width=8.9, fig.height=8.9}
+```{r, fig.align='center', fig.width=12.9, fig.height=12.9}
 MAGs_PL_df <- rbind(MAGs_all %>% filter(ID %in% grep("_PL_", ID, value = T),
                     Phylum == "p__Acidobacteriota") %>% select(c(2, 3, 4)) %>%
                       group_by(Category, Function) %>% 
@@ -351,6 +351,14 @@ MAGs_PL_df <- rbind(MAGs_all %>% filter(ID %in% grep("_PL_", ID, value = T),
     as.data.frame() %>%
   arrange(desc(presence_or_absent)) %>%
   mutate(Taxa = rep("p__Chloroflexota", nrow(.))), 
+  MAGs_all %>% filter(ID %in% grep("_PL_", ID, value = T),
+                    Phylum == "p__Actinobacteriota") %>% select(c(2, 3, 4)) %>%
+    group_by(Category, Function) %>% 
+  summarise(across(everything(), sum)) %>%
+  filter(Function %in% c(C_N_metapathway, other_metapathway), presence_or_absent >= 1) %>% 
+    as.data.frame() %>%
+  arrange(desc(presence_or_absent)) %>%
+  mutate(Taxa = rep("p__Actinobacteriota", nrow(.))),
   MAGs_all %>% filter(ID %in% grep("_PL_", ID, value = T),
                     Class == "c__Gammaproteobacteria") %>% select(c(2, 3, 4)) %>%
     group_by(Category, Function) %>% 
@@ -377,7 +385,7 @@ PL_num.mags.plot <- MAGs_PL_df %>%
   # scale_fill_manual(values = rep(my_col, 4)) +
   facet_wrap(. ~ Taxa, scales = 'free') +
   scale_x_reordered() +
-  scale_y_continuous(limits = c(0, 20), expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
   labs(x = NULL, y = 'Number of MAGs') +
   theme_classic() +
   theme(axis.text = element_text(colour = 'black'),

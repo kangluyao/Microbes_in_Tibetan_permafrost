@@ -201,9 +201,7 @@ C_names <- c("Alpha-amylase", "Glucoamylase", "Pullulanase", "Isopullulanase",
              "Pectinase", 
              "Aryl-aldehyde oxidase", "Isocitrate lyase", "Limonene-1, 2-epoxide hydrolase", "Malate synthase", "Vanillate demethylase", 
              "Glyoxal oxidase", "Phenol oxidase (tyrosinase)",
-             "Methyl coenzyme M reductase", "Particulate methane monooxygenase", "Soluable methane monooxygenase",
-             "Carbon monoxide dehydrogenase", "Tetrahydrofolate formylase", "ATP citrate lyase", 
-             "Propionyl-CoA carboxylase", "RuBisCo")
+             "Methyl coenzyme M reductase", "Particulate methane monooxygenase", "Soluable methane monooxygenase")
 fermentation_names <- c("Pyruvate oxidation", "Pyruvate <=> acetyl-CoA + formate", "Acetogenesis", "Lactate utilization")
 N_names <- c("amoA",	"amoB",	"amoC",	"hao",	"nxrA",	"nxrB", "narG",	"narH",	"narI", "napA",	
              "napB", "nirK", "nirS",	"norB",	"norC",	"nosZ", "nrfA",	"nrfH", "nirB",	"nirD",	
@@ -331,62 +329,3 @@ p_other_enrich <- logFC_table %>%
   coord_flip()
 p_other_enrich
 ```
-
-
-
-
-# Draw barplot with grouping & stacking
-library(ggplot2)
-library(dplyr)
-d1 <- C_N_ko_tax_path_tab %>% select(c('Subcategory', 'Genu', 
-                                       grep('SUR', colnames(C_N_ko_tax_path_tab)),
-                                       grep('SUB', colnames(C_N_ko_tax_path_tab)),
-                                       grep('PL', colnames(C_N_ko_tax_path_tab)))) %>%
-  pivot_longer(cols = -c(Subcategory, Genu),
-               names_to = "sample", values_to = 'abundance') %>%
-  mutate(Layers = gsub("_.+$", "", sample)) %>%
-  filter(Subcategory == 'ANRA') %>% select('sample', 'Layers', 'Genu', 'abundance') %>%
-  group_by(Genu, sample, Layers) %>%
-  summarise(across(everything(), sum)) %>%
-  group_by(Layers) %>%
-  arrange(sample, desc(abundance)) %>%
-  ggplot(.,aes(x = sample, y = abundance, fill = Genu)) + 
-  geom_bar(stat = "identity",
-           position = "stack") +
-  facet_grid(~ Layers, scales="free_x") +
-  theme(legend.position = 'none')
-
-
-# 2. DESeq2 analysis
-C_N_ko_tab <- ko_count_table[rownames(ko_count_table) %in% sel_ko$KO, ]
-C_N_ko_tab <- cbind(KO = rownames(C_N_ko_tab), C_N_ko_tab)
-merged_dat <- dplyr::inner_join(C_N_ko_tab, sel_ko, 
-                                c("KO" = "KO"))
-C_N_path2 <- merged_dat %>% dplyr::select(-c(1)) %>% 
-  group_by(Subcategory, Enzyme_protein_encoded) %>%
-  dplyr::summarise(across(everything(), sum)) %>% data.frame() %>%
-  dplyr::select(c(2:68)) %>%
-  tibble::column_to_rownames('Enzyme_protein_encoded')
-
-meta_dat$layer = as.factor(meta_dat$layer)
-
-KEGG_dds <- DESeqDataSetFromMatrix(countData=round(C_N_path2), colData=meta_dat, design=~layer)
-KEGG_deseq <- DESeq(KEGG_dds)
-KEGG_res <- results(KEGG_deseq, contrast=c("layer", "SUR", "PL"))
-KEGG_res$padj[is.na(KEGG_res$padj)] = 1
-KEGG_significant = rownames(KEGG_res)[(KEGG_res$padj < 0.05) & (KEGG_res$log2FoldChange > 1)]
-
-# write.csv(as.data.frame(KEGG_res), file = 'Data/KEGG_deseq_results.csv')
-
-############################################################################################################
-# 2. volcano plot
-EnhancedVolcano(KEGG_res,
-                lab = rownames(KEGG_res),
-                pCutoff = 0.05,
-                FCcutoff = 1,
-                col = c("grey", "grey30", "grey30", "#23A671"),
-                x = 'log2FoldChange',
-                title = NULL,
-                subtitle = NULL,
-                caption = NULL,
-                y = 'padj')
