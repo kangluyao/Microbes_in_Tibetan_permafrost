@@ -286,7 +286,7 @@ all_num.mags.plot <- MAGs_all_df %>%
   # guides(fill = guide_legend(ncol = 1, reverse = TRUE)) +
   coord_flip()
 # save plot
-# ggsave(file.path(save.dir.revision, "./all_num.mags1.pdf"), all_num.mags.plot, width = 13.9, height = 8.9, units = "in")
+ggsave(file.path(save.dir.revision, "./all_num.mags1.pdf"), all_num.mags.plot, width = 14.9, height = 11.9, units = "in")
 all_num.mags.plot
 ```
 
