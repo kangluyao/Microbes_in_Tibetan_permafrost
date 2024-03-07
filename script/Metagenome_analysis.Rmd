@@ -107,7 +107,7 @@ genome_size_plot <- bin_infor %>% data.frame() %>%
   stat_compare_means(comparisons = my_comparisons, 
                      p.adjust.method = "BH", label = "p.signif") +
   #scale_fill_manual(values= cols)+
-  labs(x = 'Layers', y = 'Genome size', fill = 'Layers') +
+  labs(x = 'Layers', y = 'Average genome size (G)', fill = 'Layers') +
   theme_bw() +
   theme(axis.title = element_text(size = 12, colour = "black"),
         axis.text = element_text(size = 10, colour = "black"),
