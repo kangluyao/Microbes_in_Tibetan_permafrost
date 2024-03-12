@@ -99,6 +99,7 @@ arrange.tab <- function(phylo, N, taxrank, vect) {
   return(top_N_tab)
 }
 ```
+
 Determine the relative abundance of the taxa at the phylum level.
 ```{r}
 top10family <- arrange.tab(phylo, 10, 'Family', c(5,7))
@@ -192,7 +193,6 @@ MAG_tab <- rbind(MAG_df %>% select(Layer, completeness, contamination) %>%
   seq_df %>% select(Layer, Clean_data, Recovery_rate_MAGs) %>%
   pivot_longer(cols = -c("Layer"), names_to = "Index", values_to = "Value"))
 
-
 MAG_tab %>% group_by(Layer, Index) %>%
   dplyr::summarise_all(list(mean = mean, sd = sd, se = ~sd(./sqrt(.))))
 ```
@@ -232,6 +232,7 @@ MAG_plot
 ```
 ## All
 ```{r, fig.align='center', fig.width=12.9, fig.height=8.9}
+MAGs_all <- merge(dat3, tax_tab, by = "ID", all = T) # dat3, tax_tab在Metagenome_analysis.Rmd中
 MAGs_all_df <- rbind(MAGs_all %>% filter(Phylum == "p__Acidobacteriota") %>% select(c(2, 3, 4)) %>%
                       group_by(Category, Function) %>% 
   summarise(across(everything(), sum)) %>%
@@ -292,13 +293,9 @@ all_num.mags.plot <- MAGs_all_df %>%
   # guides(fill = guide_legend(ncol = 1, reverse = TRUE)) +
   coord_flip()
 # save plot
-ggsave(file.path(save.dir.revision, "./all_num.mags1.pdf"), all_num.mags.plot, width = 14.9, height = 11.9, units = "in")
+# ggsave(file.path(save.dir.revision, "./all_num.mags1.pdf"), all_num.mags.plot, width = 14.9, height = 11.9, units = "in")
 all_num.mags.plot
 ```
-
-
-
-
 ## SUR
 ```{r, fig.align='center', fig.width=8, fig.height=4}
 MAGs_all <- merge(dat3, tax_tab, by = "ID", all = T)
@@ -485,6 +482,60 @@ Eh_paired_wilcox_test <- ggplot(Eh_stat_data, aes(x = Layer, y = mean.value, fil
 #        Eh_paired_wilcox_test, width = 2.5, height = 2.5, units = "in")
 Eh_paired_wilcox_test
 ```
+
+```{r}
+fermen_pl_MAGs
+MAGs_all %>% as.tibble() %>%
+  filter(Category == "Fermentation", ID %in% grep("_PL_", ID, value = T)) %>%
+  select(c(3, 4, 6, 8)) %>%
+  group_by(Phylum, Order, Function) %>% 
+  summarise(across(everything(), sum)) %>%
+  write.table(file = file.path(save.dir.revision, "fermentation_pl_MAGs.csv"),
+              row.names = F, sep = ",", quote = F)
+ 
+knitr::kable(arrange(fermen_pl_MAGs, desc(presence_or_absent)))
+```
+
+```{r}
+# determine the gene presence in each genome
+library(tidyverse)
+library(stringr)
+
+MAGs_name <- list.files("E:/permafrost/revision/data/KEGG_identifier_result/", 
+           pattern = "*.result.txt")
+MAGs_names <-  sapply(stringr::str_split(MAGs_name, ".result.txt"), `[`, 1)
+
+temp_file <- list.files("E:/permafrost/revision/data/KEGG_identifier_result/", 
+           pattern = "*.result.txt", full.names = T) %>%
+  lapply(function(x) read.table(x, sep = "\t")) %>%
+  Reduce(function(x, y) {merge(x, y, all = T, by = "V1")}, .) %>%
+  `colnames<-`(c("KO", MAGs_names))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 Input files
