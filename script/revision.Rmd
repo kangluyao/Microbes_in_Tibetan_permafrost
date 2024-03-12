@@ -496,7 +496,7 @@ MAGs_all %>% as.tibble() %>%
 knitr::kable(arrange(fermen_pl_MAGs, desc(presence_or_absent)))
 ```
 
-```{r}
+```{r, fig.align='center', fig.height=8.9, fig.width=8.9}
 # determine the gene presence in each genome
 library(tidyverse)
 library(stringr)
@@ -510,9 +510,127 @@ temp_file <- list.files("E:/permafrost/revision/data/KEGG_identifier_result/",
   lapply(function(x) read.table(x, sep = "\t")) %>%
   Reduce(function(x, y) {merge(x, y, all = T, by = "V1")}, .) %>%
   `colnames<-`(c("KO", MAGs_names))
+
+# write.table(temp_file, file.path(save.dir.revision, "genes_presence_MAGs.txt"), 
+#               row.names = F, sep = "\t", na = "")
+
+sel_ko_fermen_MAGs_pl <- temp_file %>%
+  right_join(sel_ko, by = "KO") %>%
+  filter(Category == "Fermentation") %>%
+  select(-c("Category", "Subcategory", "KO")) %>%
+  mutate(across(where(is.numeric), replace_na, 0)) %>%
+  group_by(Enzyme_protein_encoded) %>%
+  summarise(across(everything(), sum)) %>%
+  pivot_longer(cols = -c("Enzyme_protein_encoded"),
+               names_to = "ID",
+               values_to = "presence") %>%
+  left_join(tax_tab, by = 'ID') %>%
+  filter(ID %in% grep("_PL_", ID, value = T)) %>%
+  select(c("Enzyme_protein_encoded", "presence", "Phylum")) %>%
+  group_by(Phylum, Enzyme_protein_encoded) %>%
+  summarise(across(everything(), sum))
+
+
+mycols <- c("#89c5da", "#ffc15c", "#74d944", "#CE50CA", "#5e738f", "#C0717C", "#CBD5ec", "#5F7FC7", 
+                     "#00718b", "#d3d93e", "#169e77", "#d95f02", "#D7C1B1", "#689030", "#AD6F3B", "#CD9BCD", 
+                     "#D14285", "#6DDE88", "#652926", "#7FDCC0", "#C84248", "#8569D5", "#5E738F", "#D1A33D", 
+                     "#8A7C64", "#599861")
+
+fermen_genes_barplot_pl <- ggplot(sel_ko_fermen_MAGs_pl, aes(fill = Phylum, y = presence, 
+                                                       x = Enzyme_protein_encoded)) + 
+  geom_bar(position = "stack", stat = "identity") +
+  scale_fill_manual(values = mycols) + 
+  labs(x = 'Fermentation pathways', y = 'Number of genes') +
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 200)) +
+  theme_classic()+
+  theme(#legend.position = "none",
+        panel.grid=element_blank(), 
+        axis.title = element_text(color='black',size=14),
+        axis.ticks.length = unit(0.4,"lines"), axis.ticks = element_line(color='black'),
+        axis.line = element_line(colour = "black"), 
+        axis.text.y = element_text(colour='black',size=12),
+        axis.text.x = element_text(colour='black', size = 12, angle = 45, hjust = 1),
+        legend.text=element_text(size=12),
+        legend.key=element_blank(),
+        legend.background = element_rect(colour = "white"))
+
+fermen_genes_barplot_pl
 ```
 
+```{r, fig.align='center', fig.height=8.9, fig.width=8.9}
+sel_ko_fermen_MAGs_sub <- temp_file %>%
+  right_join(sel_ko, by = "KO") %>%
+  filter(Category == "Fermentation") %>%
+  select(-c("Category", "Subcategory", "KO")) %>%
+  mutate(across(where(is.numeric), replace_na, 0)) %>%
+  group_by(Enzyme_protein_encoded) %>%
+  summarise(across(everything(), sum)) %>%
+  pivot_longer(cols = -c("Enzyme_protein_encoded"),
+               names_to = "ID",
+               values_to = "presence") %>%
+  left_join(tax_tab, by = 'ID') %>%
+  filter(ID %in% grep("_SUB_", ID, value = T)) %>%
+  select(c("Enzyme_protein_encoded", "presence", "Phylum")) %>%
+  group_by(Phylum, Enzyme_protein_encoded) %>%
+  summarise(across(everything(), sum))
 
+fermen_genes_barplot_sub <- ggplot(sel_ko_fermen_MAGs_sub, aes(fill = Phylum, y = presence, 
+                                                       x = Enzyme_protein_encoded)) + 
+  geom_bar(position = "stack", stat = "identity") +
+  scale_fill_manual(values = mycols) + 
+  labs(x = 'Fermentation pathways', y = 'Number of genes') +
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 150)) +
+  theme_classic()+
+  theme(#legend.position = "none",
+        panel.grid=element_blank(), 
+        axis.title = element_text(color='black',size=14),
+        axis.ticks.length = unit(0.4,"lines"), axis.ticks = element_line(color='black'),
+        axis.line = element_line(colour = "black"), 
+        axis.text.y = element_text(colour='black',size=12),
+        axis.text.x = element_text(colour='black', size = 12, angle = 45, hjust = 1),
+        legend.text=element_text(size=12),
+        legend.key=element_blank(),
+        legend.background = element_rect(colour = "white"))
+
+fermen_genes_barplot_sub
+```
+```{r, fig.align='center', fig.height=8.9, fig.width=8.9}
+sel_ko_fermen_MAGs_sur <- temp_file %>%
+  right_join(sel_ko, by = "KO") %>%
+  filter(Category == "Fermentation") %>%
+  select(-c("Category", "Subcategory", "KO")) %>%
+  mutate(across(where(is.numeric), replace_na, 0)) %>%
+  group_by(Enzyme_protein_encoded) %>%
+  summarise(across(everything(), sum)) %>%
+  pivot_longer(cols = -c("Enzyme_protein_encoded"),
+               names_to = "ID",
+               values_to = "presence") %>%
+  left_join(tax_tab, by = 'ID') %>%
+  filter(ID %in% grep("_SUR_", ID, value = T)) %>%
+  select(c("Enzyme_protein_encoded", "presence", "Phylum")) %>%
+  group_by(Phylum, Enzyme_protein_encoded) %>%
+  summarise(across(everything(), sum))
+
+fermen_genes_barplot_sur <- ggplot(sel_ko_fermen_MAGs_sur, aes(fill = Phylum, y = presence, 
+                                                       x = Enzyme_protein_encoded)) + 
+  geom_bar(position = "stack", stat = "identity") +
+  scale_fill_manual(values = mycols) + 
+  labs(x = 'Fermentation pathways', y = 'Number of genes') +
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 50)) +
+  theme_classic()+
+  theme(#legend.position = "none",
+        panel.grid=element_blank(), 
+        axis.title = element_text(color='black',size=14),
+        axis.ticks.length = unit(0.4,"lines"), axis.ticks = element_line(color='black'),
+        axis.line = element_line(colour = "black"), 
+        axis.text.y = element_text(colour='black',size=12),
+        axis.text.x = element_text(colour='black', size = 12, angle = 45, hjust = 1),
+        legend.text=element_text(size=12),
+        legend.key=element_blank(),
+        legend.background = element_rect(colour = "white"))
+
+fermen_genes_barplot_sur
+```
 
 
 
