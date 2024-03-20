@@ -514,7 +514,7 @@ temp_file <- list.files("E:/permafrost/revision/data/KEGG_identifier_result/",
 # write.table(temp_file, file.path(save.dir.revision, "genes_presence_MAGs.txt"), 
 #               row.names = F, sep = "\t", na = "")
 
-sel_ko_fermen_MAGs_pl <- temp_file %>%
+sel_ko_fermen_MAGs <- temp_file %>%
   right_join(sel_ko, by = "KO") %>%
   filter(Category == "Fermentation") %>%
   select(-c("Category", "Subcategory", "KO")) %>%
@@ -525,9 +525,9 @@ sel_ko_fermen_MAGs_pl <- temp_file %>%
                names_to = "ID",
                values_to = "presence") %>%
   left_join(tax_tab, by = 'ID') %>%
-  filter(ID %in% grep("_PL_", ID, value = T)) %>%
-  select(c("Enzyme_protein_encoded", "presence", "Phylum")) %>%
-  group_by(Phylum, Enzyme_protein_encoded) %>%
+  mutate(Layer = sapply(stringr::str_split(ID, "_"), `[`, 2)) %>%
+  select(c("Layer", "Enzyme_protein_encoded", "presence", "Phylum")) %>%
+  group_by(Layer, Phylum, Enzyme_protein_encoded) %>%
   summarise(across(everything(), sum))
 
 
@@ -536,13 +536,15 @@ mycols <- c("#89c5da", "#ffc15c", "#74d944", "#CE50CA", "#5e738f", "#C0717C", "#
                      "#D14285", "#6DDE88", "#652926", "#7FDCC0", "#C84248", "#8569D5", "#5E738F", "#D1A33D", 
                      "#8A7C64", "#599861")
 
-fermen_genes_barplot_pl <- ggplot(sel_ko_fermen_MAGs_pl, aes(fill = Phylum, y = presence, 
-                                                       x = Enzyme_protein_encoded)) + 
+fermen_genes_barplot <- sel_ko_fermen_MAGs %>% 
+  mutate(Layer = factor(Layer, levels = c("SUR", "SUB", "PL"))) %>%
+  ggplot(aes(fill = Phylum, y = presence, x = Enzyme_protein_encoded)) + 
   geom_bar(position = "stack", stat = "identity") +
   scale_fill_manual(values = mycols) + 
   labs(x = 'Fermentation pathways', y = 'Number of genes') +
-  scale_y_continuous(expand = c(0, 0), limits = c(0, 200)) +
-  theme_classic()+
+  scale_y_continuous(expand = expansion(mult = c(0, 0.15))) +
+  facet_wrap(. ~ Layer, scales = "free_y", ncol = 1) +
+  theme_bw()+
   theme(#legend.position = "none",
         panel.grid=element_blank(), 
         axis.title = element_text(color='black',size=14),
@@ -553,34 +555,44 @@ fermen_genes_barplot_pl <- ggplot(sel_ko_fermen_MAGs_pl, aes(fill = Phylum, y = 
         legend.text=element_text(size=12),
         legend.key=element_blank(),
         legend.background = element_rect(colour = "white"))
-
-fermen_genes_barplot_pl
+# save plot
+# ggsave(file.path(save.dir.revision, "fermen_genes_barplot.pdf"),
+#        fermen_genes_barplot, width = 8.9, height = 8.9, units = "in")
+fermen_genes_barplot
 ```
 
-```{r, fig.align='center', fig.height=8.9, fig.width=8.9}
-sel_ko_fermen_MAGs_sub <- temp_file %>%
+```{r, fig.align='center', fig.width=12.9, fig.height=8.9}
+sel_ko_Nitro_MAGs <- temp_file %>%
   right_join(sel_ko, by = "KO") %>%
-  filter(Category == "Fermentation") %>%
-  select(-c("Category", "Subcategory", "KO")) %>%
+  filter(Category == "Nitrogen") %>%
+  select(-c("Enzyme_protein_encoded", "Category", "KO")) %>%
   mutate(across(where(is.numeric), replace_na, 0)) %>%
-  group_by(Enzyme_protein_encoded) %>%
+  group_by(Subcategory) %>%
   summarise(across(everything(), sum)) %>%
-  pivot_longer(cols = -c("Enzyme_protein_encoded"),
+  pivot_longer(cols = -c("Subcategory"),
                names_to = "ID",
                values_to = "presence") %>%
   left_join(tax_tab, by = 'ID') %>%
-  filter(ID %in% grep("_SUB_", ID, value = T)) %>%
-  select(c("Enzyme_protein_encoded", "presence", "Phylum")) %>%
-  group_by(Phylum, Enzyme_protein_encoded) %>%
+  mutate(Layer = sapply(stringr::str_split(ID, "_"), `[`, 2)) %>%
+  select(c("Layer", "Subcategory", "presence", "Phylum")) %>%
+  group_by(Layer, Phylum, Subcategory) %>%
   summarise(across(everything(), sum))
 
-fermen_genes_barplot_sub <- ggplot(sel_ko_fermen_MAGs_sub, aes(fill = Phylum, y = presence, 
-                                                       x = Enzyme_protein_encoded)) + 
+
+mycols <- c("#89c5da", "#ffc15c", "#74d944", "#CE50CA", "#5e738f", "#C0717C", "#CBD5ec", "#5F7FC7", 
+                     "#00718b", "#d3d93e", "#169e77", "#d95f02", "#D7C1B1", "#689030", "#AD6F3B", "#CD9BCD", 
+                     "#D14285", "#6DDE88", "#652926", "#7FDCC0", "#C84248", "#8569D5", "#5E738F", "#D1A33D", 
+                     "#8A7C64", "#599861")
+
+Nitro_genes_barplot <- sel_ko_Nitro_MAGs %>% 
+  mutate(Layer = factor(Layer, levels = c("SUR", "SUB", "PL"))) %>%
+  ggplot(aes(fill = Phylum, y = presence, x = Subcategory)) + 
   geom_bar(position = "stack", stat = "identity") +
   scale_fill_manual(values = mycols) + 
-  labs(x = 'Fermentation pathways', y = 'Number of genes') +
-  scale_y_continuous(expand = c(0, 0), limits = c(0, 150)) +
-  theme_classic()+
+  labs(x = 'Nitrogen pathways', y = 'Number of genes') +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.15))) +
+  facet_wrap(. ~ Layer, scales = "free_y", ncol = 1) +
+  theme_bw()+
   theme(#legend.position = "none",
         panel.grid=element_blank(), 
         axis.title = element_text(color='black',size=14),
@@ -591,33 +603,44 @@ fermen_genes_barplot_sub <- ggplot(sel_ko_fermen_MAGs_sub, aes(fill = Phylum, y 
         legend.text=element_text(size=12),
         legend.key=element_blank(),
         legend.background = element_rect(colour = "white"))
-
-fermen_genes_barplot_sub
+# save plot
+# ggsave(file.path(save.dir.revision, "fermen_genes_barplot.pdf"),
+#        fermen_genes_barplot, width = 8.9, height = 8.9, units = "in")
+Nitro_genes_barplot
 ```
-```{r, fig.align='center', fig.height=8.9, fig.width=8.9}
-sel_ko_fermen_MAGs_sur <- temp_file %>%
+
+```{r, fig.align='center', fig.width=12.9, fig.height=8.9}
+sel_ko_Sulf_MAGs <- temp_file %>%
   right_join(sel_ko, by = "KO") %>%
-  filter(Category == "Fermentation") %>%
-  select(-c("Category", "Subcategory", "KO")) %>%
+  filter(Category == "Sulfur") %>%
+  select(-c("Enzyme_protein_encoded", "Category", "KO")) %>%
   mutate(across(where(is.numeric), replace_na, 0)) %>%
-  group_by(Enzyme_protein_encoded) %>%
+  group_by(Subcategory) %>%
   summarise(across(everything(), sum)) %>%
-  pivot_longer(cols = -c("Enzyme_protein_encoded"),
+  pivot_longer(cols = -c("Subcategory"),
                names_to = "ID",
                values_to = "presence") %>%
   left_join(tax_tab, by = 'ID') %>%
-  filter(ID %in% grep("_SUR_", ID, value = T)) %>%
-  select(c("Enzyme_protein_encoded", "presence", "Phylum")) %>%
-  group_by(Phylum, Enzyme_protein_encoded) %>%
+  mutate(Layer = sapply(stringr::str_split(ID, "_"), `[`, 2)) %>%
+  select(c("Layer", "Subcategory", "presence", "Phylum")) %>%
+  group_by(Layer, Phylum, Subcategory) %>%
   summarise(across(everything(), sum))
 
-fermen_genes_barplot_sur <- ggplot(sel_ko_fermen_MAGs_sur, aes(fill = Phylum, y = presence, 
-                                                       x = Enzyme_protein_encoded)) + 
+
+mycols <- c("#89c5da", "#ffc15c", "#74d944", "#CE50CA", "#5e738f", "#C0717C", "#CBD5ec", "#5F7FC7", 
+                     "#00718b", "#d3d93e", "#169e77", "#d95f02", "#D7C1B1", "#689030", "#AD6F3B", "#CD9BCD", 
+                     "#D14285", "#6DDE88", "#652926", "#7FDCC0", "#C84248", "#8569D5", "#5E738F", "#D1A33D", 
+                     "#8A7C64", "#599861")
+
+Sulf_genes_barplot <- sel_ko_Sulf_MAGs %>% 
+  mutate(Layer = factor(Layer, levels = c("SUR", "SUB", "PL"))) %>%
+  ggplot(aes(fill = Phylum, y = presence, x = Subcategory)) + 
   geom_bar(position = "stack", stat = "identity") +
   scale_fill_manual(values = mycols) + 
-  labs(x = 'Fermentation pathways', y = 'Number of genes') +
-  scale_y_continuous(expand = c(0, 0), limits = c(0, 50)) +
-  theme_classic()+
+  labs(x = 'Sulful pathways', y = 'Number of genes') +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.15))) +
+  facet_wrap(. ~ Layer, scales = "free_y", ncol = 1) +
+  theme_bw()+
   theme(#legend.position = "none",
         panel.grid=element_blank(), 
         axis.title = element_text(color='black',size=14),
@@ -628,13 +651,60 @@ fermen_genes_barplot_sur <- ggplot(sel_ko_fermen_MAGs_sur, aes(fill = Phylum, y 
         legend.text=element_text(size=12),
         legend.key=element_blank(),
         legend.background = element_rect(colour = "white"))
-
-fermen_genes_barplot_sur
+# save plot
+# ggsave(file.path(save.dir.revision, "fermen_genes_barplot.pdf"),
+#        fermen_genes_barplot, width = 8.9, height = 8.9, units = "in")
+Sulf_genes_barplot
 ```
 
 
+```{r, fig.align='center', fig.width=12.9, fig.height=8.9}
+sel_ko_other_MAGs <- temp_file %>%
+  right_join(sel_ko, by = "KO") %>%
+  filter(Category %in% c("Iron cycling", "As cycling", "Selenate reduction")) %>%
+  select(-c("Enzyme_protein_encoded", "Category", "KO")) %>%
+  mutate(across(where(is.numeric), replace_na, 0)) %>%
+  group_by(Subcategory) %>%
+  summarise(across(everything(), sum)) %>%
+  pivot_longer(cols = -c("Subcategory"),
+               names_to = "ID",
+               values_to = "presence") %>%
+  left_join(tax_tab, by = 'ID') %>%
+  mutate(Layer = sapply(stringr::str_split(ID, "_"), `[`, 2)) %>%
+  select(c("Layer", "Subcategory", "presence", "Phylum")) %>%
+  group_by(Layer, Phylum, Subcategory) %>%
+  summarise(across(everything(), sum))
 
 
+mycols <- c("#89c5da", "#ffc15c", "#74d944", "#CE50CA", "#5e738f", "#C0717C", "#CBD5ec", "#5F7FC7", 
+                     "#00718b", "#d3d93e", "#169e77", "#d95f02", "#D7C1B1", "#689030", "#AD6F3B", "#CD9BCD", 
+                     "#D14285", "#6DDE88", "#652926", "#7FDCC0", "#C84248", "#8569D5", "#5E738F", "#D1A33D", 
+                     "#8A7C64", "#599861")
+
+other_genes_barplot <- sel_ko_other_MAGs %>% 
+  mutate(Layer = factor(Layer, levels = c("SUR", "SUB", "PL"))) %>%
+  ggplot(aes(fill = Phylum, y = presence, x = Subcategory)) + 
+  geom_bar(position = "stack", stat = "identity") +
+  scale_fill_manual(values = mycols) + 
+  labs(x = 'Other pathways', y = 'Number of genes') +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.15))) +
+  facet_wrap(. ~ Layer, scales = "free_y", ncol = 1) +
+  theme_bw()+
+  theme(#legend.position = "none",
+        panel.grid=element_blank(), 
+        axis.title = element_text(color='black',size=14),
+        axis.ticks.length = unit(0.4,"lines"), axis.ticks = element_line(color='black'),
+        axis.line = element_line(colour = "black"), 
+        axis.text.y = element_text(colour='black',size=12),
+        axis.text.x = element_text(colour='black', size = 12, angle = 45, hjust = 1),
+        legend.text=element_text(size=12),
+        legend.key=element_blank(),
+        legend.background = element_rect(colour = "white"))
+# save plot
+# ggsave(file.path(save.dir.revision, "fermen_genes_barplot.pdf"),
+#        fermen_genes_barplot, width = 8.9, height = 8.9, units = "in")
+other_genes_barplot
+```
 
 
 

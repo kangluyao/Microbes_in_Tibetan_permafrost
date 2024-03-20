@@ -202,7 +202,7 @@ C_names <- c("Alpha-amylase", "Glucoamylase", "Pullulanase", "Isopullulanase",
              "Aryl-aldehyde oxidase", "Isocitrate lyase", "Limonene-1, 2-epoxide hydrolase", "Malate synthase", "Vanillate demethylase", 
              "Glyoxal oxidase", "Phenol oxidase (tyrosinase)",
              "Methyl coenzyme M reductase", "Particulate methane monooxygenase", "Soluable methane monooxygenase")
-fermentation_names <- c("Pyruvate oxidation", "Pyruvate <=> acetyl-CoA + formate", "Acetogenesis", "Lactate utilization")
+fermentation_names <- c("Pyruvate oxidation", "Pyruvate <=> acetyl-CoA + formate", "Acetogenesis", "Lactate utilization", "Acetate to acetyl-CoA")
 N_names <- c("amoA",	"amoB",	"amoC",	"hao",	"nxrA",	"nxrB", "narG",	"narH",	"narI", "napA",	
              "napB", "nirK", "nirS",	"norB",	"norC",	"nosZ", "nrfA",	"nrfH", "nirB",	"nirD",	
              "nasA",	"nasB", "narB",	"NR", "NIT-6", "nirA",	"nifD", "nifK", "nifH", "nrtA",	"nrtB", "nrtC",	
