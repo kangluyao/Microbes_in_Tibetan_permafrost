@@ -528,7 +528,8 @@ sel_ko_fermen_MAGs <- temp_file %>%
   mutate(Layer = sapply(stringr::str_split(ID, "_"), `[`, 2)) %>%
   select(c("Layer", "Enzyme_protein_encoded", "presence", "Phylum")) %>%
   group_by(Layer, Phylum, Enzyme_protein_encoded) %>%
-  summarise(across(everything(), sum))
+  summarise(across(everything(), sum)) %>%
+  as.data.frame()
 
 
 mycols <- c("#89c5da", "#ffc15c", "#74d944", "#CE50CA", "#5e738f", "#C0717C", "#CBD5ec", "#5F7FC7", 
@@ -536,7 +537,14 @@ mycols <- c("#89c5da", "#ffc15c", "#74d944", "#CE50CA", "#5e738f", "#C0717C", "#
                      "#D14285", "#6DDE88", "#652926", "#7FDCC0", "#C84248", "#8569D5", "#5E738F", "#D1A33D", 
                      "#8A7C64", "#599861")
 
-fermen_genes_barplot <- sel_ko_fermen_MAGs %>% 
+
+#plotting
+fermen_genes_barplot <- sel_ko_fermen_MAGs %>%
+    mutate(Phylum = recode(Phylum, p__Firmicutes_A = 'p__Firmicutes', 
+                           p__Firmicutes_B = 'p__Firmicutes', 
+                           p__Firmicutes_C = 'p__Firmicutes',
+                           p__Desulfobacterota_E = "p__Desulfobacterota")) %>% 
+  mutate(Phylum = sapply(stringr::str_split(Phylum, "__"), `[`, 2)) %>%
   mutate(Layer = factor(Layer, levels = c("SUR", "SUB", "PL"))) %>%
   ggplot(aes(fill = Phylum, y = presence, x = Enzyme_protein_encoded)) + 
   geom_bar(position = "stack", stat = "identity") +
@@ -556,8 +564,8 @@ fermen_genes_barplot <- sel_ko_fermen_MAGs %>%
         legend.key=element_blank(),
         legend.background = element_rect(colour = "white"))
 # save plot
-# ggsave(file.path(save.dir.revision, "fermen_genes_barplot.pdf"),
-#        fermen_genes_barplot, width = 8.9, height = 8.9, units = "in")
+ggsave(file.path(save.dir.revision, "fermen_genes_barplot.pdf"),
+       fermen_genes_barplot, width = 8, height = 8.9, units = "in")
 fermen_genes_barplot
 ```
 
@@ -584,7 +592,12 @@ mycols <- c("#89c5da", "#ffc15c", "#74d944", "#CE50CA", "#5e738f", "#C0717C", "#
                      "#D14285", "#6DDE88", "#652926", "#7FDCC0", "#C84248", "#8569D5", "#5E738F", "#D1A33D", 
                      "#8A7C64", "#599861")
 
-Nitro_genes_barplot <- sel_ko_Nitro_MAGs %>% 
+Nitro_genes_barplot <- sel_ko_fermen_MAGs %>%
+    mutate(Phylum = recode(Phylum, p__Firmicutes_A = 'p__Firmicutes', 
+                           p__Firmicutes_B = 'p__Firmicutes', 
+                           p__Firmicutes_C = 'p__Firmicutes',
+                           p__Desulfobacterota_E = "p__Desulfobacterota")) %>% 
+  mutate(Phylum = sapply(stringr::str_split(Phylum, "__"), `[`, 2)) %>%
   mutate(Layer = factor(Layer, levels = c("SUR", "SUB", "PL"))) %>%
   ggplot(aes(fill = Phylum, y = presence, x = Subcategory)) + 
   geom_bar(position = "stack", stat = "identity") +
@@ -632,7 +645,12 @@ mycols <- c("#89c5da", "#ffc15c", "#74d944", "#CE50CA", "#5e738f", "#C0717C", "#
                      "#D14285", "#6DDE88", "#652926", "#7FDCC0", "#C84248", "#8569D5", "#5E738F", "#D1A33D", 
                      "#8A7C64", "#599861")
 
-Sulf_genes_barplot <- sel_ko_Sulf_MAGs %>% 
+Sulf_genes_barplot <- sel_ko_fermen_MAGs %>%
+    mutate(Phylum = recode(Phylum, p__Firmicutes_A = 'p__Firmicutes', 
+                           p__Firmicutes_B = 'p__Firmicutes', 
+                           p__Firmicutes_C = 'p__Firmicutes',
+                           p__Desulfobacterota_E = "p__Desulfobacterota")) %>% 
+  mutate(Phylum = sapply(stringr::str_split(Phylum, "__"), `[`, 2)) %>%
   mutate(Layer = factor(Layer, levels = c("SUR", "SUB", "PL"))) %>%
   ggplot(aes(fill = Phylum, y = presence, x = Subcategory)) + 
   geom_bar(position = "stack", stat = "identity") +
@@ -681,7 +699,12 @@ mycols <- c("#89c5da", "#ffc15c", "#74d944", "#CE50CA", "#5e738f", "#C0717C", "#
                      "#D14285", "#6DDE88", "#652926", "#7FDCC0", "#C84248", "#8569D5", "#5E738F", "#D1A33D", 
                      "#8A7C64", "#599861")
 
-other_genes_barplot <- sel_ko_other_MAGs %>% 
+other_genes_barplot <- sel_ko_fermen_MAGs %>%
+    mutate(Phylum = recode(Phylum, p__Firmicutes_A = 'p__Firmicutes', 
+                           p__Firmicutes_B = 'p__Firmicutes', 
+                           p__Firmicutes_C = 'p__Firmicutes',
+                           p__Desulfobacterota_E = "p__Desulfobacterota")) %>% 
+  mutate(Phylum = sapply(stringr::str_split(Phylum, "__"), `[`, 2)) %>%
   mutate(Layer = factor(Layer, levels = c("SUR", "SUB", "PL"))) %>%
   ggplot(aes(fill = Phylum, y = presence, x = Subcategory)) + 
   geom_bar(position = "stack", stat = "identity") +
