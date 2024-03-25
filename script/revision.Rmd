@@ -789,29 +789,100 @@ source("https://raw.githubusercontent.com/kangluyao/source_R/main/multivariables
 
 co2_df <- read.table(file = file.path(wd, 'revision/data/CO2_flux.csv'),
                            sep = ',',  header = T, stringsAsFactors = F) %>%
-  select(-c("Site", "Cumulative.CO2.flux_5", "Cumulative.CO2.flux_15", "SOC")) %>%
-  as.data.frame()
+  select(-c("Site", "Cumulative.CO2.flux_5", "Cumulative.CO2.flux_15", "SOC")) 
 
-CO2_flux_var <- "Cumulative_CO2_flux_5_soil"
-carbon_vars <- colnames(co2_df)[-1]
+# plot
+carbon_process_names <- list(
+  'Alpha.amylase' = "Alpha-amylase",
+  'Glucoamylase' = "Glucoamylase",
+  'Pullulanase' = "Pullulanase",
+  'Isopullulanase' = "Isopullulanase",
+  'Arabinofuranosidase' = "Arabinofuranosidase",
+  'Beta_mannanase' = "Beta-mannanase",
+  'Xylanase' = "Xylanase",
+  'Xylose.isomerase' = "Xylose isomerase",
+  'Beta.glucosidase' = "Beta-glucosidase",
+  'Endoglucanase' = "Endoglucanase",
+  'Exoglucanase' = "Exoglucanase",
+  'Acetylglucosaminidase' = "Acetylglucosaminidase",
+  'Endochitinase' = "Endochitinase",
+  'Exochitinase' = "Exochitinase",
+  'Pectinase' = "Pectinase",
+  'Aryl.aldehyde.oxidase' = "Aryl-aldehyde oxidase",
+  'Isocitrate.lyase' = "Isocitrate lyase",
+  'Limonene.1..2.epoxide.hydrolase' = "Limonene-1, 2-epoxide hydrolase",
+  'Malate.synthase' = "Malate synthase",
+  'Vanillate.demethylase' = "Vanillate demethylase",
+  'Glyoxal.oxidase' = "Glyoxal oxidase",
+  'Phenol.oxidase..tyrosinase.' = "Phenol oxidase (tyrosinase)"
+)
 
-plot_cor_df(data = co2_df, y.name = CO2_flux_var, x.names = carbon_vars, ncol = 5,
-            point.color = "#D14285")
+# write a function to change the facet labels
+facet_labeller <- function(variable, value){
+  return(carbon_process_names[value])
+}
+
+
+CO2_flux_plot <- co2_df %>%
+  pivot_longer(cols = -c(Cumulative_CO2_flux_5_soil), names_to = "Crabon_processes", values_to = "value") %>% 
+  mutate(Crabon_processes = factor(Crabon_processes, levels = colnames(co2_df)[-1])) %>%
+  ggplot(aes(x = value, y = Cumulative_CO2_flux_5_soil)) +
+  geom_point(shape = 19, colour = "#D14285")+
+  geom_smooth(method = "lm", formula = y ~ poly(x, 1, raw = TRUE), size = 1, se = T, colour = 'black') +
+  ggpubr::stat_cor(aes(value, Cumulative_CO2_flux_5_soil, 
+                       label = paste(..r.label.., ..p.label.., sep = "~`,`~")),
+                   cor.coef.name = "r", p.accuracy = 0.001, r.accuracy = 0.01,
+                   method = "pearson", label.x.npc = 0.05, label.y.npc = 0.95, size = 3.5) +
+  facet_wrap( .~ Crabon_processes, scales = "free", ncol = 6, labeller = facet_labeller) +
+  xlab('Gene abundance (TPM)') +
+  ylab(expression(paste("Cumulative", "CO"[2], "-C", " release", " (mg CO"[2], "-C", " g"^-1, ")"))) +
+  theme_bw() +
+  theme(axis.title = element_text(size = 8), 
+        axis.text = element_text(size = 7, colour = 'black'), 
+        panel.grid = element_blank(),
+        strip.text = element_text(size = 8))
+ggsave(file.path(save.dir.revision, "CO2_flux_plot.pdf"),
+       CO2_flux_plot, width = 13, height = 8, units = "in")
+CO2_flux_plot
 ```
 
 
-```{r, fig.align='center', fig.height=4.8, fig.width=8.9}
+```{r, fig.align='center', fig.height=3.5, fig.width=8.9}
 ch4_df <- read.table(file = file.path(wd, 'revision/data/CH4_flux.csv'),
                            sep = ',',  header = T, stringsAsFactors = F) %>%
-  select(-c("Layer", "Site")) %>%
-  as.data.frame()
+  select(-c("Layer", "Site"))
 
-ch4_flux_var <- "CH4"
-ch4_vars <- colnames(ch4_df)[-1]
+ch4_process_names <- list(
+  'Methyl.coenzyme.M.reductase' = "Methyl coenzyme M reductase",
+  'Particulate.methane.monooxygenase' = "Particulate methane monooxygenase",
+  'Soluable.methane.monooxygenase' = "Soluable methane monooxygenase"
+)
 
-plot_cor_df(data = ch4_df, y.name = ch4_flux_var, x.names = ch4_vars, ncol = 3,
-            point.color = "#D14285")
-  
+# write a function to change the facet labels
+facet_labeller <- function(variable, value){
+  return(ch4_process_names[value])
+}
+ch4_flux_plot <- ch4_df %>% 
+  pivot_longer(cols = -c(CH4), names_to = "ch4_processes", values_to = "value") %>% 
+  mutate(ch4_processes = factor(ch4_processes, levels = colnames(ch4_df)[-1])) %>%
+  ggplot(aes(x = value, y = CH4)) +
+  geom_point(shape = 19, colour = "#D14285")+
+  geom_smooth(method = "lm", formula = y ~ poly(x, 1, raw = TRUE), size = 1, se = T, colour = 'black') +
+  ggpubr::stat_cor(aes(value, CH4, 
+                       label = paste(..r.label.., ..p.label.., sep = "~`,`~")),
+                   cor.coef.name = "r", p.accuracy = 0.001, r.accuracy = 0.01,
+                   method = "pearson", label.x.npc = 0.25, label.y.npc = 0.95, size = 3.5) +
+  facet_wrap( .~ ch4_processes, scales = "free", ncol = 3, labeller = facet_labeller) +
+  xlab('Gene abundance (TPM)') +
+  ylab(expression(paste("CH"[4], " production", " (ng", " g"^-1, " d"^-1, ")"))) +
+  theme_bw() +
+  theme(axis.title = element_text(size = 8), 
+        axis.text = element_text(size = 7, colour = 'black'), 
+        panel.grid = element_blank(),
+        strip.text = element_text(size = 8))
+ggsave(file.path(save.dir.revision, "ch4_flux_plot.pdf"),
+       ch4_flux_plot, width = 6.9, height = 2.5, units = "in")
+ch4_flux_plot
 ```
 
 
@@ -827,8 +898,11 @@ N_df <- read.table(file = file.path(wd, 'revision/data/N_processes_avg.csv'),
   select(-c("Layer", "Site")) %>%
   as.data.frame()
 
-N_proces_var <- "CH4"
-N_vars <- colnames(ch4_df)[-1]
+N_proces_var <- c("Gross.N.mineralization", "Microbial.immobilization", "Nitrification")
+N_vars <- c("amoA", "amoB",  "amoC", "hao", 
+            "gdh_K00261", "gdh_K00262", "gdh_K15371", "glsA", "ureA", "ureC", "nmo",
+            "glnA")
+N_vars <- colnames(N_df)[-1]
 
 plot_cor_df(data = ch4_df, y.name = ch4_flux_var, x.names = ch4_vars, ncol = 3,
             point.color = "#D14285")
