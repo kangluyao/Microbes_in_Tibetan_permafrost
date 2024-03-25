@@ -886,7 +886,7 @@ ch4_flux_plot
 ```
 
 
-```{r}
+```{r, fig.align='center', fig.height=5.5, fig.width=8.9}
 # C_N_path2[N_names, ] %>% t() %>%
 #   as.data.frame() %>%
 #   rownames_to_column(var = "Sample") %>%
@@ -899,16 +899,82 @@ N_df <- read.table(file = file.path(wd, 'revision/data/N_processes_avg.csv'),
   as.data.frame()
 
 N_proces_var <- c("Gross.N.mineralization", "Microbial.immobilization", "Nitrification")
-N_vars <- c("amoA", "amoB",  "amoC", "hao", 
-            "gdh_K00261", "gdh_K00262", "gdh_K15371", "glsA", "ureA", "ureC", "nmo",
-            "glnA")
-N_vars <- colnames(N_df)[-1]
+N_vars <- c("gdh_K00261", "gdh_K00262", "gdh_K15371", "glsA", "ureA", "ureC", "nmo",
+            "glnA",
+            "amoA", "amoB",  "amoC", "hao")
 
-plot_cor_df(data = ch4_df, y.name = ch4_flux_var, x.names = ch4_vars, ncol = 3,
-            point.color = "#D14285")
-
+Gross.N.mineralization_plot <- N_df %>% 
+  select("Gross.N.mineralization", "gdh_K00261", "gdh_K00262", "gdh_K15371", "glsA", "ureA", "ureC") %>%
+  pivot_longer(cols = -c(Gross.N.mineralization), names_to = "N.mineralization_processes", values_to = "value") %>% 
+  mutate(N.mineralization_processes = factor(N.mineralization_processes, 
+                                             levels = c("gdh_K00261", "gdh_K00262", "gdh_K15371", "glsA", "ureA", "ureC"))) %>%
+  ggplot(aes(x = value, y = Gross.N.mineralization)) +
+  geom_point(shape = 19, colour = "#D14285")+
+  geom_smooth(method = "lm", formula = y ~ poly(x, 1, raw = TRUE), size = 1, se = T, colour = 'black') +
+  ggpubr::stat_cor(aes(value, Gross.N.mineralization, 
+                       label = paste(..r.label.., ..p.label.., sep = "~`,`~")),
+                   cor.coef.name = "r", p.accuracy = 0.001, r.accuracy = 0.01,
+                   method = "pearson", label.x.npc = 0.25, label.y.npc = 0.95, size = 3.5) +
+  facet_wrap( .~ N.mineralization_processes, scales = "free", ncol = 3) +
+  xlab('Gene abundance (TPM)') +
+  ylab(expression(paste("CH"[4], " production", " (ng", " g"^-1, " d"^-1, ")"))) +
+  theme_bw() +
+  theme(axis.title = element_text(size = 8), 
+        axis.text = element_text(size = 7, colour = 'black'), 
+        panel.grid = element_blank(),
+        strip.text = element_text(size = 8))
+# ggsave(file.path(save.dir.revision, "ch4_flux_plot.pdf"),
+#        ch4_flux_plot, width = 6.9, height = 2.5, units = "in")
+Gross.N.mineralization_plot
 ```
 
+```{r, fig.align='center', fig.height=4.5, fig.width=5.5}
+Nitrification_plot <- N_df %>% 
+  select("Nitrification", "amoA", "amoB",  "amoC", "hao") %>%
+  pivot_longer(cols = -c(Nitrification), names_to = "Nitrification_processes", values_to = "value") %>% 
+  mutate(Nitrification_processes = factor(Nitrification_processes, 
+                                             levels = c("amoA", "amoB",  "amoC", "hao"))) %>%
+  ggplot(aes(x = value, y = Nitrification)) +
+  geom_point(shape = 19, colour = "#D14285")+
+  geom_smooth(method = "lm", formula = y ~ poly(x, 1, raw = TRUE), size = 1, se = T, colour = 'black') +
+  ggpubr::stat_cor(aes(value, Nitrification, 
+                       label = paste(..r.label.., ..p.label.., sep = "~`,`~")),
+                   cor.coef.name = "r", p.accuracy = 0.001, r.accuracy = 0.01,
+                   method = "pearson", label.x.npc = 0.25, label.y.npc = 0.95, size = 3.5) +
+  facet_wrap( .~ Nitrification_processes, scales = "free", ncol = 2) +
+  xlab('Gene abundance (TPM)') +
+  ylab(expression(paste("CH"[4], " production", " (ng", " g"^-1, " d"^-1, ")"))) +
+  theme_bw() +
+  theme(axis.title = element_text(size = 8), 
+        axis.text = element_text(size = 7, colour = 'black'), 
+        panel.grid = element_blank(),
+        strip.text = element_text(size = 8))
+# ggsave(file.path(save.dir.revision, "ch4_flux_plot.pdf"),
+#        ch4_flux_plot, width = 6.9, height = 2.5, units = "in")
+Nitrification_plot
+```
+
+```{r, fig.align='center', fig.height=3.5, fig.width=3.5}
+Microbial.immobilization_plot <- N_df %>% 
+  select("Microbial.immobilization", "glnA") %>%
+  ggplot(aes(x = glnA, y = Microbial.immobilization)) +
+  geom_point(shape = 19, colour = "#D14285")+
+  geom_smooth(method = "lm", formula = y ~ poly(x, 1, raw = TRUE), size = 1, se = T, colour = 'black') +
+  ggpubr::stat_cor(aes(glnA, Microbial.immobilization, 
+                       label = paste(..r.label.., ..p.label.., sep = "~`,`~")),
+                   cor.coef.name = "r", p.accuracy = 0.001, r.accuracy = 0.01,
+                   method = "pearson", label.x.npc = 0.25, label.y.npc = 0.95, size = 3.5) +
+  xlab('Gene abundance (TPM)') +
+  ylab(expression(paste("CH"[4], " production", " (ng", " g"^-1, " d"^-1, ")"))) +
+  theme_bw() +
+  theme(axis.title = element_text(size = 8), 
+        axis.text = element_text(size = 7, colour = 'black'), 
+        panel.grid = element_blank(),
+        strip.text = element_text(size = 8))
+# ggsave(file.path(save.dir.revision, "ch4_flux_plot.pdf"),
+#        ch4_flux_plot, width = 6.9, height = 2.5, units = "in")
+Microbial.immobilization_plot
+```
 
 
 
