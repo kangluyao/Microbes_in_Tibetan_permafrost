@@ -759,11 +759,81 @@ FTC_plot <- ggplot(FTC_df, aes(x = Depth, y = Days)) +
 #        FTC_plot, width = 4, height = 3.5, units = "in")
 FTC_plot
 ```
+# explore the relationships between the microbial processes and biogeochemical processes
+```{r, fig.align='center', fig.height=12.8, fig.width=12.9}
+# ch4_df <- read.table(file = file.path(wd, 'revision/data/CH4.csv'),
+#                            sep = ',',  header = T, stringsAsFactors = F) %>%
+#   mutate(Layer = sapply(stringr::str_split(Sample_id, "_"), '[', 1)) %>%
+#   mutate(Site = sapply(stringr::str_split(Sample_id, "_"), '[', 2)) %>%
+#   select(Layer, Site, CH4) %>%
+#   group_by(Layer, Site) %>%
+#   summarise(across(everything(), mean)) %>%
+#   write.table(file = file.path(wd, 'revision/data/CH4_flux.csv'),
+#                            sep = ',',  row.names = F)
+
+# N_df <- read.table(file = file.path(wd, 'revision/data/N_processes.csv'),
+#                            sep = ',',  header = T, stringsAsFactors = F) %>%
+#   mutate(Site = sapply(stringr::str_split(Sample, "-"), '[', 1)) %>%
+#   select(-c("Sample")) %>%
+#   group_by(Layer, Site) %>%
+#   summarise(across(everything(), mean)) %>%
+#   write.table(file = file.path(wd, 'revision/data/N_processes_avg.csv'),
+#                            sep = ',',  row.names = F)
+
+# C_N_path2 %>% t() %>% as.data.frame() %>% select(C_names) %>%
+#   rownames_to_column(var = "Sample") %>% 
+#   write.table(file = file.path(wd, 'revision/data/C_path2.csv'),
+#                             sep = ',',  row.names = F)
+
+source("https://raw.githubusercontent.com/kangluyao/source_R/main/multivariables_regression_plot.R")
+
+co2_df <- read.table(file = file.path(wd, 'revision/data/CO2_flux.csv'),
+                           sep = ',',  header = T, stringsAsFactors = F) %>%
+  select(-c("Site", "Cumulative.CO2.flux_5", "Cumulative.CO2.flux_15", "SOC")) %>%
+  as.data.frame()
+
+CO2_flux_var <- "Cumulative_CO2_flux_5_soil"
+carbon_vars <- colnames(co2_df)[-1]
+
+plot_cor_df(data = co2_df, y.name = CO2_flux_var, x.names = carbon_vars, ncol = 5,
+            point.color = "#D14285")
+```
 
 
+```{r, fig.align='center', fig.height=4.8, fig.width=8.9}
+ch4_df <- read.table(file = file.path(wd, 'revision/data/CH4_flux.csv'),
+                           sep = ',',  header = T, stringsAsFactors = F) %>%
+  select(-c("Layer", "Site")) %>%
+  as.data.frame()
+
+ch4_flux_var <- "CH4"
+ch4_vars <- colnames(ch4_df)[-1]
+
+plot_cor_df(data = ch4_df, y.name = ch4_flux_var, x.names = ch4_vars, ncol = 3,
+            point.color = "#D14285")
+  
+```
 
 
+```{r}
+# C_N_path2[N_names, ] %>% t() %>%
+#   as.data.frame() %>%
+#   rownames_to_column(var = "Sample") %>%
+#   write.table(file = file.path(wd, 'revision/data/N_path2.csv'),
+#                             sep = ',',  row.names = F)
 
+N_df <- read.table(file = file.path(wd, 'revision/data/N_processes_avg.csv'),
+                           sep = ',',  header = T, stringsAsFactors = F) %>%
+  select(-c("Layer", "Site")) %>%
+  as.data.frame()
+
+N_proces_var <- "CH4"
+N_vars <- colnames(ch4_df)[-1]
+
+plot_cor_df(data = ch4_df, y.name = ch4_flux_var, x.names = ch4_vars, ncol = 3,
+            point.color = "#D14285")
+
+```
 
 
 
