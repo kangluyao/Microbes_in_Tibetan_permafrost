@@ -760,7 +760,7 @@ FTC_plot <- ggplot(FTC_df, aes(x = Depth, y = Days)) +
 FTC_plot
 ```
 # explore the relationships between the microbial processes and biogeochemical processes
-```{r, fig.align='center', fig.height=12.8, fig.width=12.9}
+```{r, fig.align='center', fig.height=8.9, fig.width=12.9}
 # ch4_df <- read.table(file = file.path(wd, 'revision/data/CH4.csv'),
 #                            sep = ',',  header = T, stringsAsFactors = F) %>%
 #   mutate(Layer = sapply(stringr::str_split(Sample_id, "_"), '[', 1)) %>%
@@ -821,7 +821,6 @@ carbon_process_names <- list(
 facet_labeller <- function(variable, value){
   return(carbon_process_names[value])
 }
-
 
 CO2_flux_plot <- co2_df %>%
   pivot_longer(cols = -c(Cumulative_CO2_flux_5_soil), names_to = "Crabon_processes", values_to = "value") %>% 
