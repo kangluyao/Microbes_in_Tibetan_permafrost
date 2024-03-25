@@ -729,6 +729,36 @@ other_genes_barplot <- sel_ko_fermen_MAGs %>%
 other_genes_barplot
 ```
 
+# explore the relationship between the dayas of the freeze thaw cycles and soil depth using TP data
+
+```{r}
+FTC_df <- read.table(file = file.path(wd, 'revision/data/FTC_data.csv'),
+                           sep = ',',  header = T, stringsAsFactors = F)
+# Fitting exponential decay curve
+library(stats)
+model <- nls(Days ~ a * exp(b * Depth) + c, data = FTC_df, start = list(a = 200, b = -0.25, c = 6))
+
+#plot
+FTC_plot <- ggplot(FTC_df, aes(x = Depth, y = Days)) + 
+  geom_point(size = 3.5, alpha = 0.8, colour = "#D14285") +
+  geom_smooth(method = "nls", 
+              formula = "y ~ A * exp(B * x) + C", 
+              method.args = list(start = c(A = 200, B = -0.25, C = 6)),
+              size = 1, se = F, linetype = 1,  colour = 'black') +
+  xlab("Depth (cm)") + ylab("Thawing time (Day)") +
+  theme_bw() +
+  theme(panel.grid = element_blank(), 
+        axis.title = element_text(color = "black", size = 10),
+        axis.ticks.length = unit(0.2, "lines"), 
+        axis.ticks = element_line(color = "black"), 
+        axis.line = element_blank(), 
+        axis.text.y = element_text(colour = "black", size = 8), 
+        axis.text.x = element_text(colour = "black", size = 8), 
+        strip.text = element_text(size = 14), legend.position = "none")
+# ggsave(file.path(save.dir.revision, "FTC_curve.pdf"),
+#        FTC_plot, width = 4, height = 3.5, units = "in")
+FTC_plot
+```
 
 
 

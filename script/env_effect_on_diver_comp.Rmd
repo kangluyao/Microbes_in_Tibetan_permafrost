@@ -252,7 +252,7 @@ library(linkET)
 par.man.tibble <- tibble(spec = c(rep('SUR', nrow(par.mant.sur)), rep('SUB', nrow(par.mant.sub)), rep('PL', nrow(par.mant.pl))), 
                          rbind(par.mant.sur, par.mant.sub, par.mant.pl))
 
-vars <- c("MAT", "AI", "NDVI", "SR", "HF", "Moisture",	"pH",	"Clay",	"Silt",	 
+vars <- c("MAT", "AI", "SR", "NDVI", "HF", "Moisture",	"pH",	"Clay",	"Silt",	 
             "NH4_N",	"NO3_N", "LCP1", "RCP")
 env.table <- sample_data(phylo)[ , vars]
 mantel02 <- par.man.tibble %>% 
