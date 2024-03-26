@@ -854,7 +854,7 @@ ch4_df <- read.table(file = file.path(wd, 'revision/data/CH4_flux.csv'),
 ch4_process_names <- list(
   'Methyl.coenzyme.M.reductase' = "Methyl coenzyme M reductase",
   'Particulate.methane.monooxygenase' = "Particulate methane monooxygenase",
-  'Soluable.methane.monooxygenase' = "Soluable methane monooxygenase"
+  'Soluable.methane.monooxygenase' = "Soluble methane monooxygenase"
 )
 
 # write a function to change the facet labels
@@ -873,7 +873,7 @@ ch4_flux_plot <- ch4_df %>%
                    method = "pearson", label.x.npc = 0.25, label.y.npc = 0.95, size = 3.5) +
   facet_wrap( .~ ch4_processes, scales = "free", ncol = 3, labeller = facet_labeller) +
   xlab('Gene abundance (TPM)') +
-  ylab(expression(paste("CH"[4], " production", " (ng", " g"^-1, " d"^-1, ")"))) +
+  ylab(expression(paste("CH"[4], " production", " (ng", " g"^-1, " day"^-1, ")"))) +
   theme_bw() +
   theme(axis.title = element_text(size = 8), 
         axis.text = element_text(size = 7, colour = 'black'), 
@@ -904,7 +904,7 @@ N_vars <- c("gdh_K00261", "gdh_K00262", "gdh_K15371", "glsA", "ureA", "ureC", "n
 
 Gross.N.mineralization_plot <- N_df %>% 
   select("Gross.N.mineralization", "gdh_K00261", "gdh_K00262", "gdh_K15371", "glsA", "ureA", "ureC") %>%
-  pivot_longer(cols = -c(Gross.N.mineralization), names_to = "N.mineralization_processes", values_to = "value") %>% 
+  pivot_longer(cols = -c(Gross.N.mineralization), names_to = "processes", values_to = "value") %>% 
   mutate(N.mineralization_processes = factor(N.mineralization_processes, 
                                              levels = c("gdh_K00261", "gdh_K00262", "gdh_K15371", "glsA", "ureA", "ureC"))) %>%
   ggplot(aes(x = value, y = Gross.N.mineralization)) +
@@ -916,7 +916,7 @@ Gross.N.mineralization_plot <- N_df %>%
                    method = "pearson", label.x.npc = 0.25, label.y.npc = 0.95, size = 3.5) +
   facet_wrap( .~ N.mineralization_processes, scales = "free", ncol = 3) +
   xlab('Gene abundance (TPM)') +
-  ylab(expression(paste("CH"[4], " production", " (ng", " g"^-1, " d"^-1, ")"))) +
+  ylab(expression(paste("Gross N mineralization", " (mg", " kg"^-1, " day"^-1, ")"))) +
   theme_bw() +
   theme(axis.title = element_text(size = 8), 
         axis.text = element_text(size = 7, colour = 'black'), 
@@ -942,7 +942,7 @@ Nitrification_plot <- N_df %>%
                    method = "pearson", label.x.npc = 0.25, label.y.npc = 0.95, size = 3.5) +
   facet_wrap( .~ Nitrification_processes, scales = "free", ncol = 2) +
   xlab('Gene abundance (TPM)') +
-  ylab(expression(paste("CH"[4], " production", " (ng", " g"^-1, " d"^-1, ")"))) +
+  ylab(expression(paste("Nitrification", " (mg N", " kg"^-1, " day"^-1, ")"))) +
   theme_bw() +
   theme(axis.title = element_text(size = 8), 
         axis.text = element_text(size = 7, colour = 'black'), 
@@ -964,7 +964,7 @@ Microbial.immobilization_plot <- N_df %>%
                    cor.coef.name = "r", p.accuracy = 0.001, r.accuracy = 0.01,
                    method = "pearson", label.x.npc = 0.25, label.y.npc = 0.95, size = 3.5) +
   xlab('Gene abundance (TPM)') +
-  ylab(expression(paste("CH"[4], " production", " (ng", " g"^-1, " d"^-1, ")"))) +
+  ylab(expression(paste("Microbial immobilization", " (mg N", " kg"^-1, " day"^-1, ")"))) +
   theme_bw() +
   theme(axis.title = element_text(size = 8), 
         axis.text = element_text(size = 7, colour = 'black'), 
@@ -976,6 +976,44 @@ Microbial.immobilization_plot
 ```
 
 
+```{r, fig.align='center', fig.height=5.5, fig.width=8.9}
+plot_N <- rbind(N_df %>% 
+  select("Gross.N.mineralization", "gdh_K00261", "gdh_K00262", "gdh_K15371", "glsA", "ureA", "ureC") %>%
+  pivot_longer(cols = -c(Gross.N.mineralization), names_to = "genes", values_to = "value") %>%
+  pivot_longer(cols = -c(genes, value), names_to = "processes", values_to = "value_1"), 
+  N_df %>% 
+  select("Nitrification", "amoA", "amoB",  "amoC", "hao") %>%
+  pivot_longer(cols = -c(Nitrification), names_to = "genes", values_to = "value") %>%
+  pivot_longer(cols = -c(genes, value), names_to = "processes", values_to = "value_1"), 
+  N_df %>% 
+  select("Microbial.immobilization", "glnA") %>%
+  pivot_longer(cols = -c(Microbial.immobilization), names_to = "genes", values_to = "value") %>%
+  pivot_longer(cols = -c(genes, value), names_to = "processes", values_to = "value_1"))
+
+N_process_plot <- plot_N %>% 
+  mutate(processes = factor(processes, 
+                            levels = c("Gross.N.mineralization", "Microbial.immobilization", "Nitrification"))) %>%
+  mutate(genes = factor(genes, levels = c(c("gdh_K00261", "gdh_K00262", "gdh_K15371", "glsA", "ureA", "ureC", "nmo",
+            "glnA", "amoA", "amoB",  "amoC", "hao")))) %>%
+  ggplot(aes(x = value, y = value_1)) +
+  geom_point(shape = 19, colour = "#D14285")+
+  geom_smooth(method = "lm", formula = y ~ poly(x, 1, raw = TRUE), size = 1, se = T, colour = 'black') +
+  ggpubr::stat_cor(aes(value, value_1, 
+                       label = paste(..r.label.., ..p.label.., sep = "~`,`~")),
+                   cor.coef.name = "r", p.accuracy = 0.001, r.accuracy = 0.01,
+                   method = "pearson", label.x.npc = 0.25, label.y.npc = 0.95, size = 3.5) +
+  facet_wrap(genes ~ processes, scales = "free") +
+  xlab('Gene abundance (TPM)') +
+  ylab(expression(paste("Nitrogen processes", " (mg N", " kg"^-1, " day"^-1, ")"))) +
+  theme_bw() +
+  theme(axis.title = element_text(size = 8), 
+        axis.text = element_text(size = 7, colour = 'black'), 
+        panel.grid = element_blank(),
+        strip.text = element_text(size = 8))
+ggsave(file.path(save.dir.revision, "N_process_plot.pdf"),
+       N_process_plot, width = 8.9, height = 6.9, units = "in")
+N_process_plot
+```
 
 
 

@@ -261,8 +261,9 @@ p_fer_enrich
 ```
 
 ## Heatmap for nitrogen
-```{r, fig.align='center', fig.height=4, fig.width=8}
+```{r, fig.align='center', fig.height=8, fig.width=4}
 p_N_enrich <- logFC_table %>% filter(pathway %in% N_names) %>%
+  mutate(layer = factor(layer, levels = c('SUR', 'SUB', 'PL'))) %>%
   mutate(pathway = factor(pathway, levels = rev(N_names), ordered = T)) %>%
   ggplot(aes(x = layer, y = pathway, fill = logFC))+
   geom_tile() + 
@@ -277,8 +278,7 @@ p_N_enrich <- logFC_table %>% filter(pathway %in% N_names) %>%
         # legend.key.width= unit(0.35, 'cm'),
         legend.key.size = unit(0.35, 'cm'),
         legend.title = element_text(size = 8), 
-        legend.text = element_text(size = 6)) +
-  coord_flip()
+        legend.text = element_text(size = 6))
 p_N_enrich
 ```
 
