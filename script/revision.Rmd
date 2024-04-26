@@ -1015,22 +1015,35 @@ ggsave(file.path(save.dir.revision, "N_process_plot.pdf"),
 N_process_plot
 ```
 
+```{r}
+filelist_sub = list.files("E:/permafrost/revision/metabolic_resample/metabolic_results_sub", pattern = "\\.txt$", full.names = TRUE)
+#assuming tab separated values with a header    
+datalist_sub = lapply(filelist, function(x)read.table(x, header = F, sep = "\t")) 
+#assuming the same header/columns for all files
+datafr_sub = do.call("rbind", datalist)
 
 
+filelist_pl = list.files("E:/permafrost/revision/metabolic_resample/metabolic_results_pl", pattern = "\\.txt$", full.names = TRUE)
+#assuming tab separated values with a header    
+datalist_pl = lapply(filelist, function(x)read.table(x, header = F, sep = "\t")) 
+#assuming the same header/columns for all files
+datafr_pl = do.call("rbind", datalist)
 
+colnames(datafr_sub) <- c("Taxa", "Reaction", "Freq")
+colnames(datafr_pl) <- c("Taxa", "Reaction", "Freq")
 
+table_sub <- datafr_sub %>% group_by(Taxa, Reaction) %>%
+  summarise(across(everything(), mean))
 
-
-
-
+table_pl <- datafr_pl %>% group_by(Taxa, Reaction) %>%
+  summarise(across(everything(), mean))
+```
 
 
 
 Input files
 ```{r}
 sur_input_table <- file.path(wd_fun, "metabolic/METABOLIC_70_layer_rare/METABOLIC_70_sur/METABOLIC_Figures_Input/Metabolic_Sankey_diagram_input.txt")
-sub_input_table <- file.path(wd_fun, "metabolic/METABOLIC_70_layer_rare/METABOLIC_70_sub/METABOLIC_Figures_Input/Metabolic_Sankey_diagram_input.txt")
-pl_input_table <- file.path(wd_fun, "metabolic/METABOLIC_70_layer_rare/METABOLIC_70_pl/METABOLIC_Figures_Input/Metabolic_Sankey_diagram_input.txt")
 ```
 
 Loading packages
@@ -1045,10 +1058,6 @@ Generate a snakey plot with reactions as node, and edges are MAGs, and are color
 # Load the energy flow diagram input ---------------------------
 table_sur <- read.table(sur_input_table, header = F, sep = "\t")
 colnames(table_sur) <- c("Taxa", "Reaction", "Freq")
-table_sub <- read.table(sub_input_table, header = F, sep = "\t")
-colnames(table_sub) <- c("Taxa", "Reaction", "Freq")
-table_pl <- read.table(pl_input_table, header = F, sep = "\t")
-colnames(table_pl) <- c("Taxa", "Reaction", "Freq")
 ```
 
 ```{r}
@@ -1199,7 +1208,7 @@ P <- sankeyNetwork(Links = links, Nodes = nodes, Source = "IDsource", Target = "
 # save the widget
 # 推荐使用htmlwidgets
 library(htmlwidgets)
-# saveWidget(p, file = paste0(sankey.plots.folder, "/sankey_plot.html"))
+saveWidget(P, file = paste0(save.dir.revision, "/sankey_plot.html"))
 # library(webshot)
 # install phantom:
 # webshot::install_phantomjs()

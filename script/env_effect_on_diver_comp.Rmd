@@ -73,7 +73,6 @@ main_theme = theme_bw() +
 
 rep_str = list("Clay" = "Clay (%)",
             "Silt" = "Silt (%)",
-            "Sand" = "Sand (%)",
             "pH" = "pH",
             "Moisture" = "Moisture (%)",
             "SOC" = "SOC (g/kg)",
@@ -92,7 +91,7 @@ facet_labeller <- function(variable,value){
 }
 
 my_comparisons <- list( c("SUR", "SUB"), c("SUB", "PL"), c("SUR", "PL") )
-env_vars <- c("Clay", "Silt", "Sand", "pH",  "Moisture", "SOC", "DOC", "LCP1", "LCP2", "RCP", "NH4_N", "NO3_N", "DON")
+env_vars <- c("Clay", "Silt", "pH",  "Moisture", "SOC", "DOC", "LCP1", "LCP2", "RCP", "NH4_N", "NO3_N", "DON")
 
 # meta_dat %>% as.tibble() %>% select(c("Layer", env_vars)) %>%
 #   group_by(Layer) %>%
@@ -115,7 +114,7 @@ env_paired_wilcox_test <- meta_dat %>% as.tibble() %>% select(c("Layer", env_var
   main_theme
 # save plot
 ggsave(file.path(save.dir, "/figs/env_effect/env_paired_wilcox_test_abc123.pdf"),
-       env_paired_wilcox_test, width = 5.5, height = 6, units = "in")
+       env_paired_wilcox_test, width = 5.5, height = 5, units = "in")
 
 env_paired_wilcox_test
 ```
