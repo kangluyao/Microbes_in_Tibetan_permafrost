@@ -1203,7 +1203,7 @@ P <- sankeyNetwork(Links = links, Nodes = nodes, Source = "IDsource", Target = "
                    Value = "value", NodeID = "name", colourScale = my_color, 
                    LinkGroup = "group", NodeGroup = "group", iterations = 0, 
                    fontFamily = 'Arial', fontSize = 15, 
-                   nodeWidth = 20, nodePadding = 10, height = 700, width = 1600,
+                   nodeWidth = 30, nodePadding = 10, height = 1225, width = 1968,
                    sinksRight = F)
 # save the widget
 # 推荐使用htmlwidgets
@@ -1213,6 +1213,5 @@ saveWidget(P, file = paste0(save.dir.revision, "/sankey_plot.html"))
 # install phantom:
 # webshot::install_phantomjs()
 # Make a webshot in pdf : high quality but can not choose printed zone
-# webshot(paste0(sankey.plots.folder, "/sankey_plot.html"), delay = 0.2)
 P
 ```
