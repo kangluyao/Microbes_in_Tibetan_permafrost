@@ -113,8 +113,8 @@ env_paired_wilcox_test <- meta_dat %>% as.tibble() %>% select(c("Layer", env_var
   #                    na.rm = T, tip.length = 0.00, step.increase = 0.22) +
   main_theme
 # save plot
-ggsave(file.path(save.dir, "/figs/env_effect/env_paired_wilcox_test_abc123.pdf"),
-       env_paired_wilcox_test, width = 5.5, height = 5, units = "in")
+# ggsave(file.path(save.dir, "/figs/env_effect/env_paired_wilcox_test_abc123.pdf"),
+#        env_paired_wilcox_test, width = 5.5, height = 5, units = "in")
 
 env_paired_wilcox_test
 ```
@@ -251,7 +251,7 @@ library(linkET)
 par.man.tibble <- tibble(spec = c(rep('SUR', nrow(par.mant.sur)), rep('SUB', nrow(par.mant.sub)), rep('PL', nrow(par.mant.pl))), 
                          rbind(par.mant.sur, par.mant.sub, par.mant.pl))
 
-vars <- c("MAT", "AI", "HF", "SR", "NDVI", "Moisture",	"pH",	"Clay",	"Silt",	 
+vars <- c("MAT", "AI", "SR", "NDVI", "HF", "Moisture",	"pH",	"Clay",	"Silt",	 
             "NH4_N",	"NO3_N", "LCP1", "RCP")
 env.table <- sample_data(phylo)[ , vars]
 mantel02 <- par.man.tibble %>% 
@@ -286,7 +286,7 @@ p <-  qcorrplot(correlate(env.table, engine = "Hmisc", method = "spearman"), typ
 #   scale_size_manual(values = c(0.5, 2, 3)) +
 #   geom_diag_label() + remove_axis("x")
 
-ggsave(file.path(save.dir, './figs/env_effect/partail_matel_plot_for_revision1.pdf'), p, width = 8.9, height = 4.5, units = "in")
+# ggsave(file.path(save.dir, './figs/env_effect/partail_matel_plot_for_revision1.pdf'), p, width = 8.9, height = 4.5, units = "in")
 p
 ```
 Test the environmental effects on the funtional genes using dbRDA
