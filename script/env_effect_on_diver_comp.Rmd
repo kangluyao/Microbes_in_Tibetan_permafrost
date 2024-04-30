@@ -49,7 +49,7 @@ source("script/read_data.R")
 First, because there was strong collinearity among particular environmental factors, before applying partial mantel test, we used variable clustering to assess the redundancy of the environmental variables by the varclus procedure in the Hmisc R package. The variables with higher correlation (Spearman’s ρ > 0.7) were removed.
 ```{r, fig.align='center', fig.width=6, fig.height=4.5}
 library(Hmisc)
-envs <- metadata[, c("AI", "MAT", "NDVI", "SR", "HF", "Clay", "Silt", "Sand", "Moisture", "pH",  "NH4_N", "NO3_N", "DON", "SOC", "DOC", "LCP1", "LCP2", "RCP")]
+envs <- metadata[, c("AI", "MAT", "NDVI", "SR", "HF", "Clay", "Silt", "Moisture", "pH",  "NH4_N", "NO3_N", "DON", "SOC", "DOC", "LCP1", "LCP2", "RCP")]
 envsn <- data.matrix(envs)
 clust <- Hmisc::varclus(envsn)
 plot(clust)
