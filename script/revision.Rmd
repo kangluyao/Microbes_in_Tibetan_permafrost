@@ -737,15 +737,18 @@ FTC_df <- read.table(file = file.path(wd, 'revision/data/FTC_data.csv'),
 # Fitting exponential decay curve
 library(stats)
 model <- nls(Days ~ a * exp(b * Depth) + c, data = FTC_df, start = list(a = 200, b = -0.25, c = 6))
+summary(model)
+
+lm(Depth ~ predict(model), data = FTC_df) %>% broom::glance()
 
 #plot
 FTC_plot <- ggplot(FTC_df, aes(x = Depth, y = Days)) + 
   geom_point(size = 3.5, alpha = 0.8, colour = "#D14285") +
   geom_smooth(method = "nls", 
               formula = "y ~ A * exp(B * x) + C", 
-              method.args = list(start = c(A = 200, B = -0.25, C = 6)),
+              method.args = list(start = c(A = 212.48612, B = -0.19778, C = 7.36805)),
               size = 1, se = F, linetype = 1,  colour = 'black') +
-  xlab("Depth (cm)") + ylab("Thawing time (Day)") +
+  xlab("Soil depth (cm)") + ylab("Diurnal freezing-thawing cycles (Days)") +
   theme_bw() +
   theme(panel.grid = element_blank(), 
         axis.title = element_text(color = "black", size = 10),
@@ -755,8 +758,8 @@ FTC_plot <- ggplot(FTC_df, aes(x = Depth, y = Days)) +
         axis.text.y = element_text(colour = "black", size = 8), 
         axis.text.x = element_text(colour = "black", size = 8), 
         strip.text = element_text(size = 14), legend.position = "none")
-# ggsave(file.path(save.dir.revision, "FTC_curve.pdf"),
-#        FTC_plot, width = 4, height = 3.5, units = "in")
+ggsave(file.path(save.dir.revision, "FTC_curve.pdf"),
+       FTC_plot, width = 4, height = 3.5, units = "in")
 FTC_plot
 ```
 # explore the relationships between the microbial processes and biogeochemical processes

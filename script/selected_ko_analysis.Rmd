@@ -153,6 +153,7 @@ classes <- factor(classDefinitions_RNASeq$Layer)
 modelDesign <- model.matrix(~ 0 + classes)
 contrast_sur <- makeContrasts(
   survsrest = "classesSUR-(classesSUB + classesPL)/2", levels = modelDesign)
+set.seed(123)
 fit_glm <- glmFit(d, modelDesign)
 survsrest <- glmLRT(fit_glm , contrast = contrast_sur)
 tt_survsrest <- topTags(survsrest, n = nrow(d))
@@ -269,7 +270,7 @@ p_N_enrich <- logFC_table %>% filter(pathway %in% N_names) %>%
   geom_tile() + 
   scale_fill_gradient2(low = "#2C7BB6", mid = "white", high = "#D7191C") +  # low="#2C7BB6", mid="white", high="#D7191C" or low = "#009E73", mid = "white", high = "#E69F00"
   geom_text(aes(label = round(logFC, 2)), 
-            color = "black", size = 1.5) +
+            color = "black", size = 1) +
   labs(y = 'Layers', x = 'Pathway', fill = "logFC") +
   theme(axis.title = element_blank(),
         axis.text = element_text(size = 6, colour = 'black'),
