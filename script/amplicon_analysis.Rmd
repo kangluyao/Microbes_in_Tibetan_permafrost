@@ -656,96 +656,32 @@ compositional_plot
 
 ### Unique otus profile among three layers
 ```{r, fig.width = 6, fig.height = 4.5}
-# Load the library
-library(limma)
-# Generate example data
-sur_venn <- otu %>% data.frame() %>%
-  mutate(rowsum = rowSums(select(., grep('SUR', metadata$sample_id, value = T)))) %>%
-  filter(rowsum > 0) %>%
-  rownames()
-sub_venn <- otu %>% data.frame() %>%
-  mutate(rowsum = rowSums(select(., grep('SUB', metadata$sample_id, value = T)))) %>%
-  filter(rowsum > 0) %>%
-  rownames()
-pl_venn <- otu %>% data.frame() %>%
-  mutate(rowsum = rowSums(select(., grep('PL', metadata$sample_id, value = T)))) %>%
-  filter(rowsum > 0) %>%
-  rownames()
-
-# What are the possible letters in the universe?
-universe <- sort(unique(c(sur_venn, sub_venn, pl_venn)))
-
-# Generate a matrix, with the sets in columns and possible letters on rows
-Counts <- matrix(0, nrow=length(universe), ncol=3)
-# Populate the said matrix
-for (i in 1:length(universe)) {
-  Counts[i,1] <- universe[i] %in% sur_venn
-  Counts[i,2] <- universe[i] %in% sub_venn
-  Counts[i,3] <- universe[i] %in% pl_venn
-}
-
-# Specify the colors for the sets
-# Prepare a palette of 3 colors:
-gg_color_hue <- function(n) {
-  hues = seq(15, 375, length = n + 1)
-  hcl(h = hues, l = 65, c = 100)[1:n]
-}
-n = 3
-cols = gg_color_hue(n)
-# Name the columns with the sample names
-colnames(Counts) <- c("SUR","SUB","PL")
-vennDiagram(vennCounts(Counts), circle.col = cols)
-```
-Venn plot using VennDiagram
-```{r}
 # library
-library(VennDiagram)
-
+library(ggvenn)
 #Make the plot
-venn_plot <- venn.diagram(
-  x = list(
-    otu %>% data.frame() %>%
+x = list(
+  SUR = otu %>% data.frame() %>%
       mutate(rowsum = rowSums(select(., grep('SUR', metadata$sample_id, value = T)))) %>%
       filter(rowsum > 0) %>%
-      rownames(), 
-    otu %>% data.frame() %>%
+      rownames(),
+  SUB = otu %>% data.frame() %>%
       mutate(rowsum = rowSums(select(., grep('SUB', metadata$sample_id, value = T)))) %>%
       filter(rowsum > 0) %>%
-      rownames(), 
-    otu %>% data.frame() %>%
+      rownames(),
+  PL = otu %>% data.frame() %>%
       mutate(rowsum = rowSums(select(., grep('PL', metadata$sample_id, value = T)))) %>%
       filter(rowsum > 0) %>%
       rownames()
-  ),
-  category.names = c("SUR" , "SUB" , "PL"),
-  filename = NULL,
-  # output = F,
-  # imagetype="png" ,
-  # height = 480 ,
-  # width = 480 ,
-  # resolution = 300,
-  # compression = "lzw",
-  # Circles
-  lwd = 2,
-  lty = 'blank',
-  fill = cols,
-  # Numbers
-  cex = 1,
-  fontfamily = "sans",
-  # Set names
-  cat.cex = 1,
-  cat.default.pos = "outer",
-  cat.pos = c(-27, 27, 135),
-  cat.dist = c(0.055, 0.055, 0.085),
-  cat.fontfamily = "sans",
-  cat.col = 'black',
-  rotation = 1
+  )
+
+ggvenn(
+  x, 
+  fill_color = c("#f8766d", "#a3a500", "#00b0f6"),
+  stroke_color = NA,
+  set_name_size = 4,
+  text_size = 4,
+  show_percentage = F
 )
-# grid.newpage()
-# pdf(file= file.path(save.dir, "OTU_Group_venn.pdf"), height = 3, width = 3)
-# grid.draw(venn_plot)
-# dev.off()
-grid::grid.draw(venn_plot)
 ```
 
 ## NULL model analyse the ecological processes
