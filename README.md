@@ -23,3 +23,5 @@
 
 ```
 All `.html` files in `script` folder are produced by Rmarkdown files (`.Rmd` files) using knitr package in R.
+
+[![DOI](https://zenodo.org/badge/642855012.svg)](https://zenodo.org/doi/10.5281/zenodo.11498006)
