@@ -25,7 +25,6 @@
         ├── METABOLIC_result.xlsx               <-- Summary of the presence/absence of functional genes on each genome
         ├── MW_score_result.csv                 <-- Resuts of metabolic weighted scores for the metagenomic assembly genomes 
         └── tax.txt                             <-- Taxnomic identificcation for each bin
-
     └── Supplementary Data
         ├── Supplementary Data 1.xlsx           <-- Characteristics of recovered metagenomic assembly genomes (MAGs)
         ├── Supplementary Data 2.xlsx           <-- Custom selected KEGG genes used to define metabolic pathways
