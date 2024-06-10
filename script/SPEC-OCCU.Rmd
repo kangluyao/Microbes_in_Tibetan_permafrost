@@ -35,45 +35,47 @@ phylo_rel_core <- phyloseq::filter_taxa(phylo_rel, function(x) mean(x) > .0001, 
 ntaxa(phylo_rel_core)
 ```
 ```{r}
-# 读取 OTU 丰度表和样本分组
+#read the metadata and OTU table
 otu_specif <- data.frame(otu_table(phylo_rel_core), Taxonomy = data.frame(tax_table(phylo_rel_core))$Phylum) 
-# 计算各组样本中，OTU 的特异性(specificity)和占有率(occupancy)
+#determine the specificity and occupancy of each OTU in each sample
 Nindividuals_S <- rep(0, nrow(otu_specif))
 for (i in unique(metadata$Layer)) {
   otu_group_i <- otu_specif[ ,rownames(subset(metadata, Layer == i))]
-  Nindividuals_S <- Nindividuals_S + rowMeans(otu_group_i)  #计算 Nindividuals S
+  Nindividuals_S <- Nindividuals_S + rowMeans(otu_group_i)  #calculate Nindividuals S
 }
 ```
 ```{r}
 spec_occu <- NULL
 for (i in unique(metadata$Layer)) {
   otu_group_i <- otu_specif[ ,rownames(subset(metadata, Layer == i))]
-  Nindividuals_SH <- apply(otu_group_i, 1, mean)  #计算 Nindividuals SH
-  Specificity <- Nindividuals_SH / Nindividuals_S  #计算 Specificity
-  Nsites_H <- ncol(otu_group_i)  #计算 Nsites H
-  Nsites_SH <- apply(otu_group_i, 1, function(x) sum(x>0))  #计算 Nsites SH
-  Occupancy <- Nsites_SH / Nsites_H  #计算 Occupancy
+  Nindividuals_SH <- apply(otu_group_i, 1, mean)  #calculate Nindividuals SH
+  Specificity <- Nindividuals_SH / Nindividuals_S  #calculate Specificity
+  Nsites_H <- ncol(otu_group_i)  #calculate Nsites H
+  Nsites_SH <- apply(otu_group_i, 1, function(x) sum(x>0))  #calculate Nsites SH
+  Occupancy <- Nsites_SH / Nsites_H  #calculate Occupancy
   spec_occu_group_i <- data.frame(layer = i, OTU = rownames(otu_group_i), 
                                   Specificity = Specificity, Occupancy = Occupancy, 
                                   Abundance_mean = rowMeans(otu_group_i), Taxonomy = otu_specif$Taxonomy)
-  spec_occu <- rbind(spec_occu, spec_occu_group_i)  #合并各组统计
+  spec_occu <- rbind(spec_occu, spec_occu_group_i)  
 }
 spec_occu <- spec_occu %>% mutate(layer = factor(layer, levels = c('SUR', 'SUB', 'PL')))
-# 输出统计表格
+#write the output
 # write.table(spec_occu, 'spec_occu.txt', row.names = FALSE, sep = '\t', quote = FALSE)
-head(spec_occu)  # 该数据框包含各组中各 OTU 的名称、特异性、占有率、平均丰度、类群信息等
+head(spec_occu)
 ```
-## 识别各组样本中的特化种（specialist species)
+## Identify the specialist species
 ```{r}
-# 在上述统计表格中直接根据特异性和占有率 ≥0.7 做筛选，保留下的 OTU 即为特化种
+#specialist species are difined as the species with Specificity >= 0.7 and Occupancy >= 0.7
 spec_occu_specialist <- subset(spec_occu, Specificity >= 0.7 & Occupancy >= 0.7) %>% 
   mutate(layer = factor(layer, levels = c('SUR', 'SUB', 'PL')))
 head(spec_occu_specialist)
-# 输出统计表格
-# write.table(spec_occu_specialist, 'spec_occu_specialist.txt', row.names = FALSE, sep = '\t', quote = FALSE)
+#write the table
+# write.table(spec_occu_specialist, file = "C:/Users/dell/Desktop/spec_occu_specialist.csv", row.names = FALSE, sep = ',', quote = FALSE)
 ```
+
+
 ```{r, fig.width=6.5, fig.height=4.5}
-#绘制 SPEC-OCCU 图, 添加阈值线
+#plot SPEC-OCCU diagram
 library(ggplot2)
 # set colors
 ass_col_fun <- function(df) {
@@ -93,7 +95,7 @@ spec_occu$group <- apply(spec_occu, 1, ass_col_fun)
 p <- spec_occu %>% mutate(layer = factor(layer, levels = c('SUR', 'SUB', 'PL'))) %>%
   ggplot(aes(Occupancy, Specificity)) +
   # geom_point(aes(size = log10(Abundance_mean), color = 'Taxonomy'), alpha = 0.5) +
-  geom_jitter(aes(size = log10(Abundance_mean), color = group), alpha = 0.8) +  #如果觉得普通散点图中的点重叠严重不好看，可以仿照 Gweon et al (2021) 使用抖动点图来展示
+  geom_jitter(aes(size = log10(Abundance_mean), color = group), alpha = 0.8) +  
   scale_size(breaks = c(-1, -2, -3, -4), labels = c(expression(10^{-1}), expression(10^{-2}), expression(10^{-3}), expression(10^{-4})), range = c(0, 1)) +
   scale_color_manual(values = c("a" = "#f8766d",
                                 "b" = "#a3a500",
@@ -117,7 +119,7 @@ p <- spec_occu %>% mutate(layer = factor(layer, levels = c('SUR', 'SUB', 'PL')))
 # dev.off()
 # ggsave(file.path(save.dir, "./figs/diff_abun/spec_occu_plot.pdf"), p, width = 90, height = 90, units = "mm")
 ```
-## tree图显示特化种的具体类群
+## Use the phylogenetic tree to display the specialist species.
 ```{r}
 # devtools::install_github("ropensci/taxa", force = TRUE)
 library(metacoder)

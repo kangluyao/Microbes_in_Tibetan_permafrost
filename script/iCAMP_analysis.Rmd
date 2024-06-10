@@ -1,0 +1,210 @@
+---
+title: "iCAMP_analysis"
+author: "Luyao Kang"
+date: "`r Sys.Date()`"
+output:
+  html_notebook:
+    toc: yes
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+```{r setup, include = F}
+knitr::opts_chunk$set(
+  collapse = T, echo = T, comment = "#>", message = F, warning = F,
+	fig.align = "center", fig.width= 4.5, fig.height = 3, dpi = 150)
+```
+## Data input 
+Set work directory
+```{r}
+setwd('e:/permafrost/')
+wd_16s <- file.path(getwd(),"data/16S")
+# if (!dir.exists(wd_16s)) {
+#   dir.create(wd_16s)
+# }
+wd_fun <- file.path(getwd(),"data/metagenome")
+save.dir <- file.path(getwd(),"result")
+```
+Loading packages
+```{r}
+library(phyloseq)
+library(ape)
+library(vegan)
+library(Biostrings)
+library(microbiome)
+library(tidyverse)
+```
+Data input
+```{r}
+source("script/read_data.R")
+```
+
+## NULL model analyse the ecological processes
+First, prepare for the community tables and phylogenetic trees for each layer
+```{r}
+save.dir = "E:/permafrost/result"
+if(!dir.exists(save.dir)){dir.create(save.dir)}
+setwd(save.dir)
+# prune the phylo object into three layers
+phylo_sur <- subset_samples(phylo, Layer == 'SUR')
+phylo_sur <- prune_taxa(taxa_sums(phylo_sur) >= 1, phylo_sur)
+phylo_sub <- subset_samples(phylo, Layer == 'SUB')
+phylo_sub <- prune_taxa(taxa_sums(phylo_sub) >= 1, phylo_sub)
+phylo_pl <- subset_samples(phylo, Layer == 'PL')
+phylo_pl <- prune_taxa(taxa_sums(phylo_pl) >= 1, phylo_pl)
+
+# extract the community tables and phylogenetic trees for each layer
+comm_sur <- t(otu_table(phylo_sur))
+tree_sur <- phy_tree(phylo_sur)
+
+comm_sub <- t(otu_table(phylo_sub))
+tree_sub <- phy_tree(phylo_sub)
+
+comm_pl <- t(otu_table(phylo_pl))
+tree_pl <- phy_tree(phylo_pl)
+```
+
+Community assembly analysis based on the iCAMP framwork developed by Ning et al (2020) 
+```{r}
+# Community assembly analysis based on the iCAMP framwork developed by Ning et al (2020) 
+# ses.cut = 1.96, with βNRI=1.96 as the threshold for homogeneous and heterogeneous selection; 
+# rc.cut=0.95, with RC=0.95 as the threshold for diffusion and drift.
+library(iCAMP)
+set.seed(123)
+icamp.sur.out <- icamp.big(comm = comm_sur, tree = tree_sur, pd.wd = paste0(save.dir,"tables/null_model/sur"), 
+                       ses.cut = 1.96, rc.cut = 0.95, bin.size.limit = 24, 
+                       rand = 1000, nworker = 8)
+# Heterogeneous.Selection, Homogeneous Selection, Dispersal Limitation, Homogenizing.Dispersal, Drift and Others
+head(icamp.sur.out$CbMPDiCBraya)
+# write.csv(icamp.sur.out$CbMPDiCBraya, 
+#           file.path(save.dir, './tables/null_model/sur/iCAMP.process.CbMPDiCBraya.csv'))
+
+set.seed(123)
+icamp.sub.out <- icamp.big(comm = comm_sub, tree = tree_sub, pd.wd = paste0(save.dir,"tables/null_model/sub"), 
+                           ses.cut = 1.96, rc.cut = 0.95, bin.size.limit = 24, 
+                           rand = 1000, nworker = 8)
+head(icamp.sub.out$CbMPDiCBraya)
+# write.csv(icamp.sub.out$CbMPDiCBraya, 
+#           file.path(save.dir, './tables/null_model/sub/iCAMP.process.CbMPDiCBraya.csv'))
+
+
+set.seed(123)
+icamp.pl.out <- icamp.big(comm = comm_pl, tree = tree_pl, 
+                          pd.wd = paste0(save.dir,"tables/null_model/pl"),
+                          ses.cut = 1.96, rc.cut = 0.95, bin.size.limit = 24,
+                          rand = 1000, nworker = 8)
+head(icamp.pl.out$CbMPDiCBraya)
+# write.csv(icamp.pl.out$CbMPDiCBraya,
+#           file.path(save.dir, './tables/null_model/pl/iCAMP.process.CbMPDiCBraya.csv'))
+
+
+null_sur <- read.csv(file.path(save.dir, 'tables/null_model/sur/iCAMP.process.CbMPDiCBraya.csv'),
+                     header = T, row.names = 1, stringsAsFactors = F)
+null_sub <- read.csv(file.path(save.dir, 'tables/null_model/sub/iCAMP.process.CbMPDiCBraya.csv'),
+                     header = T, row.names = 1, stringsAsFactors = F)
+null_pl <- read.csv(file.path(save.dir, 'tables/null_model/pl/iCAMP.process.CbMPDiCBraya.csv'),
+                    header = T, row.names = 1, stringsAsFactors = F)
+
+null_df <- rbind(cbind(layer = rep('SUR', nrow(null_sur)), null_sur[, 3:7]),
+                 cbind(layer = rep('SUB', nrow(null_sub)), null_sub[, 3:7]),
+                 cbind(layer = rep('PL', nrow(null_pl)), null_pl[, 3:7]))
+```
+
+Plot
+```{r, fig.align='center', fig.width=6.9, fig.height=8.9}
+legend_label_rep <- c("DL: Dispersal Limitation", "DR: Drift and Others",
+            "HoS: Homogeneous Selection", "HD: Homogenizing Dispersal",
+            "HeS: Heterogeneous Selection")
+
+rep_str <- list("Dispersal.Limitation" = "DL",
+            "Drift.and.Others" = "DR",
+            "Homogeneous.Selection" = "HoS",
+            "Homogenizing.Dispersal" = "HD",
+            "Heterogeneous.Selection" = "HeS"
+)
+
+# write a function to change the facet labels
+facet_labeller <- function(variable,value){
+  return(rep_str[value])
+}
+
+library(ggalluvial)
+# alluvial diagram
+null_plot <- null_df %>%
+  group_by(layer) %>%
+  summarise(across(everything(), mean)) %>%
+  pivot_longer(cols = -c(layer), names_to = "process", values_to = "value") %>%
+  mutate(layer = factor(layer, levels = c("SUR", "SUB", "PL"))) %>%
+  mutate(process = factor(process, levels = c('Dispersal.Limitation', 'Drift.and.Others', 'Homogeneous.Selection', 'Homogenizing.Dispersal', 'Heterogeneous.Selection'))) %>%
+  ggplot(aes(y = value, x = layer)) + 
+  geom_flow(aes(alluvium = process, fill = process,
+                color = process), alpha = 0.4, lty = 2, curve_type = "linear", width = 0.5) + 
+  geom_col(aes(fill = process), width = 0.5, color = "black") + 
+  labs(x = 'Layers', y = 'Relative importance', fill = 'Processes') +
+  # scale_fill_manual(values = c("#000000", "#294e63", "#496a80", "#7c98ac", "#b3c4d2")) + 
+  scale_y_continuous(expand = c(0, 0)) + theme_classic() +
+  theme(axis.title = element_text(colour = "black"),
+        axis.text = element_text(colour = "black"),
+        legend.key.size = unit(1,"line"))
+# ggsave(file.path(save.dir, './figs/null_model/null_stacked_plot.pdf'), null_plot, width = 6, height = 4)
+
+my_comparisons_process <- list( c("Heterogeneous.Selection", "Homogeneous.Selection"), 
+                              c('Heterogeneous.Selection', 'Dispersal.Limitation'), 
+                              c('Heterogeneous.Selection', 'Homogenizing.Dispersal'),
+                              c('Heterogeneous.Selection', 'Drift.and.Others'),
+                              c('Homogeneous.Selection', 'Dispersal.Limitation'),
+                              c('Homogeneous.Selection', 'Homogenizing.Dispersal'),
+                              c('Homogeneous.Selection', 'Drift.and.Others'),
+                              c('Dispersal.Limitation', 'Homogenizing.Dispersal'),
+                              c('Dispersal.Limitation', 'Drift.and.Others'),
+                              c('Homogenizing.Dispersal', 'Drift.and.Others'))
+process_within_layer <- null_df %>%
+  dplyr::select(c('layer', 'Heterogeneous.Selection', 'Homogeneous.Selection', 'Dispersal.Limitation', 'Homogenizing.Dispersal', 'Drift.and.Others')) %>%
+  pivot_longer(cols = -c(layer), names_to = "process", values_to = "value") %>%
+  mutate(layer = factor(layer, levels = c("SUR", "SUB", "PL"))) %>%
+  mutate(process = factor(process, levels = c('Dispersal.Limitation', 'Drift.and.Others', 'Homogeneous.Selection', 'Homogenizing.Dispersal', 'Heterogeneous.Selection'))) %>%
+  ggplot(aes(process, value*100))+
+  geom_boxplot(width = 0.5, aes(fill = process))+
+  facet_grid(. ~ layer, scales = 'free_x', space = 'free_x') +
+  stat_compare_means(comparisons = my_comparisons_process, p.adjust.method = "BH") +
+  # scale_fill_manual(labels = legend_label_rep) +
+  labs(x = 'Ecological process', y = 'Relative importance (%)', fill = 'Process') +
+  scale_x_discrete(labels = rep_str) +
+  # scale_y_continuous(limits = c(0, 80)) +
+  theme_bw() +
+  theme(axis.title = element_text(colour = "black", size = 14),
+        axis.text = element_text(colour = "black", size = 12, angle = 45),
+        strip.text = element_text(colour = "black", size = 12),
+        legend.key.size = unit(1,"line"),
+        panel.grid = element_blank(),
+        panel.spacing = unit(0, "lines"),
+        legend.position = "none")
+# ggsave(file.path(save.dir, './figs/null_model/process_within_layer.pdf'), process_within_layer, width = 8, height = 3)
+
+#boxplot
+library(ggpubr)
+my_comparisons_layer <- list(c("SUR", "PL"), c("SUR", "SUB"), c("SUB", "PL"))
+process_among_layers <- null_df %>%
+  pivot_longer(cols = -c(layer), names_to = "process", values_to = "value") %>%
+  mutate(layer = factor(layer, levels = c("SUR", "SUB", "PL"))) %>%
+  mutate(process = factor(process, levels = c('Dispersal.Limitation', 'Drift.and.Others', 'Homogeneous.Selection', 'Homogenizing.Dispersal', 'Heterogeneous.Selection'))) %>%
+  ggplot(aes(layer, value*100))+
+  geom_boxplot(width = 0.5, aes(fill = process))+
+  facet_grid(. ~ process, scales = 'free_x', space = 'free_x') +
+  stat_compare_means(comparisons = my_comparisons_layer, p.adjust.method = "BH") +
+  # scale_fill_manual(labels = legend_label_rep) +
+  labs(x = 'Layers', y = 'Relative importance (%)', fill = 'Process') +
+  scale_y_continuous(limits = c(0, 80)) +
+  theme_bw() +
+  theme(axis.title = element_text(colour = "black", size = 14),
+        axis.text = element_text(colour = "black", size = 12),
+        strip.text = element_text(colour = "black", size = 12),
+        legend.key.size = unit(1,"line"),
+        panel.grid = element_blank(),
+        panel.spacing = unit(0, "lines"),
+        legend.position = "none")
+# ggsave(file.path(save.dir, './figs/null_model/process_among_layers.pdf'), process_among_layers, width = 8, height = 3)
+
+cowplot::plot_grid(process_within_layer, process_among_layers, ncol = 1)
+```

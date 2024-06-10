@@ -188,9 +188,9 @@ MAG_df <- read.table(file = file.path(wd, 'revision/data/Widb.csv'),
                            sep = ',',  header = T, stringsAsFactors = F)
 seq_df <- read.table(file = file.path(wd, 'revision/data/cleandata.txt'),
                            sep = '\t',  header = T, stringsAsFactors = F)
-MAG_tab <- rbind(MAG_df %>% select(Layer, completeness, contamination) %>%
+MAG_tab <- rbind(MAG_df %>% dplyr::select(Layer, completeness, contamination) %>%
   pivot_longer(cols = -c("Layer"), names_to = "Index", values_to = "Value"),
-  seq_df %>% select(Layer, Clean_data, Recovery_rate_MAGs) %>%
+  seq_df %>% dplyr::select(Layer, Clean_data, Recovery_rate_MAGs) %>%
   pivot_longer(cols = -c("Layer"), names_to = "Index", values_to = "Value"))
 
 MAG_tab %>% group_by(Layer, Index) %>%
@@ -220,7 +220,7 @@ MAG_plot <- MAG_tab %>%
   scale_y_continuous(expand = expansion(mult = c(0.05, 0.1))) +
   scale_fill_manual(values = c("#f8766d", "#a3a500", "#00b0f6")) +
   stat_compare_means(comparisons = my_comparisons, paired = F, 
-                     p.adjust.method = "BH", label = "p.signif", 
+                     p.adjust.method = "BH", 
                      na.rm = T, size = 2.5, tip.length = 0.00, method = "wilcox.test") +
   #scale_fill_manual(values= cols)+
   labs(x = 'Layer', fill='Layer') +
@@ -1021,16 +1021,16 @@ N_process_plot
 ```{r}
 filelist_sub = list.files("E:/permafrost/revision/metabolic_resample/metabolic_results_sub", pattern = "\\.txt$", full.names = TRUE)
 #assuming tab separated values with a header    
-datalist_sub = lapply(filelist, function(x)read.table(x, header = F, sep = "\t")) 
+datalist_sub = lapply(filelist_sub, function(x)read.table(x, header = F, sep = "\t")) 
 #assuming the same header/columns for all files
-datafr_sub = do.call("rbind", datalist)
+datafr_sub = do.call("rbind", datalist_sub)
 
 
 filelist_pl = list.files("E:/permafrost/revision/metabolic_resample/metabolic_results_pl", pattern = "\\.txt$", full.names = TRUE)
 #assuming tab separated values with a header    
-datalist_pl = lapply(filelist, function(x)read.table(x, header = F, sep = "\t")) 
+datalist_pl = lapply(filelist_pl, function(x)read.table(x, header = F, sep = "\t")) 
 #assuming the same header/columns for all files
-datafr_pl = do.call("rbind", datalist)
+datafr_pl = do.call("rbind", datalist_pl)
 
 colnames(datafr_sub) <- c("Taxa", "Reaction", "Freq")
 colnames(datafr_pl) <- c("Taxa", "Reaction", "Freq")
@@ -1091,7 +1091,7 @@ table_all <- rbind(cbind(Layer = rep("SUR", nrow(table_sur)), table_sur),
                    cbind(Layer = rep("PL", nrow(table_pl)), table_pl)) %>%
   mutate(Layer = factor(Layer, levels = c("SUR", "SUB", "PL")))
 
-taxa_names <- table_all %>% select(Taxa, Freq) %>%
+taxa_names <- table_all %>% dplyr::select(Taxa, Freq) %>%
   group_by(Taxa) %>%
   summarise(sum = sum(Freq)) %>%
   arrange(desc(sum)) %>%
@@ -1193,6 +1193,7 @@ nodes[1:5, ]
 
 ```{r}
 # Give a color for each group
+
 my_color <- 'd3.scaleOrdinal() .domain(["a", "b", "c", "d", "e", "f", 
 "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", 
 "Carbon", "Nitrogen", "Sulfur", "Others", "my_unique_group"]) .range(["#4970a0", "#f8696b", "#FCCDE5",
@@ -1209,7 +1210,7 @@ P <- sankeyNetwork(Links = links, Nodes = nodes, Source = "IDsource", Target = "
                    nodeWidth = 30, nodePadding = 10, height = 1225, width = 1968,
                    sinksRight = F)
 # save the widget
-# 推荐使用htmlwidgets
+# recommend using htmlwidgets
 library(htmlwidgets)
 saveWidget(P, file = paste0(save.dir.revision, "/sankey_plot.html"))
 # library(webshot)

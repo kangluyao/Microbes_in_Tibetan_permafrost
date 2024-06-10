@@ -54,47 +54,6 @@ nrow(C_N_ko_tax_tab)
 nrow(C_N_ko_tax_path_tab)
 ```
 
-## heatmap
-```{r, fig.align='center', fig.width=8, fig.height=12}
-C_N_path1 <- C_N_ko_count_tab %>% 
-  inner_join(sel_ko, c("KO" = "KO")) %>% 
-  select(-c(1)) %>%
-  group_by(Category, Subcategory, Enzyme_protein_encoded) %>%
-  summarise(across(everything(), sum)) %>% data.frame() %>%
-  mutate(Subcategory = factor(Subcategory, levels = unique(sel_ko$Subcategory), ordered = T))
-C_N_path1 %>% filter(Category == "Carbon") %>% select(c(2, 3))
-C_N_path2 <- C_N_path1 %>% select(c(3:69)) %>% 
-  tibble::column_to_rownames('Enzyme_protein_encoded')
-# C_N_path2 <- C_N_ko_count_tab %>% 
-#   inner_join(sel_ko, c("KO" = "KO")) %>% 
-#   select(-c(Subcategory, KO)) %>%
-#   group_by(Enzyme_protein_encoded) %>%
-#   summarise(across(everything(), sum)) %>% data.frame() %>%
-#   pivot_longer(cols = -Enzyme_protein_encoded, names_to = 'sample_id', values_to = 'counts') %>%
-#   mutate(layer = gsub("_.+$", "", sample_id))
-
-# path_result <- C_N_path2 %>% select(-sample_id) %>% 
-#   group_by(Enzyme_protein_encoded, layer) %>%
-#   summarise_all(list(mean = mean, sd = sd, se = ~sd(./sqrt(.))))
-library(reshape2)
-# plot_dat <- log2(C_N_path2 + 1)
-plot_dat <- apply(C_N_path2, MARGIN = 2, FUN = scale)
-rownames(plot_dat) <- rownames(C_N_path2)
-plot_dat <- t(plot_dat)
-plot_dat <-  setNames(melt(plot_dat), c('samples', 'Enzyme_protein_encoded', 'values'))
-plot_dat$Enzyme_protein_encoded <- factor(plot_dat$Enzyme_protein_encoded, ordered = T,
-                                          levels = unique(sel_ko$Enzyme_protein_encoded))
-ggplot(plot_dat) +
-  geom_tile(aes(x = as.factor(samples), y = as.factor(Enzyme_protein_encoded), fill = values)) +
-  xlab('') + ylab('') + theme_linedraw() + 
-  guides(fill = guide_colourbar(barwidth = 0.5, barheight = 10)) +
-  scale_fill_gradientn(colours = c('white','#00A087FF'), values = c(0,1)) + 
-  #facet_grid(~Ecosystem, scales = 'free_x', space = 'free_x') +
-  theme(axis.title.x=element_blank(), panel.grid.minor = element_blank(), 
-        panel.grid.major = element_blank(), 
-        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1, size = 5), 
-        panel.spacing = unit(0, "lines"), strip.background = element_blank())
-```
 ##############################################################################################################
 ## edgeR analysis
 ```{r}
@@ -106,6 +65,15 @@ library("edgeR")
 data_classes <- "Layer"
 
 # Load Expression Data
+C_N_path1 <- C_N_ko_count_tab %>% 
+  inner_join(sel_ko, c("KO" = "KO")) %>% 
+  select(-c(1)) %>%
+  group_by(Category, Subcategory, Enzyme_protein_encoded) %>%
+  summarise(across(everything(), sum)) %>% data.frame() %>%
+  mutate(Subcategory = factor(Subcategory, levels = unique(sel_ko$Subcategory), ordered = T))
+C_N_path1 %>% filter(Category == "Carbon") %>% select(c(2, 3))
+C_N_path2 <- C_N_path1 %>% select(c(3:69)) %>% 
+  tibble::column_to_rownames('Enzyme_protein_encoded')
 RNASeq <- C_N_path2
 
 # Load subtype information
@@ -160,10 +128,10 @@ tt_survsrest <- topTags(survsrest, n = nrow(d))
 # Create g:Profiler input list
 # tt <- tt_exact_test
 #get the indices of scored dataset that have FDR < 0.05
-
+# write.table(tt_survsrest, file = "C:/Users/dell/Desktop/tt_survsrest.csv", row.names = T, sep = ',', quote = FALSE)
 select_sur_genes = tt_survsrest$table %>%  filter(FDR < 0.05)
 #output how many genes there are in the set that have FDR < 0.05
-nrow(select_sur_genes)
+select_sur_genes
 ```
 
 ## Compare SUB layer to the remaining two layers.
@@ -173,10 +141,11 @@ contrast_sub <- makeContrasts(
 fit_glm <- glmFit(d, modelDesign)
 subvsrest <- glmLRT(fit_glm , contrast = contrast_sub)
 tt_subvsrest <- topTags(subvsrest, n = nrow(d))
+# write.table(tt_subvsrest, file = "C:/Users/dell/Desktop/tt_subvsrest.csv", row.names = T, sep = ',', quote = FALSE)
 #get the indices of scored dataset that have FDR < 0.05
 select_sub_genes = tt_subvsrest$table %>% filter(FDR < 0.05)
 #output how many genes there are in the set that have FDR < 0.05
-nrow(select_sub_genes)
+select_sub_genes
 ```
 
 ## Compare PL layer to the remaining two layers.
@@ -186,10 +155,11 @@ contrast_pl <- makeContrasts(
 fit_glm <- glmFit(d, modelDesign)
 plvsrest <- glmLRT(fit_glm , contrast = contrast_pl)
 tt_plvsrest <- topTags(plvsrest, n = nrow(d))
+# write.table(tt_plvsrest, file = "C:/Users/dell/Desktop/tt_plvsrest.csv", row.names = T, sep = ',', quote = FALSE)
 #get the indices of scored dataset that have FDR < 0.05
 select_pl_genes = tt_plvsrest$table %>% filter(FDR < 0.05)
 #output how many genes there are in the set that have FDR < 0.05
-nrow(select_pl_genes)
+select_pl_genes
 ```
 
 

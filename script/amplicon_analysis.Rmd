@@ -85,7 +85,7 @@ p_faith <- ggplot(alpha_div, aes(x = Layers, y = Faith)) +
         panel.grid = element_blank())
 ```
 Then, we combine above two alpha diversity plot into one.
-```{r, fig.align='center', fig.width=8, fig.height=4}
+```{r, fig.align='center', fig.width=6.5, fig.height=3.5}
 cowplot::plot_grid(p_shannon, p_faith)
 ```
 ## Beta diversity
@@ -115,13 +115,7 @@ anosim(tax_dist, metadata$Layer, perm = 999)
 anosim(phy_dist, metadata$Layer, perm = 999)
 anosim(fun_dist, metadata$Layer, perm = 999)
 ```
-Pairwise adonis test
-```{r}
-set.seed(123)
-pairwise.adonis(tax_dist, metadata$Layer)
-pairwise.adonis(phy_dist, metadata$Layer)
-pairwise.adonis(fun_dist, metadata$Layer)
-```
+
 ### PCoA plot with bray-curties as distance
 ```{r, fig.align='center', fig.width=8, fig.height=6}
 # environment
@@ -213,28 +207,6 @@ pcoa_fun_plot <- data.frame(Layers = metadata$Layer, scores(ord.fun)) %>%
 # arrange the PCoA plot
 cowplot::plot_grid(pcoa_env_plot, pcoa_tax_plot, pcoa_unifrac_plot, pcoa_fun_plot)
 ```
-### Difference in environemtal variance among layers
-```{r}
-beta_env_plot <- sapply(unique(metadata$Layer), function(x) usedist::dist_subset(env_dist, grep(x, metadata$sample_id, value = T))) %>%
-  data.frame() %>% gather("Layers", "distance") %>%
-  mutate(Layers = factor(Layers, levels = c('SUR', 'SUB', 'PL'))) %>%
-  ggplot(aes(x = Layers, y = distance)) + 
-  geom_boxplot(width = 0.5, aes(fill = Layers)) +
-  scale_fill_manual(values = c("#f8766d", "#a3a500", "#00b0f6")) +
-  stat_compare_means(comparisons = my_comparisons,  paired = TRUE, 
-                     p.adjust.method = "BH", label = "p.signif") +
-  #scale_fill_manual(values= cols)+
-  labs(x = 'Layers', y = 'Environmental variance', fill='Layers') +
-  theme_bw() +
-  theme(axis.title = element_text(size = 12, colour = "black"),
-        axis.text = element_text(size = 10, colour = "black"),
-        legend.title = element_text(size = 12),
-        legend.text = element_text(size = 10),
-        panel.grid = element_blank())
-# ggsave(file.path(save.dir, "./figs/beta/env_variance.pdf"),
-#        beta_tax_plot, width = 89, height = 89, units = "mm")
-```
-
 
 ### Difference in taxonomic variance among layers
 ```{r}
@@ -245,7 +217,7 @@ beta_tax_plot <- sapply(unique(metadata$Layer), function(x) usedist::dist_subset
   geom_boxplot(width = 0.5, aes(fill = Layers)) +
   scale_fill_manual(values = c("#f8766d", "#a3a500", "#00b0f6")) +
   stat_compare_means(comparisons = my_comparisons,  paired = TRUE, 
-                     p.adjust.method = "BH", label = "p.signif") +
+                     p.adjust.method = "BH") +
   #scale_fill_manual(values= cols)+
   labs(x = 'Layers', y = 'Taxonomic variance', fill='Layers') +
   theme_bw() +
@@ -259,35 +231,12 @@ beta_tax_plot <- sapply(unique(metadata$Layer), function(x) usedist::dist_subset
 ```
 
 ### Difference in phylogenetic variance among layers
-First, we determine the betaMNTD.
-
-Method 1, using picante package.
+First, we determine the betaMNTD using picante package.
 ```{r}
 require(picante)
-beta.mntd.weighted <- as.matrix(comdistnt(t(data.frame(otu)), cophenetic(tree), abundance.weighted = T))
-```
-Method 2 (time efficiency)
-```{r}
-library(doParallel)  
-cores <- detectCores() - 2  #using multiple cores
+#Time consuming
+# beta.mntd.weighted <- as.matrix(comdistnt(t(data.frame(otu)), cophenetic(tree), abundance.weighted = T))
 
-p.dist.mat <- cophenetic(tree)
-get.presents <- function(x) {
-  names(x[x > 0])
-}
-list.of.names <- apply(otu, 2, get.presents)
-Dnn.apply.funtion <- function(x) {
-  tmp.function <- function(z) {
-    mean(c(apply(p.dist.mat[x, z], MARGIN = 1, min, na.rm = T), 
-         apply(p.dist.mat[x, z], MARGIN = 2, min, na.rm = T)))
-  }
-  lapply(list.of.names, FUN = tmp.function)
-}
-beta.mntd.weighted <- do.call(cbind, lapply(list.of.names, Dnn.apply.funtion))
-```
-
-Here, we read beta.mntd.weighted file directly.
-```{r}
 beta.mntd.weighted <- read.table(file.path(save.dir, './tables/beta.mntd.weighted.txt'),
                                  header = T, row.names = 1)
 beta_MNTD_plot <- sapply(unique(metadata$Layer), function(x) usedist::dist_subset(beta.mntd.weighted, grep(x, metadata$sample_id, value = T))) %>%
@@ -297,7 +246,7 @@ beta_MNTD_plot <- sapply(unique(metadata$Layer), function(x) usedist::dist_subse
   geom_boxplot(width = 0.5, aes(fill = Layers)) +
   scale_fill_manual(values = c("#f8766d", "#a3a500", "#00b0f6")) +
   stat_compare_means(comparisons = my_comparisons,  paired = TRUE, 
-                     p.adjust.method = "BH", label = "p.signif") +
+                     p.adjust.method = "BH") +
   #scale_fill_manual(values= cols)+
   labs(x = 'Layers', y = 'beta-MNTD', fill='Layers') +
   theme_bw() +
@@ -319,7 +268,7 @@ beta_fun_plot <- sapply(unique(metadata$Layer), function(x) usedist::dist_subset
   geom_boxplot(width = 0.5, aes(fill = Layers)) +
   scale_fill_manual(values = c("#f8766d", "#a3a500", "#00b0f6")) +
   stat_compare_means(comparisons = my_comparisons,  paired = TRUE, 
-                     p.adjust.method = "BH", label = "p.signif") +
+                     p.adjust.method = "BH") +
   #scale_fill_manual(values= cols)+
   labs(x = 'Layers', y = 'Functional variance', fill='Layers') +
   theme_bw() +
@@ -330,80 +279,12 @@ beta_fun_plot <- sapply(unique(metadata$Layer), function(x) usedist::dist_subset
         panel.grid = element_blank())
 # ggsave(file.path(save.dir, "./figs/beta/fun_variance.pdf"),
 #        beta_fun_plot, width = 89, height = 89, units = "mm")
+beta_fun_plot
 ```
 
 Then, we arrange the plot using cowplot package
-```{r, fig.align='center', fig.width=8, fig.height=6}
-cowplot::plot_grid(beta_env_plot, beta_tax_plot, beta_MNTD_plot, beta_fun_plot)
-```
-
-### Couple or decouple effect between taxonomic, phylogenetic and functional profile
-
-```{r}
-pcoa1_tax <- data.frame(Layers = metadata$Layer, scores(ord.tax)) %>%
-  mutate(Layers = factor(Layers, levels = c('SUR', 'SUB', 'PL')))
-pcoa1_phy <- data.frame(Layers = metadata$Layer, ord.phy$vectors[, 1:2]) %>%
-  mutate(Layers = factor(Layers, levels = c('SUR', 'SUB', 'PL')))
-pcoa1_fun <- data.frame(Layers = metadata$Layer, scores(ord.fun)) %>%
-  mutate(Layers = factor(Layers, levels = c('SUR', 'SUB', 'PL')))
-pcoa1_dat <- data.frame(pcoa1_tax[, 1:2], pcoa1_phy[,2], pcoa1_fun[,2])
-colnames(pcoa1_dat) <- c("Layers", "Taxnomic_PCoA1", "Phylogenetic_PCoA1", "Functional_PCoA1")
-```
-Regression plot with PcoA axis using ggplot
-```{r}
-library(ggpmisc)
-p_linear_fun_tax <- ggplot(pcoa1_dat, aes(x = Taxnomic_PCoA1, y = Functional_PCoA1, fill = Layers)) +
-  geom_point(size=3.5, alpha=0.8, aes(colour = Layers)) +
-  # geom_smooth(method="lm", size=1, se=T, colour='black') +
-  stat_poly_line(colour='black') +
-  stat_poly_eq(aes(label = paste(after_stat(eq.label),
-                                 after_stat(rr.label), sep = "*\", \"*"), colour = Layers)) +
-  scale_colour_manual(values = c("#f8766d", "#a3a500", "#00b0f6")) +
-  ylab("Taxnomic PCoA1")+xlab("Functional PCoA1") +
-  theme_bw() +
-  theme(panel.grid=element_blank(), 
-        axis.title = element_text(color = 'black', size = 6),
-        axis.ticks.length = unit(0.2, "lines"), axis.ticks = element_line(color = 'black'),
-        axis.line = element_blank(), 
-        axis.text = element_text(colour = 'black',size = 5),
-        strip.text = element_text(size = 6))
-
-```
-Regression plot with dbRDA axis using ggplot
-```{r}
-dist_tax <- sapply(unique(metadata$Layer), function(x) usedist::dist_subset(tax_dist, grep(x, metadata$sample_id, value = T))) %>%
-  data.frame() %>% gather("Layers", "distance") %>%
-  mutate(Layers = factor(Layers, levels = c('SUR', 'SUB', 'PL')))
-dist_phy <- sapply(unique(metadata$Layer), function(x) usedist::dist_subset(beta.mntd.weighted, grep(x, metadata$sample_id, value = T))) %>%
-  data.frame() %>% gather("Layers", "distance") %>%
-  mutate(Layers = factor(Layers, levels = c('SUR', 'SUB', 'PL')))
-dist_fun <- sapply(unique(metadata$Layer), function(x) usedist::dist_subset(fun_dist, grep(x, metadata$sample_id, value = T))) %>%
-  data.frame() %>% gather("Layers", "distance") %>%
-  mutate(Layers = factor(Layers, levels = c('SUR', 'SUB', 'PL')))
-dist_dat <- data.frame(dist_tax[, 1:2], dist_phy[,2], dist_fun[,2])
-colnames(dist_dat) <- c("Layers", "Taxnomic_distance", "Phylogenetic_distance", "Functional_distance")
-p_linear_phy_tax <- ggplot(dist_dat, aes(x = Phylogenetic_distance, y = Functional_distance, fill = Layers)) +
-  geom_point(size=3.5, alpha=0.8, aes(colour = Layers)) +
-  geom_smooth(method="lm", size=1, se=T, colour='black') +
-  scale_colour_manual(values = c("#f8766d", "#a3a500", "#00b0f6")) +
-  stat_poly_line(colour='black') +
-  stat_poly_eq(aes(label = paste(after_stat(eq.label),
-                                 after_stat(rr.label), sep = "*\", \"*"), colour = Layers)) +
-  ylab("Taxnomic distance")+xlab("Phylogenetic distance") +
-  theme_bw() +
-  theme(panel.grid=element_blank(), 
-        axis.title = element_text(color='black',size=14),
-        axis.ticks.length = unit(0.2,"lines"), axis.ticks = element_line(color='black'),
-        axis.line = element_blank(), 
-        axis.text.y = element_text(colour='black',size=12),
-        axis.text.x = element_text(colour='black', size = 12),
-        strip.text = element_text(size = 14),
-        legend.position='none')
-```
-
-
-```{r, fig.align='center', fig.width=8, fig.height=4}
-cowplot::plot_grid(p_linear_fun_tax, p_linear_phy_tax)
+```{r, fig.align='center', fig.width=8, fig.height=3.5}
+cowplot::plot_grid(beta_tax_plot, beta_MNTD_plot)
 ```
 
 ## Composition
@@ -507,29 +388,6 @@ mra.tab_level2 = top10phylum %>% group_by(level2) %>%
 order_level2 = mra.tab_level2$'level2'
 mra.tab_level2 [1:20, ]
 ```
-
-```{r, fig.width = 8, fig.height = 6}
-#stack bar plot
-taxa_barplot <- ggplot(top10phylum, aes(fill=level2, y=MRA, x=level1)) + 
-  geom_bar(position="stack", stat="identity") +
-  scale_fill_manual('Order', breaks = order_level2[1:15], 
-                    values = rep(c(rev(mycols[1:12]), mycols[-c(1:12)]), 20)[1:nrow(top10phylum)]) + #only the top 10 phylum and top 10 order are showed
-  labs(x = 'Phylum', y = 'Mean relative abundance (%)') +
-  scale_y_continuous(expand = c(0, 0), limits = c(0, 30)) +
-  theme_classic()+
-  theme(legend.position = c(0.6,0.6),
-        panel.grid=element_blank(), 
-        axis.title = element_text(color = 'black', size = 8),
-        axis.ticks.length = unit(0.4, "lines"), axis.ticks = element_line(color = 'black'),
-        axis.line = element_line(colour = "black"), 
-        axis.text.y = element_text(colour = 'black', size = 6),
-        axis.text.x = element_text(colour = 'black', size = 6, angle = 45, hjust = 1),
-        legend.text = element_text(size = 6),
-        legend.key = element_blank(),
-        legend.background = element_rect(colour = "white"))
-taxa_barplot
-```
-
 ### Determine the compositions within top 10 phylums for each layer
 ```{r}
 subphylo <- tax_glom(phylo, 'Phylum')
@@ -539,14 +397,14 @@ ra.tab <- otu_table(subphylo.rel)
 sum(ra.tab[, 1])
 subtaxa_tab <- tax_table(subphylo.rel)[, 2]
 Phylum_tax_table <- data.frame(subtaxa_tab, ra.tab) %>% 
-  mutate(MRA = rowMeans(select(., colnames(ra.tab)))) %>%
-  arrange(desc(MRA)) %>% dplyr::top_n(10, MRA) %>%
-  select(., -c('MRA')) %>% 
+  mutate(MRA = rowMeans(.[, colnames(ra.tab)])) %>%
+  arrange(desc(MRA)) %>% dplyr::top_n(10, MRA) %>% 
+  dplyr::select(-MRA) %>% 
   bind_rows(summarise_all(., ~if(is.numeric(.)) 1-sum(.) else "Others")) %>%
   mutate(Phylum = factor(Phylum, levels = Phylum)) %>%
   pivot_longer(cols = -c(Phylum), names_to = "Sample_name", values_to = 'rel_abun') %>%
-  right_join(data.frame(Sample_name = rownames(metadata), Layer = metadata$Layer), by = c("Sample_name")) %>%
-  select(., -c('Sample_name')) %>% 
+  right_join(data.frame(Sample_name = metadata$sample_id, Layer = metadata$Layer), by = c("Sample_name")) %>%
+  dplyr::select(-Sample_name) %>% 
   group_by(Layer, Phylum) %>%
   dplyr::summarise(across(, mean, na.rm = TRUE))
 print(Phylum_tax_table, n = 32)
@@ -556,9 +414,9 @@ print(Phylum_tax_table, n = 32)
 ## boxplot shows the community composition for each layer
 box_plot <- data.frame(subtaxa_tab, ra.tab) %>% group_by(Phylum) %>% 
   summarise(across(everything(), sum)) %>% 
-  mutate(MRA = rowMeans(select(., colnames(ra.tab)))) %>%
+  mutate(MRA = rowMeans(.[, colnames(ra.tab)])) %>%
   arrange(desc(MRA)) %>% dplyr::top_n(10, MRA) %>%
-  select(., -c('MRA')) %>% 
+  dplyr::select(-MRA) %>% 
   mutate(Phylum = factor(Phylum, levels = Phylum)) %>%
   tidyr::pivot_longer(cols = -c(Phylum), names_to = "sample_id", values_to = 'rel_abun') %>%
   mutate(layer = sapply(stringr::str_split(sample_id, "_",  n = 2), `[`, 1)) %>%
@@ -579,41 +437,6 @@ box_plot <- data.frame(subtaxa_tab, ra.tab) %>% group_by(Phylum) %>%
         legend.text = element_text(size = 6),
         panel.grid = element_blank())
 box_plot
-```
-### Barplot shows the community composition
-```{r, fig.width = 8, fig.height = 4.5}
-# Barplot shows the community composition for each sample
-bar_plot_each_sample <- data.frame(subtaxa_tab, ra.tab) %>% 
-  mutate(MRA = rowMeans(select(., colnames(ra.tab)))) %>%
-  arrange(desc(MRA)) %>% dplyr::top_n(10, MRA) %>%
-  select(., -c('MRA')) %>% 
-  bind_rows(summarise_all(., ~if(is.numeric(.)) 1-sum(.) else "Other")) %>%
-  mutate(Phylum = factor(Phylum, levels = Phylum)) %>%
-  pivot_longer(cols = -c(Phylum), names_to = "sample_id", values_to = 'rel_abun') %>%
-  mutate(layer = sapply(stringr::str_split(sample_id, "_",  n = 2), `[`, 1)) %>%
-  mutate(layer = factor(layer, levels = c('SUR', 'SUB', 'PL'))) %>%
-  ggplot(aes(x = sample_id, y = 100*rel_abun, fill = Phylum))+
-  geom_bar(stat = "identity") +
-  scale_fill_brewer(palette = "Paired")+
-  scale_y_continuous(expand = c(0,0))+
-  labs(x = 'Sample', y = 'Mean relative abundance (%)') +
-  theme_linedraw() + 
-  guides(fill = guide_legend(keywidth = 0.5, keyheight = 0.5)) +
-  facet_grid(~layer, scales = "free_x", space = "free_x") + 
-  theme(axis.title.x = element_blank(), 
-        axis.title.y = element_text(size = 8, colour = "black"),
-        panel.grid.minor = element_blank(), 
-        panel.grid.major = element_blank(), 
-        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1, size = 6), 
-        axis.text.y = element_text(size = 6), 
-        panel.spacing = unit(0, "lines"),
-        strip.text = element_blank(),
-        strip.background = element_blank(),
-        legend.title = element_text(size = 8), 
-        legend.text = element_text(size = 6))
-# ggsave(file.path(save.dir, "./figs/composition/tax_composition_10.pdf"), box_plot, width = 189, height = 95, units = "mm")  
-# ggsave(file.path(save.dir, "./figs/composition/tax_composition_bar.pdf"), bar_plot, width = 120, height = 65, units = "mm") 
-bar_plot_each_sample
 ```
 
 ```{r, fig.width = 8, fig.height = 6}
@@ -682,200 +505,5 @@ ggvenn(
   text_size = 4,
   show_percentage = F
 )
-```
-
-## NULL model analyse the ecological processes
-First, prepare for the community tables and phylogenetic trees for each layer
-```{r}
-save.dir = "E:/permafrost/result"
-if(!dir.exists(save.dir)){dir.create(save.dir)}
-setwd(save.dir)
-# prune the phylo object into three layers
-phylo_sur <- subset_samples(phylo, Layer == 'SUR')
-phylo_sur <- prune_taxa(taxa_sums(phylo_sur) >= 1, phylo_sur)
-phylo_sub <- subset_samples(phylo, Layer == 'SUB')
-phylo_sub <- prune_taxa(taxa_sums(phylo_sub) >= 1, phylo_sub)
-phylo_pl <- subset_samples(phylo, Layer == 'PL')
-phylo_pl <- prune_taxa(taxa_sums(phylo_pl) >= 1, phylo_pl)
-
-# extract the community tables and phylogenetic trees for each layer
-comm_sur <- t(otu_table(phylo_sur))
-tree_sur <- phy_tree(phylo_sur)
-
-comm_sub <- t(otu_table(phylo_sub))
-tree_sub <- phy_tree(phylo_sub)
-
-comm_pl <- t(otu_table(phylo_pl))
-tree_pl <- phy_tree(phylo_pl)
-```
-
-Community assembly analysis based on the iCAMP framwork developed by Ning et al (2020) 
-```{r}
-# Community assembly analysis based on the iCAMP framwork developed by Ning et al (2020) 
-# ses.cut = 1.96, with βNRI=1.96 as the threshold for homogeneous and heterogeneous selection; 
-# rc.cut=0.95, with RC=0.95 as the threshold for diffusion and drift.
-library(iCAMP)
-set.seed(123)
-icamp.sur.out <- icamp.big(comm = comm_sur, tree = tree_sur, pd.wd = paste0(save.dir,"/tables/null_model/sur"), 
-                       ses.cut = 1.96, rc.cut = 0.95, bin.size.limit = 24, 
-                       rand = 1000, nworker = 8)
-# Heterogeneous.Selection, Homogeneous Selection, Dispersal Limitation, Homogenizing.Dispersal, Drift and Others
-head(icamp.sur.out$CbMPDiCBraya)
-write.csv(icamp.sur.out$CbMPDiCBraya, 
-          file.path(save.dir, './tables/null_model/sur/iCAMP.process.CbMPDiCBraya.csv'))
-
-set.seed(123)
-icamp.sub.out <- icamp.big(comm = comm_sub, tree = tree_sub, pd.wd = paste0(save.dir,"/tables/null_model/sub"), 
-                           ses.cut = 1.96, rc.cut = 0.95, bin.size.limit = 24, 
-                           rand = 1000, nworker = 8)
-head(icamp.sub.out$CbMPDiCBraya)
-write.csv(icamp.sub.out$CbMPDiCBraya, 
-          file.path(save.dir, './tables/null_model/sub/iCAMP.process.CbMPDiCBraya.csv'))
-
-
-set.seed(123)
-icamp.pl.out <- icamp.big(comm = comm_pl, tree = tree_pl, 
-                          pd.wd = paste0(save.dir,"/tables/null_model/pl"),
-                          ses.cut = 1.96, rc.cut = 0.95, bin.size.limit = 24,
-                          rand = 1000, nworker = 8)
-head(icamp.pl.out$CbMPDiCBraya)
-# write.csv(icamp.pl.out$CbMPDiCBraya,
-#           file.path(save.dir, './tables/null_model/pl/iCAMP.process.CbMPDiCBraya.csv'))
-
-
-null_sur <- read.csv(file.path(save.dir, './tables/null_model/sur/iCAMP.process.CbMPDiCBraya.csv'),
-                     header = T, row.names = 1, stringsAsFactors = F)
-null_sub <- read.csv(file.path(save.dir, './tables/null_model/sub/iCAMP.process.CbMPDiCBraya.csv'),
-                     header = T, row.names = 1, stringsAsFactors = F)
-null_pl <- read.csv(file.path(save.dir, './tables/null_model/pl/iCAMP.process.CbMPDiCBraya.csv'),
-                    header = T, row.names = 1, stringsAsFactors = F)
-
-null_df <- rbind(cbind(layer = rep('SUR', nrow(null_sur)), null_sur[, 3:7]),
-                 cbind(layer = rep('SUB', nrow(null_sub)), null_sub[, 3:7]),
-                 cbind(layer = rep('PL', nrow(null_pl)), null_pl[, 3:7]))
-```
-
-Plot
-```{r, fig.align='center', fig.width=6.9, fig.height=8.9}
-legend_label_rep <- c("DL: Dispersal Limitation", "DR: Drift and Others",
-            "HoS: Homogeneous Selection", "HD: Homogenizing Dispersal",
-            "HeS: Heterogeneous Selection")
-
-rep_str <- list("Dispersal.Limitation" = "DL",
-            "Drift.and.Others" = "DR",
-            "Homogeneous.Selection" = "HoS",
-            "Homogenizing.Dispersal" = "HD",
-            "Heterogeneous.Selection" = "HeS"
-)
-
-# write a function to change the facet labels
-facet_labeller <- function(variable,value){
-  return(rep_str[value])
-}
-
-library(ggalluvial)
-# alluvial diagram
-null_plot <- null_df %>%
-  group_by(layer) %>%
-  summarise(across(everything(), mean)) %>%
-  pivot_longer(cols = -c(layer), names_to = "process", values_to = "value") %>%
-  mutate(layer = factor(layer, levels = c("SUR", "SUB", "PL"))) %>%
-  mutate(process = factor(process, levels = c('Dispersal.Limitation', 'Drift.and.Others', 'Homogeneous.Selection', 'Homogenizing.Dispersal', 'Heterogeneous.Selection'))) %>%
-  ggplot(aes(y = value, x = layer)) + 
-  geom_flow(aes(alluvium = process, fill = process,
-                color = process), alpha = 0.4, lty = 2, curve_type = "linear", width = 0.5) + 
-  geom_col(aes(fill = process), width = 0.5, color = "black") + 
-  labs(x = 'Layers', y = 'Relative importance', fill = 'Processes') +
-  # scale_fill_manual(values = c("#000000", "#294e63", "#496a80", "#7c98ac", "#b3c4d2")) + 
-  scale_y_continuous(expand = c(0, 0)) + theme_classic() +
-  theme(axis.title = element_text(colour = "black"),
-        axis.text = element_text(colour = "black"),
-        legend.key.size = unit(1,"line"))
-# ggsave(file.path(save.dir, './figs/null_model/null_stacked_plot.pdf'), null_plot, width = 6, height = 4)
-
-my_comparisons_process <- list( c("Heterogeneous.Selection", "Homogeneous.Selection"), 
-                              c('Heterogeneous.Selection', 'Dispersal.Limitation'), 
-                              c('Heterogeneous.Selection', 'Homogenizing.Dispersal'),
-                              c('Heterogeneous.Selection', 'Drift.and.Others'),
-                              c('Homogeneous.Selection', 'Dispersal.Limitation'),
-                              c('Homogeneous.Selection', 'Homogenizing.Dispersal'),
-                              c('Homogeneous.Selection', 'Drift.and.Others'),
-                              c('Dispersal.Limitation', 'Homogenizing.Dispersal'),
-                              c('Dispersal.Limitation', 'Drift.and.Others'),
-                              c('Homogenizing.Dispersal', 'Drift.and.Others'))
-process_within_layer <- null_df %>%
-  select(c('layer', 'Heterogeneous.Selection', 'Homogeneous.Selection', 'Dispersal.Limitation', 'Homogenizing.Dispersal', 'Drift.and.Others')) %>%
-  pivot_longer(cols = -c(layer), names_to = "process", values_to = "value") %>%
-  mutate(layer = factor(layer, levels = c("SUR", "SUB", "PL"))) %>%
-  mutate(process = factor(process, levels = c('Dispersal.Limitation', 'Drift.and.Others', 'Homogeneous.Selection', 'Homogenizing.Dispersal', 'Heterogeneous.Selection'))) %>%
-  ggplot(aes(process, value*100))+
-  geom_boxplot(width = 0.5, aes(fill = process))+
-  facet_grid(. ~ layer, scales = 'free_x', space = 'free_x') +
-  stat_compare_means(comparisons = my_comparisons_process, label = "p.signif") +
-  # scale_fill_manual(labels = legend_label_rep) +
-  labs(x = 'Ecological process', y = 'Relative importance (%)', fill = 'Process') +
-  scale_x_discrete(labels = rep_str) +
-  # scale_y_continuous(limits = c(0, 80)) +
-  theme_bw() +
-  theme(axis.title = element_text(colour = "black", size = 14),
-        axis.text = element_text(colour = "black", size = 12),
-        strip.text = element_text(colour = "black", size = 12),
-        legend.key.size = unit(1,"line"),
-        panel.grid = element_blank(),
-        panel.spacing = unit(0, "lines"),
-        legend.position = "none")
-# ggsave(file.path(save.dir, './figs/null_model/process_within_layer.pdf'), process_within_layer, width = 8, height = 3)
-
-#boxplot
-library(ggpubr)
-my_comparisons_layer <- list( c("SUR", "SUB"), c("SUB", "PL"), c("SUR", "PL"))
-process_among_layers <- null_df %>%
-  select(c('layer', 'Heterogeneous.Selection', 'Homogeneous.Selection', 'Dispersal.Limitation', 'Homogenizing.Dispersal', 'Drift.and.Others')) %>%
-  pivot_longer(cols = -c(layer), names_to = "process", values_to = "value") %>%
-  mutate(layer = factor(layer, levels = c("SUR", "SUB", "PL"))) %>%
-  mutate(process = factor(process, levels = c('Dispersal.Limitation', 'Drift.and.Others', 'Homogeneous.Selection', 'Homogenizing.Dispersal', 'Heterogeneous.Selection'))) %>%
-  ggplot(aes(layer, value*100))+
-  geom_boxplot(width = 0.5, aes(fill = process))+
-  facet_grid(. ~ process, scales = 'free_x', space = 'free_x', labeller = facet_labeller) +
-  stat_compare_means(comparisons = my_comparisons_layer, label = "p.signif") +
-  # scale_fill_manual(labels = legend_label_rep) +
-  labs(x = 'Layers', y = 'Relative importance (%)', fill = 'Process') +
-  scale_y_continuous(limits = c(0, 80)) +
-  theme_bw() +
-  theme(axis.title = element_text(colour = "black", size = 14),
-        axis.text = element_text(colour = "black", size = 12),
-        strip.text = element_text(colour = "black", size = 12),
-        legend.key.size = unit(1,"line"),
-        panel.grid = element_blank(),
-        panel.spacing = unit(0, "lines"),
-        legend.position = "none")
-# ggsave(file.path(save.dir, './figs/null_model/process_among_layers.pdf'), process_among_layers, width = 8, height = 3)
-
-cowplot::plot_grid(process_within_layer, process_among_layers, ncol = 1)
-```
-
-```{r}
-library(ggpubr)
-my_comparisons_layer <- list( c("SUR", "SUB"), c("SUB", "PL"), c("SUR", "PL"))
-p1 <- null_df %>%
-  select(c('layer', 'Heterogeneous.Selection', 'Homogenizing.Dispersal')) %>%
-  pivot_longer(cols = -c(layer), names_to = "process", values_to = "value") %>%
-  mutate(layer = factor(layer, levels = c("SUR", "SUB", "PL"))) %>%
-  mutate(process = factor(process, levels = c('Homogenizing.Dispersal', 'Heterogeneous.Selection'))) %>%
-  ggplot(aes(layer, value*100))+
-  geom_boxplot(width = 0.5, aes(fill = process))+
-  facet_grid(. ~ process, scales = 'free_x', space = 'free_x') +
-  stat_compare_means(comparisons = my_comparisons_layer, label = "p.signif") +
-  # scale_fill_manual(labels = legend_label_rep) +
-  labs(x = 'Layers', y = 'Relative importance (%)', fill = 'Process') +
-  theme_bw() +
-  theme(axis.title = element_text(colour = "black", size = 14),
-        axis.text = element_text(colour = "black", size = 12),
-        strip.text = element_text(colour = "black", size = 12),
-        legend.key.size = unit(1,"line"),
-        panel.grid = element_blank(),
-        panel.spacing = unit(0, "lines"),
-        legend.position = "none")
-p1
 ```
 
