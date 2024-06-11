@@ -91,7 +91,6 @@ cowplot::plot_grid(p_shannon, p_faith)
 ## Beta diversity
 ```{r}
 library(vegan)
-library(pairwiseAdonis)
 ## taxonomy
 ### PERMANOVA test
 env_dist <- as.matrix(vegdist(scale(metadata[,-c(1:4)]), "euclidean" ))

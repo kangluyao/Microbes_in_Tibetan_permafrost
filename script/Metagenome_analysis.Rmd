@@ -148,7 +148,8 @@ tax_tab %>% dplyr::select(c("Class")) %>%
   summarise(across(everything(), sum)) %>%
   arrange(desc(number)) %>%
   mutate(Class = gsub("c__", "", Class)) %>%
-  mutate(Class = factor(Class, levels = Class)) %>%
+  mutate(Class = factor(Class, levels = Class)) %>% 
+  filter(!Class %in% "") %>% #remove one row with the class of empty
   ggplot(aes(x = Class, y = number)) +
   geom_bar(stat = "identity", fill = "#0073c2", width = 0.65) +
   scale_y_continuous(limits = c(0, 45), expand = c(0, 0)) +
@@ -453,10 +454,10 @@ links_datset[1:5, ]
 
 ```{r}
 # Give a color for each group
-my_color <- 'd3.scaleOrdinal() .domain(["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v","Carbon", "Nitrogen", "Sulfur", "Others", "my_unique_group"]) .range(["#4970a0", "#f8696b", "#FCCDE5", "#6A3D9A", "#1F78B4", "#FDB462", "#80B1D3", "#BEBADA", "#c988d1", "#A6CEE3", "#8DD3C7", "#B2DF8A", "#33A02C", "#FB9A99", "#FFFFB3", "#FDBF6F", "#E31A1C", "#d5416a","#FB8072", "#d87a71","#6a75d5", "#76c2d7", "#d87a71", "#FF7F00", "#836834", "#c0c0c0", "#A6CEE3"])'
+my_color <- 'd3.scaleOrdinal() .domain(["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v","Carbon", "Nitrogen", "Sulfur", "Others", "my_unique_group"]) .range(["#4970a0", "#f8696b", "#FCCDE5", "#6A3D9A", "#1F78B4", "#FDB462", "#80B1D3", "#BEBADA", "#c988d1", "#A6CEE3", "#8DD3C7", "#B2DF8A", "#33A02C", "#FB9A99", "#FFFFB3", "#FDBF6F", "#E31A1C", "#d5416a","#FB8072", "#d87a71","#6a75d5", "#76c2d7", "#d87a71", "#FF7F00", "#836834", "#A6CEE3", "#c0c0c0"])'
 
 # Make the Network. I call my colour scale with the colourScale argument
-P <- sankeyNetwork(Links = links_datset, Nodes = nodes, 
+p <- sankeyNetwork(Links = links_datset, Nodes = nodes, 
                    Source = "IDsource", Target = "IDtarget", 
                    Value = "value", NodeID = "name", colourScale = my_color, 
                    LinkGroup = "group", NodeGroup = "group", iterations = 0, 
@@ -466,11 +467,11 @@ P <- sankeyNetwork(Links = links_datset, Nodes = nodes,
 # save the widget
 # recommend htmlwidgets
 library(htmlwidgets)
-# saveWidget(p, file = paste0(sankey.plots.folder, "/sankey_plot.html"))
+saveWidget(p, file = paste0(sankey.plots.folder, "/sankey_plot24_6_10.html"))
 # library(webshot)
 # install phantom:
 # webshot::install_phantomjs()
 # Make a webshot in pdf : high quality but can not choose printed zone
 # webshot(paste0(sankey.plots.folder, "/sankey_plot.html"), delay = 0.2)
-P
+p
 ```
