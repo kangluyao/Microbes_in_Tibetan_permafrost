@@ -1,0 +1,233 @@
+Desulfobacterota	C-S-01:Organic carbon oxidation	0.052468764
+Desulfobacterota	C-S-02:Carbon fixation	0.052468764
+Desulfobacterota	C-S-06:Fermentation	0.052468764
+Desulfobacterota	N-S-05:Nitrite reduction	0.052468764
+Desulfobacterota	N-S-06:Nitric oxide reduction	0.052468764
+Desulfobacterota	N-S-08:Nitrite ammonification	0.052468764
+Desulfobacterota	S-S-03:Sulfur oxidation	0.052468764
+Desulfobacterota	S-S-09:Thiosulfate disproportionation 2	0.052468764
+Alphaproteobacteria	C-S-01:Organic carbon oxidation	0.018785394
+Alphaproteobacteria	C-S-04:Acetate oxidation	0.018785394
+Alphaproteobacteria	C-S-06:Fermentation	0.018785394
+Alphaproteobacteria	O-S-01:Iron reduction	0.018785394
+Alphaproteobacteria	S-S-03:Sulfur oxidation	0.018785394
+Thermoproteota	C-S-01:Organic carbon oxidation	0.009710255
+Thermoproteota	C-S-04:Acetate oxidation	0.009710255
+Thermoproteota	C-S-06:Fermentation	0.009710255
+Thermoproteota	N-S-02:Ammonia oxidation	0.009710255
+Thermoproteota	O-S-01:Iron reduction	0.009710255
+Alphaproteobacteria	C-S-01:Organic carbon oxidation	0.054661639
+Alphaproteobacteria	C-S-04:Acetate oxidation	0.054661639
+Alphaproteobacteria	C-S-06:Fermentation	0.054661639
+Alphaproteobacteria	O-S-01:Iron reduction	0.054661639
+Alphaproteobacteria	S-S-03:Sulfur oxidation	0.054661639
+Thermoproteota	C-S-01:Organic carbon oxidation	0.009959798
+Thermoproteota	C-S-06:Fermentation	0.009959798
+Thermoproteota	N-S-02:Ammonia oxidation	0.009959798
+Thermoproteota	O-S-01:Iron reduction	0.009959798
+Thermoproteota	S-S-03:Sulfur oxidation	0.009959798
+Thermoproteota	S-S-04:Sulfite oxidation	0.009959798
+Thermoproteota	S-S-05:Sulfate reduction	0.009959798
+Actinobacteriota	C-S-01:Organic carbon oxidation	0.005260495
+Actinobacteriota	C-S-02:Carbon fixation	0.005260495
+Actinobacteriota	C-S-04:Acetate oxidation	0.005260495
+Actinobacteriota	C-S-06:Fermentation	0.005260495
+Actinobacteriota	C-S-09:Hydrogen oxidation	0.005260495
+Actinobacteriota	N-S-06:Nitric oxide reduction	0.005260495
+Actinobacteriota	N-S-08:Nitrite ammonification	0.005260495
+Actinobacteriota	O-S-03:Arsenate reduction	0.005260495
+Gammaproteobacteria	C-S-01:Organic carbon oxidation	0.01474544
+Gammaproteobacteria	C-S-04:Acetate oxidation	0.01474544
+Gammaproteobacteria	C-S-06:Fermentation	0.01474544
+Gammaproteobacteria	C-S-09:Hydrogen oxidation	0.01474544
+Gammaproteobacteria	N-S-04:Nitrate reduction	0.01474544
+Gammaproteobacteria	N-S-08:Nitrite ammonification	0.01474544
+Gammaproteobacteria	O-S-01:Iron reduction	0.01474544
+Gammaproteobacteria	O-S-02:Iron oxidation	0.01474544
+Gammaproteobacteria	S-S-07:Thiosulfate oxidation	0.01474544
+Actinobacteriota	C-S-01:Organic carbon oxidation	0.006430409
+Actinobacteriota	C-S-04:Acetate oxidation	0.006430409
+Actinobacteriota	C-S-06:Fermentation	0.006430409
+Actinobacteriota	O-S-01:Iron reduction	0.006430409
+Actinobacteriota	S-S-04:Sulfite oxidation	0.006430409
+Actinobacteriota	S-S-05:Sulfate reduction	0.006430409
+Alphaproteobacteria	C-S-01:Organic carbon oxidation	0.065875635
+Alphaproteobacteria	C-S-02:Carbon fixation	0.065875635
+Alphaproteobacteria	C-S-04:Acetate oxidation	0.065875635
+Alphaproteobacteria	C-S-06:Fermentation	0.065875635
+Alphaproteobacteria	C-S-09:Hydrogen oxidation	0.065875635
+Alphaproteobacteria	O-S-01:Iron reduction	0.065875635
+Alphaproteobacteria	O-S-02:Iron oxidation	0.065875635
+Actinobacteriota	C-S-01:Organic carbon oxidation	0.023218646
+Actinobacteriota	C-S-02:Carbon fixation	0.023218646
+Actinobacteriota	C-S-04:Acetate oxidation	0.023218646
+Actinobacteriota	C-S-06:Fermentation	0.023218646
+Actinobacteriota	C-S-08:Methanotrophy	0.023218646
+Actinobacteriota	O-S-01:Iron reduction	0.023218646
+Actinobacteriota	S-S-01:Sulfide oxidation	0.023218646
+Actinobacteriota	S-S-03:Sulfur oxidation	0.023218646
+Alphaproteobacteria	C-S-01:Organic carbon oxidation	0.01849559
+Alphaproteobacteria	C-S-06:Fermentation	0.01849559
+Alphaproteobacteria	N-S-05:Nitrite reduction	0.01849559
+Alphaproteobacteria	N-S-08:Nitrite ammonification	0.01849559
+Alphaproteobacteria	O-S-01:Iron reduction	0.01849559
+Alphaproteobacteria	O-S-02:Iron oxidation	0.01849559
+Actinobacteriota	C-S-01:Organic carbon oxidation	0.012817013
+Actinobacteriota	C-S-04:Acetate oxidation	0.012817013
+Actinobacteriota	C-S-06:Fermentation	0.012817013
+Actinobacteriota	S-S-03:Sulfur oxidation	0.012817013
+Actinobacteriota	S-S-04:Sulfite oxidation	0.012817013
+Actinobacteriota	S-S-05:Sulfate reduction	0.012817013
+Firmicutes	C-S-01:Organic carbon oxidation	0.00491365
+Firmicutes	C-S-06:Fermentation	0.00491365
+Firmicutes	N-S-08:Nitrite ammonification	0.00491365
+Firmicutes	O-S-01:Iron reduction	0.00491365
+Acidobacteriota	C-S-01:Organic carbon oxidation	0.003964437
+Acidobacteriota	C-S-04:Acetate oxidation	0.003964437
+Acidobacteriota	C-S-06:Fermentation	0.003964437
+Acidobacteriota	C-S-09:Hydrogen oxidation	0.003964437
+Acidobacteriota	N-S-08:Nitrite ammonification	0.003964437
+Acidobacteriota	O-S-01:Iron reduction	0.003964437
+Acidobacteriota	O-S-02:Iron oxidation	0.003964437
+Acidobacteriota	S-S-04:Sulfite oxidation	0.003964437
+Acidobacteriota	S-S-05:Sulfate reduction	0.003964437
+Acidobacteriota	S-S-09:Thiosulfate disproportionation 2	0.003964437
+Alphaproteobacteria	C-S-01:Organic carbon oxidation	0.020217502
+Alphaproteobacteria	C-S-04:Acetate oxidation	0.020217502
+Alphaproteobacteria	C-S-06:Fermentation	0.020217502
+Alphaproteobacteria	O-S-01:Iron reduction	0.020217502
+Alphaproteobacteria	O-S-02:Iron oxidation	0.020217502
+Alphaproteobacteria	S-S-03:Sulfur oxidation	0.020217502
+Alphaproteobacteria	S-S-09:Thiosulfate disproportionation 2	0.020217502
+Actinobacteriota	C-S-01:Organic carbon oxidation	0.022989608
+Actinobacteriota	C-S-02:Carbon fixation	0.022989608
+Actinobacteriota	C-S-04:Acetate oxidation	0.022989608
+Actinobacteriota	C-S-06:Fermentation	0.022989608
+Actinobacteriota	N-S-06:Nitric oxide reduction	0.022989608
+Actinobacteriota	O-S-01:Iron reduction	0.022989608
+Actinobacteriota	S-S-03:Sulfur oxidation	0.022989608
+Actinobacteriota	C-S-01:Organic carbon oxidation	0.053354568
+Actinobacteriota	C-S-04:Acetate oxidation	0.053354568
+Actinobacteriota	C-S-06:Fermentation	0.053354568
+Actinobacteriota	C-S-09:Hydrogen oxidation	0.053354568
+Actinobacteriota	N-S-04:Nitrate reduction	0.053354568
+Actinobacteriota	O-S-01:Iron reduction	0.053354568
+Thermoproteota	C-S-01:Organic carbon oxidation	0.009876494
+Thermoproteota	C-S-04:Acetate oxidation	0.009876494
+Thermoproteota	C-S-06:Fermentation	0.009876494
+Thermoproteota	N-S-02:Ammonia oxidation	0.009876494
+Thermoproteota	O-S-01:Iron reduction	0.009876494
+Thermoproteota	S-S-03:Sulfur oxidation	0.009876494
+Thermoproteota	S-S-04:Sulfite oxidation	0.009876494
+Thermoproteota	S-S-05:Sulfate reduction	0.009876494
+Acidobacteriota	C-S-01:Organic carbon oxidation	0.002981123
+Acidobacteriota	C-S-04:Acetate oxidation	0.002981123
+Acidobacteriota	C-S-06:Fermentation	0.002981123
+Acidobacteriota	C-S-09:Hydrogen oxidation	0.002981123
+Acidobacteriota	N-S-08:Nitrite ammonification	0.002981123
+Acidobacteriota	O-S-01:Iron reduction	0.002981123
+Acidobacteriota	S-S-04:Sulfite oxidation	0.002981123
+Acidobacteriota	S-S-05:Sulfate reduction	0.002981123
+Acidobacteriota	S-S-08:Thiosulfate disproportionation 1	0.002981123
+Actinobacteriota	C-S-01:Organic carbon oxidation	0.005784543
+Actinobacteriota	C-S-06:Fermentation	0.005784543
+Actinobacteriota	O-S-01:Iron reduction	0.005784543
+Actinobacteriota	C-S-01:Organic carbon oxidation	0.00591414
+Actinobacteriota	C-S-02:Carbon fixation	0.00591414
+Actinobacteriota	C-S-04:Acetate oxidation	0.00591414
+Actinobacteriota	C-S-06:Fermentation	0.00591414
+Actinobacteriota	C-S-09:Hydrogen oxidation	0.00591414
+Actinobacteriota	N-S-06:Nitric oxide reduction	0.00591414
+Actinobacteriota	O-S-01:Iron reduction	0.00591414
+Actinobacteriota	C-S-01:Organic carbon oxidation	0.004160546
+Actinobacteriota	C-S-04:Acetate oxidation	0.004160546
+Actinobacteriota	C-S-06:Fermentation	0.004160546
+Actinobacteriota	O-S-01:Iron reduction	0.004160546
+Actinobacteriota	S-S-04:Sulfite oxidation	0.004160546
+Actinobacteriota	S-S-05:Sulfate reduction	0.004160546
+Actinobacteriota	C-S-01:Organic carbon oxidation	0.009404538
+Actinobacteriota	C-S-04:Acetate oxidation	0.009404538
+Actinobacteriota	C-S-06:Fermentation	0.009404538
+Actinobacteriota	C-S-09:Hydrogen oxidation	0.009404538
+Actinobacteriota	N-S-06:Nitric oxide reduction	0.009404538
+Actinobacteriota	N-S-08:Nitrite ammonification	0.009404538
+Actinobacteriota	O-S-01:Iron reduction	0.009404538
+Actinobacteriota	S-S-03:Sulfur oxidation	0.009404538
+Actinobacteriota	S-S-04:Sulfite oxidation	0.009404538
+Actinobacteriota	S-S-05:Sulfate reduction	0.009404538
+Actinobacteriota	C-S-01:Organic carbon oxidation	0.004874068
+Actinobacteriota	C-S-04:Acetate oxidation	0.004874068
+Actinobacteriota	C-S-06:Fermentation	0.004874068
+Actinobacteriota	O-S-01:Iron reduction	0.004874068
+Actinobacteriota	S-S-03:Sulfur oxidation	0.004874068
+Actinobacteriota	S-S-04:Sulfite oxidation	0.004874068
+Actinobacteriota	S-S-05:Sulfate reduction	0.004874068
+Alphaproteobacteria	C-S-01:Organic carbon oxidation	0.063607273
+Alphaproteobacteria	C-S-04:Acetate oxidation	0.063607273
+Alphaproteobacteria	C-S-06:Fermentation	0.063607273
+Alphaproteobacteria	C-S-09:Hydrogen oxidation	0.063607273
+Alphaproteobacteria	N-S-05:Nitrite reduction	0.063607273
+Alphaproteobacteria	N-S-06:Nitric oxide reduction	0.063607273
+Alphaproteobacteria	N-S-08:Nitrite ammonification	0.063607273
+Alphaproteobacteria	O-S-01:Iron reduction	0.063607273
+Actinobacteriota	C-S-01:Organic carbon oxidation	0.015089415
+Actinobacteriota	C-S-04:Acetate oxidation	0.015089415
+Actinobacteriota	C-S-06:Fermentation	0.015089415
+Actinobacteriota	C-S-09:Hydrogen oxidation	0.015089415
+Actinobacteriota	O-S-01:Iron reduction	0.015089415
+Actinobacteriota	S-S-03:Sulfur oxidation	0.015089415
+Gammaproteobacteria	C-S-01:Organic carbon oxidation	0.013718936
+Gammaproteobacteria	C-S-06:Fermentation	0.013718936
+Gammaproteobacteria	C-S-09:Hydrogen oxidation	0.013718936
+Gammaproteobacteria	N-S-04:Nitrate reduction	0.013718936
+Gammaproteobacteria	N-S-08:Nitrite ammonification	0.013718936
+Gammaproteobacteria	O-S-01:Iron reduction	0.013718936
+Gammaproteobacteria	O-S-02:Iron oxidation	0.013718936
+Gammaproteobacteria	S-S-07:Thiosulfate oxidation	0.013718936
+Actinobacteriota	C-S-01:Organic carbon oxidation	0.018001685
+Actinobacteriota	C-S-06:Fermentation	0.018001685
+Actinobacteriota	C-S-09:Hydrogen oxidation	0.018001685
+Actinobacteriota	N-S-08:Nitrite ammonification	0.018001685
+Actinobacteriota	O-S-01:Iron reduction	0.018001685
+Actinobacteriota	C-S-01:Organic carbon oxidation	0.021812577
+Actinobacteriota	C-S-04:Acetate oxidation	0.021812577
+Actinobacteriota	C-S-05:Hydrogen generation	0.021812577
+Actinobacteriota	C-S-06:Fermentation	0.021812577
+Actinobacteriota	C-S-09:Hydrogen oxidation	0.021812577
+Actinobacteriota	O-S-01:Iron reduction	0.021812577
+Actinobacteriota	S-S-03:Sulfur oxidation	0.021812577
+Actinobacteriota	S-S-04:Sulfite oxidation	0.021812577
+Actinobacteriota	S-S-05:Sulfate reduction	0.021812577
+Actinobacteriota	C-S-01:Organic carbon oxidation	0.050606456
+Actinobacteriota	C-S-02:Carbon fixation	0.050606456
+Actinobacteriota	C-S-04:Acetate oxidation	0.050606456
+Actinobacteriota	C-S-06:Fermentation	0.050606456
+Actinobacteriota	C-S-09:Hydrogen oxidation	0.050606456
+Actinobacteriota	N-S-06:Nitric oxide reduction	0.050606456
+Actinobacteriota	O-S-01:Iron reduction	0.050606456
+Actinobacteriota	S-S-03:Sulfur oxidation	0.050606456
+Actinobacteriota	S-S-04:Sulfite oxidation	0.050606456
+Actinobacteriota	S-S-05:Sulfate reduction	0.050606456
+Actinobacteriota	C-S-01:Organic carbon oxidation	0.079226814
+Actinobacteriota	C-S-02:Carbon fixation	0.079226814
+Actinobacteriota	C-S-06:Fermentation	0.079226814
+Actinobacteriota	C-S-09:Hydrogen oxidation	0.079226814
+Actinobacteriota	O-S-01:Iron reduction	0.079226814
+Actinobacteriota	S-S-09:Thiosulfate disproportionation 2	0.079226814
+Alphaproteobacteria	C-S-01:Organic carbon oxidation	0.147363044
+Alphaproteobacteria	C-S-06:Fermentation	0.147363044
+Alphaproteobacteria	O-S-01:Iron reduction	0.147363044
+Actinobacteriota	C-S-01:Organic carbon oxidation	0.0538173
+Actinobacteriota	C-S-05:Hydrogen generation	0.0538173
+Actinobacteriota	C-S-06:Fermentation	0.0538173
+Actinobacteriota	C-S-09:Hydrogen oxidation	0.0538173
+Actinobacteriota	N-S-06:Nitric oxide reduction	0.0538173
+Actinobacteriota	O-S-01:Iron reduction	0.0538173
+Actinobacteriota	S-S-03:Sulfur oxidation	0.0538173
+Alphaproteobacteria	C-S-01:Organic carbon oxidation	0.095892208
+Alphaproteobacteria	C-S-06:Fermentation	0.095892208
+Alphaproteobacteria	C-S-09:Hydrogen oxidation	0.095892208
+Alphaproteobacteria	N-S-01:Nitrogen fixation	0.095892208
+Alphaproteobacteria	N-S-06:Nitric oxide reduction	0.095892208
+Alphaproteobacteria	N-S-08:Nitrite ammonification	0.095892208
+Alphaproteobacteria	O-S-01:Iron reduction	0.095892208
