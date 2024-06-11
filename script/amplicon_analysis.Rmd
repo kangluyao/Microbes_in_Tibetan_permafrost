@@ -117,27 +117,6 @@ anosim(fun_dist, metadata$Layer, perm = 999)
 
 ### PCoA plot with bray-curties as distance
 ```{r, fig.align='center', fig.width=8, fig.height=6}
-# environment
-ord.env <-  cmdscale(env_dist,  k = 2, eig = T, add = T)
-pcoa_env_plot <- data.frame(Layers = metadata$Layer, scores(ord.env)) %>%
-  mutate(Layers = factor(Layers, levels = c('SUR', 'SUB', 'PL'))) %>%
-  ggplot(aes(x = Dim1, y = Dim2, shape = Layers, color = Layers)) + 
-  geom_point(size = 1, alpha = 0.8) + 
-  stat_ellipse(geom = "polygon", aes(fill = Layers), alpha = 0.2, show.legend = FALSE, level = 0.95) +
-  scale_colour_manual(values = c("#f8766d", "#a3a500", "#00b0f6")) +
-  scale_fill_manual(values = c("#f8766d", "#a3a500", "#00b0f6")) +
-  labs(x=paste("PCoA1 (", format(100 * ord.env$eig[1] / sum(ord.env$eig), digits = 3), "%)", sep = ""),
-       y=paste("PCoA2 (", format(100 * ord.env$eig[2] / sum(ord.env$eig), digits = 3), "%)", sep = "")) +
-  theme(axis.title = element_text(size = 8, colour = "black"),
-        axis.text = element_text(size = 6, colour = "black"),
-        legend.title = element_text(size = 8),
-        legend.text = element_text(size = 6),
-        panel.grid = element_blank(),
-        panel.background = element_blank(), 
-        panel.border = element_rect(fill = NA, colour = "black"))
-# ggsave(file.path(save.dir, "./figs/beta/PCoA_env_bray.pdf"),
-#        pcoa_tax_plot, width = 89, height = 59, units = "mm")
-
 # taxa
 ord.tax <-  cmdscale(tax_dist,  k = 2, eig = T, add = T)
 pcoa_tax_plot <- data.frame(Layers = metadata$Layer, scores(ord.tax)) %>%
@@ -204,7 +183,7 @@ pcoa_fun_plot <- data.frame(Layers = metadata$Layer, scores(ord.fun)) %>%
 #        pcoa_fun_plot, width = 89, height = 59, units = "mm")
 
 # arrange the PCoA plot
-cowplot::plot_grid(pcoa_env_plot, pcoa_tax_plot, pcoa_unifrac_plot, pcoa_fun_plot)
+cowplot::plot_grid(pcoa_tax_plot, pcoa_unifrac_plot, pcoa_fun_plot)
 ```
 
 ### Difference in taxonomic variance among layers
