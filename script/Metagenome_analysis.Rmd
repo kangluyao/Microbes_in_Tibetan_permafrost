@@ -333,9 +333,9 @@ pacman::p_load(ggthemes, networkD3, data.table)
 
 Input files
 ```{r}
-sur_input_table <- file.path(wd_fun, "metabolic/METABOLIC_70_layer_rare/METABOLIC_70_sur/METABOLIC_Figures_Input/Metabolic_Sankey_diagram_input.txt")
-sub_input_table <- file.path(wd_fun, "metabolic/METABOLIC_70_layer_rare/METABOLIC_70_sub/METABOLIC_Figures_Input/Metabolic_Sankey_diagram_input_rare.txt")
-pl_input_table <- file.path(wd_fun, "metabolic/METABOLIC_70_layer_rare/METABOLIC_70_pl/METABOLIC_Figures_Input/Metabolic_Sankey_diagram_input_rare.txt")
+sur_input_table <- file.path(wd_fun, "metabolic/Metabolic_Sankey_diagram/Metabolic_Sankey_diagram_sur_input_rare.txt")
+sub_input_table <- file.path(wd_fun, "metabolic/Metabolic_Sankey_diagram/Metabolic_Sankey_diagram_sub_input_rare.txt")
+pl_input_table <- file.path(wd_fun, "metabolic/Metabolic_Sankey_diagram/Metabolic_Sankey_diagram_pl_input_rare.txt")
 ```
 
 Generate a snakey plot with reactions as node, and edges are MAGs, and are colored by taxonomic group.

@@ -12,31 +12,35 @@
 .
 ├── data1
     ├── 16S
-        ├── metadata.txt                        <--metadata including the climatic, vegetable for samples
-        ├── otus.nwk                            <--phylogenetic tree for ASVs
-        ├── otutab.txt                          <--ASV table
-        ├── otutab_rare.txt                     <--Rarefy ASV table
-        └── taxonomy.txt                        <--Taxonomic table
+        ├── metadata.txt                                            <--metadata including the climatic, vegetable for samples
+        ├── otus.nwk                                                <--phylogenetic tree for ASVs
+        ├── otutab.txt                                              <--ASV table
+        ├── otutab_rare.txt                                         <--Rarefy ASV table
+        └── taxonomy.txt                                            <--Taxonomic table
     ├── Functional genes
-        ├── eggnog.KEGG_ko.raw.counts.txt       <-- KEGG KO table with row counts
-        └── eggnog.KEGG_ko.raw.tpm.txt          <-- KEGG KO table with TPM tansformation
+        ├── eggnog.KEGG_ko.raw.counts.txt                           <-- KEGG KO table with row counts
+        └── eggnog.KEGG_ko.raw.tpm.txt                              <-- KEGG KO table with TPM tansformation
     ├── Metabolic
-        ├── bin_abundance_table.tab             <-- Abundance table for each bin
-        ├── METABOLIC_result.xlsx               <-- Summary of the presence/absence of functional genes on each genome
-        ├── MW_score_result.csv                 <-- Resuts of metabolic weighted scores for the metagenomic assembly genomes 
-        └── tax.txt                             <-- Taxnomic identificcation for each bin
+        ├── Metabolic_Sankey_diagram                                <-- Resuts of metabolic weighted scores for the metagenomic assembly genomes 
+            ├── Metabolic_Sankey_diagram_sur_input_rare.txt         <-- The contributions of microbial groups to individual biogeochemical processes in surface layer
+            ├── Metabolic_Sankey_diagram_sub_input_rare.txt         <-- The contributions of microbial groups to individual biogeochemical processes in subsurface layer
+            └── Metabolic_Sankey_diagram_pl_input_rare.txt          <-- The contributions of microbial groups to individual biogeochemical processes in permafrost layer 
+        ├── bin_abundance_table.tab                                 <-- Abundance table for each bin
+        ├── METABOLIC_result.xlsx                                   <-- Summary of the presence/absence of functional genes on each genome
+        ├── MW_score_result.csv                                     <-- Resuts of metabolic weighted scores for the metagenomic assembly genomes
+        └── tax.txt                                                 <-- Taxnomic identificcation for each bin
     └── Supplementary Data
-        ├── Supplementary Data 1.xlsx           <-- Characteristics of recovered metagenomic assembly genomes (MAGs)
-        ├── Supplementary Data 2.xlsx           <-- Custom selected KEGG genes used to define metabolic pathways
-        └── Supplementary Data 3.xlsx           <-- The metabolic profiles of all MAGs annotated by METABOLIC v4.0
+        ├── Supplementary Data 1.xlsx                               <-- Characteristics of recovered metagenomic assembly genomes (MAGs)
+        ├── Supplementary Data 2.xlsx                               <-- Custom selected KEGG genes used to define metabolic pathways
+        └── Supplementary Data 3.xlsx                               <-- The metabolic profiles of all MAGs annotated by METABOLIC v4.0
 └── script
-    ├── read_data.R                             <-- codes for data input
-    ├── amplicon_analysis.Rmd                   <-- microbial diversity and composition analysis based on the amplicon data
-    ├── SPEC-OCCU.Rmd                           <-- specificity-occupancy analysis
-    ├── env_effect_on_diver_comp.Rmd            <-- test the environmentaL effects on the microbial community
-    ├── iCAMP_analysis.R                        <-- null model analysis using iCAMP framework
-    ├── selected_ko_analysis.Rmd                <-- codes for the difference analysis in genes involved in C, N, S, and other elements among soil layers
-    └── Metagenome_analysis.Rmd                 <-- codes for reproducing the results about the MAGs
+    ├── read_data.R                                                 <-- codes for data input
+    ├── amplicon_analysis.Rmd                                       <-- microbial diversity and composition analysis based on the amplicon data
+    ├── SPEC-OCCU.Rmd                                               <-- specificity-occupancy analysis
+    ├── env_effect_on_diver_comp.Rmd                                <-- test the environmentaL effects on the microbial community
+    ├── iCAMP_analysis.R                                            <-- null model analysis using iCAMP framework
+    ├── selected_ko_analysis.Rmd                                    <-- codes for the difference analysis in genes involved in C, N, S, and other elements among soil layers
+    └── Metagenome_analysis.Rmd                                     <-- codes for reproducing the results about the MAGs
 
 ```
 All `.html` files in `script` folder are produced by Rmarkdown files (`.Rmd` files) using knitr package in R.
