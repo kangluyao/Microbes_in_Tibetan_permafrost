@@ -17,7 +17,7 @@ knitr::opts_chunk$set(
 ```
 ## Data input 
 Set work directory
-```{r}
+```{r, message=FALSE, warning=TRUE}
 setwd('e:/permafrost/')
 wd_16s <- file.path(getwd(),"data/16S")
 # if (!dir.exists(wd_16s)) {
@@ -27,7 +27,7 @@ wd_fun <- file.path(getwd(),"data/metagenome")
 save.dir <- file.path(getwd(),"result")
 ```
 Loading packages
-```{r}
+```{r, message=FALSE, warning=FALSE}
 library(phyloseq)
 library(ape)
 library(vegan)
@@ -36,13 +36,13 @@ library(microbiome)
 library(tidyverse)
 ```
 Data input
-```{r}
+```{r, message=FALSE, warning=TRUE}
 source("script/read_data.R")
 ```
 
 ## Alpha diversity
 Determine the alpha diversity including **Observed**, **Chao1**, **Shannon** and **Simpson**.
-```{r}
+```{r, message=FALSE, warning=TRUE}
 alpha_div <- estimate_richness(phylo_rare, measures = c("Observed", "Chao1", 'Shannon', 'Simpson'))
 library(picante)
 pd <- pd(t(otu), tree, include.root = F) # estimate the phylogenetic diversity
@@ -50,7 +50,7 @@ alpha_div <- cbind(Layers = metadata$Layer, alpha_div, Faith = pd$PD) %>%
   mutate(Layers = factor(Layers, levels = c('SUR', 'SUB', 'PL')))
 ```
 Box plot for evenness index using ggplot2
-```{r}
+```{r, message=FALSE, warning=TRUE}
 library(ggpubr)
 library(ggplot2)
 my_comparisons <- list( c("SUR", "SUB"), c("SUB", "PL"), c("SUR", "PL"))
@@ -69,7 +69,7 @@ p_shannon <- ggplot(alpha_div, aes(x = Layers, y = Shannon)) +
         panel.grid = element_blank())
 ```
 Box plot for faith index using ggplot2
-```{r}
+```{r, message=FALSE, warning=TRUE}
 p_faith <- ggplot(alpha_div, aes(x = Layers, y = Faith)) + 
   geom_boxplot(width = 0.5, aes(fill = Layers)) +
   scale_fill_manual(values = c("#f8766d", "#a3a500", "#00b0f6")) +
@@ -89,7 +89,7 @@ Then, we combine above two alpha diversity plot into one.
 cowplot::plot_grid(p_shannon, p_faith)
 ```
 ## Beta diversity
-```{r}
+```{r, message=FALSE, warning=FALSE}
 library(vegan)
 ## taxonomy
 ### PERMANOVA test
@@ -99,7 +99,7 @@ phy_dist <- as.matrix(UniFrac(phylo, weighted = TRUE, normalized = TRUE, paralle
 fun_dist <- as.matrix(vegdist(t(ko_tpm_table), "bray" ))
 ```
 
-```{r}
+```{r, message=FALSE, warning=TRUE}
 #permanova, ANOSIM and MRPP analysis
 library(vegan)
 adonis2(tax_dist ~ Layer, data = metadata)
