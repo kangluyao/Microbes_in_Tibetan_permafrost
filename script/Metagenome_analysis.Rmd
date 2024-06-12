@@ -31,16 +31,16 @@ save.dir <- file.path(getwd(),"result")
 
 ## loading packages
 
-```{r}
+```{r, message=FALSE}
 pacman::p_load(phyloseq, picante, microbiome, readxl, tidyverse, ggpubr, ggplot2)
 ```
 
 ## reading input files
-```{r}
+```{r, message=FALSE}
 source("script/read_data.R")
 ```
 
-```{r}
+```{r, message=FALSE}
 # tree.file <- file.path(wd_fun, 'binning_70/result/gtdb_tree/bacteria/tax.unrooted.tree')
 abundance_tab.file <- file.path(wd_fun, "metabolic/METABOLIC_70_layer/METABOLIC_70_all/bin_abundance_table.tab")
 tax.file <- file.path(wd_fun, "metabolic/METABOLIC_70_layer/METABOLIC_70_all/tax.txt")
