@@ -7,16 +7,15 @@
 
 
 ## Structure
-
 ```
 .
 ├── data1
     ├── 16S
-        ├── metadata.txt                                            <--metadata including the climatic, vegetable for samples
-        ├── otus.nwk                                                <--phylogenetic tree for ASVs
-        ├── otutab.txt                                              <--ASV table
-        ├── otutab_rare.txt                                         <--Rarefy ASV table
-        └── taxonomy.txt                                            <--Taxonomic table
+        ├── metadata.txt                                            <-- Metadata including the climatic, vegetable for samples
+        ├── otus.nwk                                                <-- Phylogenetic tree for ASVs
+        ├── otutab.txt                                              <-- ASV table
+        ├── otutab_rare.txt                                         <-- Rarefy ASV table
+        └── taxonomy.txt                                            <-- Taxonomic table
     ├── Functional genes
         ├── eggnog.KEGG_ko.raw.counts.txt                           <-- KEGG KO table with row counts
         └── eggnog.KEGG_ko.raw.tpm.txt                              <-- KEGG KO table with TPM tansformation
@@ -30,13 +29,12 @@
         ├── MW_score_result.csv                                     <-- Resuts of metabolic weighted scores for the metagenomic assembly genomes
         └── tax.txt                                                 <-- Taxnomic identificcation for each bin
 └── script
-    ├── read_data.R                                                 <-- codes for data input
-    ├── amplicon_analysis.Rmd                                       <-- microbial diversity and composition analysis based on the amplicon data
-    ├── SPEC-OCCU.Rmd                                               <-- specificity-occupancy analysis
-    ├── env_effect_on_diver_comp.Rmd                                <-- test the environmentaL effects on the microbial community
+    ├── read_data.R                                                 <-- Codes for data input
+    ├── amplicon_analysis.Rmd                                       <-- Microbial diversity and composition analysis based on the amplicon data
+    ├── SPEC-OCCU.Rmd                                               <-- Specificity-occupancy analysis
+    ├── env_effect_on_diver_comp.Rmd                                <-- Test the environmentaL effects on the microbial community
     ├── iCAMP_analysis.R                                            <-- null model analysis using iCAMP framework
-    ├── selected_ko_analysis.Rmd                                    <-- codes for the difference analysis in genes involved in C, N, S, and other elements among soil layers
-    └── Metagenome_analysis.Rmd                                     <-- codes for reproducing the results about the MAGs
-
+    ├── selected_ko_analysis.Rmd                                    <-- Codes for the difference analysis in genes involved in C, N, S, and other elements among soil layers
+    └── Metagenome_analysis.Rmd                                     <-- Codes for reproducing the results about the MAGs
 ```
 All `.html` files in `script` folder are produced by Rmarkdown files (`.Rmd` files) using knitr package in R.
