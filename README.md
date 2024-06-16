@@ -3,7 +3,7 @@
 
 > This project repository associated with the following manuscript:
 
-* Luyao Kang, Yutong Song, Rachel Mackelprang, Dianye Zhang, Shuqi Qin, Leiyi Chen, Linwei Wu, Yunfeng Peng and Yuanhe Yang*. Metagenomic insights into microbial structure and metabolism in alpine permafrost on the Tibetan Plateau.
+* Luyao Kang, Yutong Song, Rachel Mackelprang, Dianye Zhang, Shuqi Qin, Leiyi Chen, Linwei Wu, Yunfeng Peng and Yuanhe Yang*. Metagenomic insights into microbial community structure and metabolism in alpine permafrost on the Tibetan Plateau.
 
 
 ## Structure
@@ -20,7 +20,7 @@
     ├── Functional genes
         ├── eggnog.KEGG_ko.raw.counts.txt                           <-- KEGG KO table with row counts
         └── eggnog.KEGG_ko.raw.tpm.txt                              <-- KEGG KO table with TPM tansformation
-    ├── Metabolic
+    └── Metabolic
         ├── Metabolic_Sankey_diagram                                <-- Resuts of metabolic weighted scores for the metagenomic assembly genomes 
             ├── Metabolic_Sankey_diagram_sur_input_rare.txt         <-- The contributions of microbial groups to individual biogeochemical processes in surface layer
             ├── Metabolic_Sankey_diagram_sub_input_rare.txt         <-- The contributions of microbial groups to individual biogeochemical processes in subsurface layer
@@ -29,10 +29,6 @@
         ├── METABOLIC_result.xlsx                                   <-- Summary of the presence/absence of functional genes on each genome
         ├── MW_score_result.csv                                     <-- Resuts of metabolic weighted scores for the metagenomic assembly genomes
         └── tax.txt                                                 <-- Taxnomic identificcation for each bin
-    └── Supplementary Data
-        ├── Supplementary Data 1.xlsx                               <-- Characteristics of recovered metagenomic assembly genomes (MAGs)
-        ├── Supplementary Data 2.xlsx                               <-- Custom selected KEGG genes used to define metabolic pathways
-        └── Supplementary Data 3.xlsx                               <-- The metabolic profiles of all MAGs annotated by METABOLIC v4.0
 └── script
     ├── read_data.R                                                 <-- codes for data input
     ├── amplicon_analysis.Rmd                                       <-- microbial diversity and composition analysis based on the amplicon data
