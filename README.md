@@ -13,6 +13,7 @@
     ├── 16S
         ├── metadata.txt                                            <-- Metadata including the climatic, vegetable for samples
         ├── otus.nwk                                                <-- Phylogenetic tree for ASVs
+        ├── otus.fa                                                 <-- DNA sequences for represent ASV
         ├── otutab.txt                                              <-- ASV table
         ├── otutab_rare.txt                                         <-- Rarefy ASV table
         └── taxonomy.txt                                            <-- Taxonomic table
